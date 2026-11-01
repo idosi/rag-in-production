@@ -1,4 +1,4 @@
-.PHONY: install up down ingest ask api test lint eval-retrieval
+.PHONY: install up down ingest ask api test lint eval-retrieval eval-answers
 
 install:            ## Install dependencies into .venv
 	uv sync
@@ -21,6 +21,11 @@ api:                ## Run the HTTP API on http://localhost:8000 (docs at /docs)
 MODES ?= vector,hybrid,rerank,hybrid_rerank
 eval-retrieval:     ## Measure search quality per retrieval mode (no LLM calls, free): make eval-retrieval MODES=vector,rerank
 	uv run python -m rag.evals.retrieval --modes $(MODES)
+
+ANSWER_MODELS ?= claude-haiku-5-5,claude-sonnet-5-5,claude-opus-5-5
+LIMIT ?= 0
+eval-answers:       ## Grade answers per model with an LLM judge (COSTS MONEY, asks first): make eval-answers ANSWER_MODELS=claude-haiku-5-5 LIMIT=5
+	uv run python -m rag.evals.answers --models $(ANSWER_MODELS) --limit $(LIMIT)
 
 test:               ## Run the test suite
 	uv run pytest -q
