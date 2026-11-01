@@ -1,5 +1,7 @@
 """Download the FastAPI tutorial pages and turn them into Documents.
 
+Ingestion step 2 (see ingest/__main__.py). Input: nothing. Output: list[Document].
+
 The FastAPI docs are markdown files in the fastapi GitHub repo. Code examples are
 not written inline; they are pulled in from separate files with a directive like:
 
@@ -68,46 +70,75 @@ PAGES = [
     "tutorial/debugging",
 ]
 
+# Matches a whole line like:  {* ../../docs_src/body/tutorial001_py310.py hl[2] *}
+# and captures the file path ("../../docs_src/body/tutorial001_py310.py").
+# The "hl[2]" part (lines to highlight on the website) is ignored.
 INCLUDE_RE = re.compile(r"^\{\*\s+(?P<path>\S+)(?P<rest>.*?)\*\}\s*$", re.MULTILINE)
+
+# Matches the page title line:  # Query Parameters { #query-parameters }
+# and captures "Query Parameters" (without the { #anchor } part).
 TITLE_RE = re.compile(r"^#\s+(.+?)(?:\s*\{\s*#[^}]*\})?\s*$", re.MULTILINE)
 
+# A Fetcher is any function "repo path -> file text". The real one downloads over
+# HTTP; tests pass a dict lookup instead. Passing the function in (instead of
+# calling httpx directly) is what makes this module testable without a network.
 Fetcher = Callable[[str], str]
 
 
 def page_url(page: str) -> str:
-    """tutorial/dependencies/index -> https://fastapi.tiangolo.com/tutorial/dependencies/"""
+    """Where the page lives on the website, used for citation links.
+
+    tutorial/query-params        -> https://fastapi.tiangolo.com/tutorial/query-params/
+    tutorial/dependencies/index  -> https://fastapi.tiangolo.com/tutorial/dependencies/
+    """
     path = page.removesuffix("/index").removesuffix("index")
     return f"{SITE_BASE}{path}/"
 
 
 def resolve_includes(markdown: str, fetch: Fetcher) -> str:
-    """Replace every {* path *} directive with the file's content as a code block."""
+    """Replace every {* path *} directive with the file's content as a code block.
 
+    Before:   {* ../../docs_src/body/tutorial001_py310.py hl[2] *}
+    After:    ```python
+              from fastapi import FastAPI
+              ...
+              ```
+    """
+
+    # re.sub calls replace() once per match and puts its return value in place
+    # of the matched line.
     def replace(match: re.Match) -> str:
-        # "../../docs_src/x.py" is relative to docs/en/docs; the files live at repo root.
+        # The path is written relative to docs/en/docs/ ("../../docs_src/x.py"),
+        # but the files actually live at the repo root ("docs_src/x.py").
         rel = match.group("path").split("docs_src/", 1)[-1]
         try:
             code = fetch(f"docs_src/{rel}").rstrip()
         except httpx.HTTPError:
-            return ""  # a missing example must not break ingestion of the page
+            # One missing example should not fail the whole page: drop it and go on.
+            return ""
         return f"```python\n{code}\n```"
 
     return INCLUDE_RE.sub(replace, markdown)
 
 
 def make_fetcher(version: str, cache_dir: str | Path, client: httpx.Client) -> Fetcher:
-    """Fetch repo files over HTTP, caching them on disk.
+    """Build a Fetcher that downloads repo files and caches them on disk.
 
-    The cache makes re-running ingestion fast and lets it work offline.
+    First call for a path:  HTTP GET from raw.githubusercontent.com, save to
+                            data/raw/<version>/<path>, return the text.
+    Later calls:            read the saved file, no network.
+    The cache makes re-runs fast and lets ingestion work offline.
     """
     cache = Path(cache_dir) / version
 
+    # fetch() is a closure: it "remembers" cache, client and version from the
+    # enclosing function, so callers only pass the path.
     def fetch(repo_path: str) -> str:
         cached = cache / repo_path
         if cached.exists():
             return cached.read_text(encoding="utf-8")
         resp = client.get(RAW_BASE.format(version=version) + repo_path)
-        resp.raise_for_status()
+        resp.raise_for_status()  # turn 404/500 into an exception instead of saving an error page
         cached.parent.mkdir(parents=True, exist_ok=True)
         cached.write_text(resp.text, encoding="utf-8")
         return resp.text
@@ -116,7 +147,8 @@ def make_fetcher(version: str, cache_dir: str | Path, client: httpx.Client) -> F
 
 
 def load_page(page: str, fetch: Fetcher) -> Document:
-    raw = fetch(f"docs/en/docs/{page}.md")
+    """One page path -> one Document with its code examples inlined."""
+    raw = fetch(f"docs/en/docs/{page}.md")  # e.g. docs/en/docs/tutorial/body.md
     text = resolve_includes(raw, fetch)
     m = TITLE_RE.search(text)
     title = m.group(1).strip() if m else page
@@ -124,6 +156,9 @@ def load_page(page: str, fetch: Fetcher) -> Document:
 
 
 def load_documents(version: str, cache_dir: str | Path) -> list[Document]:
+    """Entry point used by ingestion: all pages in PAGES, in order."""
+    # One HTTP client for all requests: it reuses the TCP/TLS connection, which
+    # is much faster than opening a new connection for each of ~200 files.
     with httpx.Client(timeout=30, follow_redirects=True) as client:
         fetch = make_fetcher(version, cache_dir, client)
         return [load_page(p, fetch) for p in PAGES]

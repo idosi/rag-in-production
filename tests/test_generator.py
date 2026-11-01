@@ -63,3 +63,10 @@ def test_generate_sends_sources_and_reads_text_blocks():
 def test_generate_handles_refusal():
     gen, _ = make_generator(response("", stop_reason="refusal"))
     assert "declined" in gen.generate("?", [src(0)]).text
+
+
+def test_api_key_from_settings_reaches_the_client():
+    # .env values live only in Settings, not in os.environ, so the key must be
+    # passed to the SDK explicitly.
+    gen = ClaudeGenerator("claude-opus-5-5", "medium", 1000, api_key="sk-from-settings")
+    assert gen.client.api_key == "sk-from-settings"

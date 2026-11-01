@@ -1,4 +1,12 @@
-"""Read and write chunks in Postgres."""
+"""Read and write chunks in Postgres. All SQL in the project lives here.
+
+Writers (ingestion):  is_unchanged -> replace_document -> delete_missing
+Reader  (questions):  search
+
+Note on `%s` / `%(q)s` in the SQL below: those are query PARAMETERS. psycopg sends
+the values separately from the SQL text, so user input can never change the query
+(no SQL injection). Never build SQL with f-strings from user input.
+"""
 
 import hashlib
 
@@ -19,11 +27,14 @@ def content_hash(doc: Document, fingerprint: str = "") -> str:
 
 
 class ChunkStore:
+    """Wraps one DB connection. Created once and reused (by ingestion or by the API)."""
+
     def __init__(self, conn: psycopg.Connection, fingerprint: str = ""):
         self.conn = conn
         self.fingerprint = fingerprint
 
     def is_unchanged(self, doc: Document) -> bool:
+        """True if this page was already ingested with the same text and settings."""
         with self.conn.cursor() as cur:
             cur.execute("SELECT content_hash FROM documents WHERE id = %s", (doc.id,))
             row = cur.fetchone()
@@ -38,12 +49,18 @@ class ChunkStore:
         version or the new one, never a half-ingested page. Running ingestion twice
         gives the same result (idempotent), which is what makes it safe to re-run.
         """
+        # `with conn.transaction()`: COMMIT if the block finishes, ROLLBACK if any
+        # line inside raises. So either all three statements happen, or none.
         with self.conn.transaction(), self.conn.cursor() as cur:
-            cur.execute("DELETE FROM documents WHERE id = %s", (doc.id,))  # cascades to chunks
+            # ON DELETE CASCADE (db.py) removes the page's old chunks too.
+            cur.execute("DELETE FROM documents WHERE id = %s", (doc.id,))
             cur.execute(
                 "INSERT INTO documents (id, title, url, content_hash) VALUES (%s, %s, %s, %s)",
                 (doc.id, doc.title, doc.url, content_hash(doc, self.fingerprint)),
             )
+            # executemany: one INSERT per chunk, sent efficiently in a batch.
+            # np.array(v) lets pgvector convert the list of floats to a vector.
+            # strict=True fails loudly if chunks and vectors ever differ in length.
             cur.executemany(
                 """INSERT INTO chunks (document_id, chunk_index, heading, url, content, embedding)
                    VALUES (%s, %s, %s, %s, %s, %s)""",
@@ -69,6 +86,11 @@ class ChunkStore:
         `<=>` is pgvector's cosine distance (0 = same direction, 2 = opposite).
         We report similarity = 1 - distance so that higher means more relevant.
         """
+        # The whole retrieval step is this one query:
+        #   - compute the distance between the question vector and every chunk
+        #   - sort by it, closest first
+        #   - keep the first k
+        # The HNSW index (db.py) makes the ORDER BY fast without scanning every row.
         with self.conn.cursor() as cur:
             cur.execute(
                 """SELECT document_id, chunk_index, heading, url, content,
@@ -79,6 +101,7 @@ class ChunkStore:
                 {"q": np.array(query_vector), "k": k},
             )
             rows = cur.fetchall()
+        # Turn raw DB rows (tuples) back into typed objects for the rest of the code.
         return [
             RetrievedChunk(
                 chunk=Chunk(document_id=r[0], index=r[1], heading=r[2], url=r[3], text=r[4]),
