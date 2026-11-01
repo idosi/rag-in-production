@@ -6,17 +6,19 @@ THE FOUR MODES (set RETRIEVAL_MODE in .env, or compare all of them with
 `make eval-retrieval`, which runs every mode on the golden set)
 
     vector         embed the question, take the k nearest chunks       (step 1)
-    hybrid         vector top 30 + keyword top 30, merged with RRF, take k
-    rerank         vector top 30, re-scored by a cross-encoder, take k
-    hybrid_rerank  hybrid top 30, re-scored by a cross-encoder, take k
+    hybrid         vector top N + keyword top N, merged with RRF, take k
+    rerank         vector top N, re-scored by a cross-encoder, take k   (default)
+    hybrid_rerank  hybrid top N, re-scored by a cross-encoder, take k
+N = CANDIDATE_K (default 10). Why rerank with N=10 won, with the numbers:
+docs/learning/02b-hybrid-search-rerank.md, section 7.
 
 Why four and not just "the best one": if we only built hybrid_rerank and it
 scored higher, we wouldn't know which half helped. Each mode adds ONE idea, so
 the eval tells us what each idea is worth, and whether it pays for its latency.
 
 WHAT HAPPENS IN hybrid_rerank, IN ORDER (the other modes skip some steps)
-    1. vector search: 30 candidates by meaning              -> store.py search
-    2. keyword search: 30 candidates by exact words         -> store.py keyword_search
+    1. vector search: N candidates by meaning               -> store.py search
+    2. keyword search: N candidates by exact words          -> store.py keyword_search
     3. RRF: merge the two ranked lists into one             -> rrf() below
     4. rerank: a cross-encoder reads (question, chunk) for
        each of the top 30 and scores it again; keep the top k  -> CrossEncoderReranker
@@ -127,8 +129,10 @@ class Retriever:
 
     def retrieve(self, question: str, k: int) -> list[RetrievedChunk]:
         # Plain vector search fetches exactly k. Every other mode fetches a wider
-        # pool first (candidate_k = 30), because merging or re-ordering can only
-        # promote a chunk that is somewhere in the pool.
+        # pool first (candidate_k, default 10), because merging or re-ordering can
+        # only promote a chunk that is somewhere in the pool. A bigger pool is not
+        # always better: at 30 the reranker promoted wrong chunks from far down
+        # the list and broke 4 questions; at 10 it broke none.
         pool = k if self.mode == "vector" else max(k, self.candidate_k)
 
         # 1. Vector search: always runs.
