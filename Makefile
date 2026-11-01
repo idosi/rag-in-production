@@ -1,4 +1,4 @@
-.PHONY: install up down ingest ask api test lint
+.PHONY: install up down ingest ask api test lint eval-retrieval
 
 install:            ## Install dependencies into .venv
 	uv sync
@@ -17,6 +17,9 @@ ask:                ## Ask a question from the CLI: make ask Q="How do I declare
 
 api:                ## Run the HTTP API on http://localhost:8000 (docs at /docs)
 	uv run uvicorn rag.api:app --reload
+
+eval-retrieval:     ## Measure search quality on the golden set (no LLM calls, free)
+	uv run python -m rag.evals.retrieval
 
 test:               ## Run the test suite
 	uv run pytest -q
