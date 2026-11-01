@@ -101,16 +101,68 @@ class ChunkStore:
                 {"q": np.array(query_vector), "k": k},
             )
             rows = cur.fetchall()
-        # Turn raw DB rows (tuples) back into typed objects for the rest of the code.
-        return [
-            RetrievedChunk(
-                chunk=Chunk(document_id=r[0], index=r[1], heading=r[2], url=r[3], text=r[4]),
-                score=float(r[5]),
+        return _to_results(rows)
+
+    def keyword_search(self, question: str, k: int) -> list[RetrievedChunk]:
+        """Return the k chunks that best match the question's WORDS (step 2b).
+
+        Complements search(): the vector finds chunks with similar meaning, this
+        finds chunks with the same words. That matters for exact names
+        (response_model_exclude_unset, HTTPException) that an embedding model may
+        blur into "something about responses".
+
+        Worked example, question "How do I return a 404 error?":
+            to_tsvector       -> '404':5 'error':6 'return':4
+            OR query (below)  -> '404' | 'error' | 'return'
+            matching chunks   -> any chunk containing at least one of those words
+            ts_rank_cd        -> higher for more matching words, words close
+                                 together, and words in the heading (weight A)
+
+        Why OR and not AND: websearch_to_tsquery / plainto_tsquery would require
+        EVERY word. A real question has words no single chunk contains, and then
+        nothing comes back. With OR, more matches simply rank higher.
+
+        Limitation, and an interview point: ts_rank_cd is not BM25. It doesn't
+        know that "fastapi" appears in every chunk (no IDF, "inverse document
+        frequency"), so common words count as much as rare ones. True BM25 in
+        Postgres needs an extension (e.g. ParadeDB pg_search). We measure first
+        and only add that if the numbers say keyword search is the weak link.
+        """
+        with self.conn.cursor() as cur:
+            cur.execute(
+                """WITH q AS (
+                       -- Normalise the question exactly like the chunks were
+                       -- (stop words out, stemming), then join the words with |.
+                       -- quote_literal + ::tsquery builds the query from the
+                       -- already-normalised words without normalising them twice.
+                       SELECT string_agg(quote_literal(lexeme), ' | ')::tsquery AS query
+                       FROM unnest(to_tsvector('english', %(text)s))
+                   )
+                   SELECT document_id, chunk_index, heading, url, content,
+                          ts_rank_cd(tsv, q.query) AS score
+                   FROM chunks, q
+                   WHERE tsv @@ q.query          -- @@ = "matches"; uses the GIN index
+                   ORDER BY score DESC
+                   LIMIT %(k)s""",
+                {"text": question, "k": k},
             )
-            for r in rows
-        ]
+            rows = cur.fetchall()
+        # A question made only of stop words ("how do I?") gives an empty query,
+        # which matches nothing: we return [] and the vector search still works.
+        return _to_results(rows)
 
     def count_chunks(self) -> int:
         with self.conn.cursor() as cur:
             cur.execute("SELECT count(*) FROM chunks")
             return cur.fetchone()[0]
+
+
+def _to_results(rows: list[tuple]) -> list[RetrievedChunk]:
+    """Turn raw DB rows (tuples) back into typed objects for the rest of the code."""
+    return [
+        RetrievedChunk(
+            chunk=Chunk(document_id=r[0], index=r[1], heading=r[2], url=r[3], text=r[4]),
+            score=float(r[5]),
+        )
+        for r in rows
+    ]

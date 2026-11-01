@@ -7,8 +7,11 @@ A Retrieval-Augmented Generation (RAG) service that answers questions about the 
 ```mermaid
 flowchart LR
   A[FastAPI docs] --> B[Loader] --> C[Chunker] --> D[Embedder] --> E[(Postgres + pgvector)]
-  Q[Question] --> QE[Embedder] --> S[Vector search] --> G[Claude] --> R[Answer + citations]
+  Q[Question] --> QE[Embedder] --> S[Vector search] --> F[RRF fusion]
+  Q --> K[Keyword search] --> F
+  F --> X[Cross-encoder rerank] --> G[Claude] --> R[Answer + citations]
   E --> S
+  E --> K
 ```
 
 | Layer | Choice | Why |
@@ -17,6 +20,7 @@ flowchart LR
 | Chunking | Markdown-structure aware, ~1200 chars, heading path prefix | Never splits code examples; every chunk knows its context |
 | Embeddings | `BAAI/bge-small-en-v1.5` via fastembed (local) | No API key, no per-call cost |
 | Store | Postgres 16 + pgvector, HNSW index | One database for text, metadata and vectors |
+| Retrieval | `vector`, `hybrid` (+ Postgres full-text, RRF), `rerank` (cross-encoder), or both | Each idea measured separately on the golden set before it becomes the default |
 | Generation | Claude, sources-only prompt with `[n]` citations | Grounded answers that can be verified |
 | API | FastAPI | `POST /ask`, `GET /health` |
 
@@ -31,12 +35,16 @@ make up                   # Postgres + pgvector
 make ingest               # download, chunk, embed, store
 make ask Q="How do I make a query parameter optional?"
 make api                  # http://localhost:8000/docs
+make eval-retrieval        # search quality per retrieval mode, no LLM calls
 make test
 ```
 
 ## Roadmap
 
 - [x] **Step 1: Foundations.** End-to-end RAG with citations ([explanation](docs/learning/01-foundations.md))
-- [ ] **Step 2: Measured quality.** Golden set, retrieval and faithfulness evals, hybrid search, reranking
+- [ ] **Step 2: Measured quality.**
+  - [x] 2a: golden set (47 questions) and retrieval evals ([explanation](docs/learning/02a-retrieval-evals.md))
+  - [x] 2b: hybrid search and reranking, four modes compared ([explanation](docs/learning/02b-hybrid-search-rerank.md))
+  - [ ] 2c: answer evals (LLM-as-judge) and model comparison
 - [ ] **Step 3: Production.** Tracing, cost tracking, caching, auth, rate limiting, prompt-injection defenses, Docker, CI, cloud deploy
 - [ ] **Step 4: Write-up.** Architecture, results, and the trade-off behind every decision

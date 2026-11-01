@@ -45,6 +45,30 @@ CREATE TABLE IF NOT EXISTS chunks (
 -- the <=> (cosine distance) operator we query with.
 CREATE INDEX IF NOT EXISTS chunks_embedding_hnsw
     ON chunks USING hnsw (embedding vector_cosine_ops);
+
+-- KEYWORD SEARCH (step 2b). A second way to find chunks: by the exact words in
+-- them, next to the vector search above, which finds them by meaning.
+--
+-- tsv holds each chunk's words, normalised for search:
+--   "How do I use response_model_exclude_unset after returning a response?"
+--   -> 'exclud':7 'model':6 'respons':5,12 'return':10 'unset':8 'use':4
+-- Stop words ("how", "do", "I") are dropped, words are stemmed ("returning" ->
+-- "return"), and underscores split code names into words.
+--
+-- GENERATED ALWAYS ... STORED: Postgres computes the column itself on every
+-- insert, so the ingestion code doesn't change at all. ADD COLUMN IF NOT EXISTS
+-- also fills it in for rows that are already there: no re-ingest needed.
+--
+-- setweight A/B: a word in the heading counts more than the same word in the body.
+ALTER TABLE chunks ADD COLUMN IF NOT EXISTS tsv tsvector GENERATED ALWAYS AS (
+    setweight(to_tsvector('english', heading), 'A') ||
+    setweight(to_tsvector('english', content), 'B')
+) STORED;
+
+-- GIN: an inverted index (word -> list of rows that contain it), the same idea as
+-- the index at the back of a book. It makes "which chunks contain these words?"
+-- fast without reading every row.
+CREATE INDEX IF NOT EXISTS chunks_tsv_gin ON chunks USING gin (tsv);
 """
 
 

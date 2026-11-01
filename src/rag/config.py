@@ -13,6 +13,7 @@ a clear error, instead of breaking somewhere deep in the chunker later.
 """
 
 from functools import lru_cache
+from typing import Literal
 
 from pydantic import SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -48,6 +49,18 @@ class Settings(BaseSettings):
 
     # --- Retrieval ---
     top_k: int = 5  # chunks given to the LLM per question
+    # vector | hybrid | rerank | hybrid_rerank  (see retrieval.py). Chosen by
+    # `make eval-retrieval` on 2026-11-01 (docs/learning/02b, section 7):
+    #   vector                      hit@5 0.905   8ms
+    #   rerank, 30 candidates       hit@5 0.881   620ms   fixed 3, broke 4
+    #   rerank, 10 candidates       hit@5 0.952   163ms   fixed 2, broke 0  <- default
+    retrieval_mode: Literal["vector", "hybrid", "rerank", "hybrid_rerank"] = "rerank"
+    # Pool size for hybrid / rerank before cutting to top_k. Small on purpose: the
+    # reranker only reorders the vector search's best 10, so it can't promote a
+    # chunk the vector search ranked far down (that is what broke 4 questions at 30).
+    candidate_k: int = 10
+    rrf_k: int = 60  # RRF constant, see retrieval.rrf
+    reranker_model: str = "Xenova/ms-marco-MiniLM-L-6-v2"  # ~80MB cross-encoder, CPU
 
     # --- Generation ---
     llm_model: str = "claude-opus-5-5"  # try claude-haiku-5-5 to save money

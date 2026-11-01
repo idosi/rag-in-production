@@ -1,0 +1,1966 @@
+{
+  "config": {
+    "embedding_model": "BAAI/bge-small-en-v1.5",
+    "chunk_size": 1200,
+    "chunk_overlap": 200,
+    "docs_version": "0.162.0"
+  },
+  "summary": {
+    "questions": 42,
+    "hit@1": 0.667,
+    "hit@3": 0.81,
+    "hit@5": 0.905,
+    "hit@10": 0.952,
+    "recall@1": 0.391,
+    "recall@3": 0.583,
+    "recall@5": 0.722,
+    "recall@10": 0.796,
+    "mrr": 0.759
+  },
+  "results": [
+    {
+      "id": "q01",
+      "category": "direct",
+      "question": "How do I make a query parameter optional?",
+      "relevant": [
+        "tutorial/query-params#optional-parameters",
+        "tutorial/query-params-str-validations#required-parameters-and-none"
+      ],
+      "retrieved": [
+        "tutorial/query-params#optional-parameters",
+        "tutorial/query-params-str-validations#required-parameters-and-none",
+        "tutorial/query-params#required-query-parameters",
+        "tutorial/query-params-str-validations#alternative-old-query-as-the-default-value",
+        "tutorial/query-params-str-validations#required-parameters",
+        "tutorial/query-params#defaults",
+        "tutorial/query-params-str-validations#default-values",
+        "tutorial/query-params-str-validations#alternative-old-query-as-the-default-value",
+        "tutorial/query-params-str-validations#additional-validation",
+        "tutorial/query-params#required-query-parameters"
+      ],
+      "scores": [
+        0.8261,
+        0.8015,
+        0.7872,
+        0.7791,
+        0.7712,
+        0.7633,
+        0.7622,
+        0.7615,
+        0.7582,
+        0.7501
+      ],
+      "first_hit_rank": 1,
+      "hit": {
+        "1": true,
+        "3": true,
+        "5": true,
+        "10": true
+      },
+      "recall": {
+        "1": 0.5,
+        "3": 1.0,
+        "5": 1.0,
+        "10": 1.0
+      }
+    },
+    {
+      "id": "q02",
+      "category": "code-name",
+      "question": "What does jsonable_encoder do?",
+      "relevant": [
+        "tutorial/encoder#json-compatible-encoder",
+        "tutorial/encoder#using-the-jsonable-encoder"
+      ],
+      "retrieved": [
+        "tutorial/encoder#using-the-jsonable-encoder",
+        "tutorial/encoder#json-compatible-encoder",
+        "tutorial/encoder#using-the-jsonable-encoder",
+        "tutorial/body-updates#update-replacing-with-put",
+        "tutorial/body-updates#update-replacing-with-put",
+        "tutorial/path-params#data-conversion",
+        "tutorial/body-multiple-params#embed-a-single-body-parameter",
+        "tutorial/request-forms#about-form-fields",
+        "tutorial/response-model#response-model-return-type",
+        "tutorial/response-model#data-with-the-same-values-as-the-defaults"
+      ],
+      "scores": [
+        0.8048,
+        0.8002,
+        0.7827,
+        0.7322,
+        0.6882,
+        0.6757,
+        0.6749,
+        0.6709,
+        0.6704,
+        0.6699
+      ],
+      "first_hit_rank": 1,
+      "hit": {
+        "1": true,
+        "3": true,
+        "5": true,
+        "10": true
+      },
+      "recall": {
+        "1": 0.5,
+        "3": 1.0,
+        "5": 1.0,
+        "10": 1.0
+      }
+    },
+    {
+      "id": "q03",
+      "category": "paraphrase",
+      "question": "How do I run code after returning a response?",
+      "relevant": [
+        "tutorial/background-tasks#background-tasks",
+        "tutorial/background-tasks#using-backgroundtasks",
+        "tutorial/background-tasks#add-the-background-task"
+      ],
+      "retrieved": [
+        "tutorial/middleware#before-and-after-the-response",
+        "tutorial/response-model#response-model-return-type",
+        "tutorial/handling-errors#the-resulting-response",
+        "tutorial/handling-errors#override-the-httpexception-error-handler",
+        "tutorial/response-status-code#response-status-code",
+        "tutorial/testing#run-it",
+        "tutorial/background-tasks#background-tasks",
+        "tutorial/handling-errors#override-the-httpexception-error-handler",
+        "tutorial/path-operation-configuration#response-status-code",
+        "tutorial/handling-errors#use-httpexception"
+      ],
+      "scores": [
+        0.7288,
+        0.72,
+        0.7111,
+        0.7049,
+        0.7011,
+        0.6939,
+        0.6913,
+        0.6896,
+        0.6871,
+        0.6867
+      ],
+      "first_hit_rank": 7,
+      "hit": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": true
+      },
+      "recall": {
+        "1": 0.0,
+        "3": 0.0,
+        "5": 0.0,
+        "10": 0.3333333333333333
+      }
+    },
+    {
+      "id": "q04",
+      "category": "direct",
+      "question": "How do I declare a path parameter with a type?",
+      "relevant": [
+        "tutorial/path-params#path-parameters-with-types",
+        "tutorial/path-params#path-parameters"
+      ],
+      "retrieved": [
+        "tutorial/path-params#path-parameters-with-types",
+        "tutorial/path-params-numeric-validations#declare-metadata",
+        "tutorial/path-params#declare-a-path-parameter",
+        "tutorial/path-params#openapi-support",
+        "tutorial/path-params#path-parameters",
+        "tutorial/path-params-numeric-validations#recap",
+        "tutorial/path-params#working-with-python-enumerations",
+        "tutorial/path-params#predefined-values",
+        "tutorial/path-params-numeric-validations#order-the-parameters-as-you-need",
+        "tutorial/path-params-numeric-validations#order-the-parameters-as-you-need-tricks"
+      ],
+      "scores": [
+        0.8365,
+        0.8149,
+        0.7999,
+        0.7901,
+        0.7746,
+        0.7711,
+        0.7711,
+        0.7711,
+        0.7709,
+        0.7696
+      ],
+      "first_hit_rank": 1,
+      "hit": {
+        "1": true,
+        "3": true,
+        "5": true,
+        "10": true
+      },
+      "recall": {
+        "1": 0.5,
+        "3": 0.5,
+        "5": 1.0,
+        "10": 1.0
+      }
+    },
+    {
+      "id": "q05",
+      "category": "paraphrase",
+      "question": "My route /users/me is being matched by /users/{user_id}. Why?",
+      "relevant": [
+        "tutorial/path-params#order-matters"
+      ],
+      "retrieved": [
+        "tutorial/security/oauth2-jwt#hash-and-verify-the-passwords",
+        "tutorial/security/oauth2-jwt#update-the-token-path-operation",
+        "tutorial/security/simple-oauth2#update-the-dependencies",
+        "tutorial/security/simple-oauth2#inactive-user",
+        "tutorial/path-params#order-matters",
+        "tutorial/security/simple-oauth2#update-the-dependencies",
+        "tutorial/security/simple-oauth2#why-use-password-hashing",
+        "tutorial/security/oauth2-jwt#technical-details-about-the-jwt-subject-sub",
+        "tutorial/security/simple-oauth2#why-use-password-hashing",
+        "tutorial/security/simple-oauth2#get-your-own-user-data"
+      ],
+      "scores": [
+        0.7038,
+        0.6829,
+        0.6782,
+        0.6756,
+        0.6729,
+        0.6691,
+        0.6679,
+        0.6637,
+        0.6635,
+        0.6609
+      ],
+      "first_hit_rank": 5,
+      "hit": {
+        "1": false,
+        "3": false,
+        "5": true,
+        "10": true
+      },
+      "recall": {
+        "1": 0.0,
+        "3": 0.0,
+        "5": 1.0,
+        "10": 1.0
+      }
+    },
+    {
+      "id": "q06",
+      "category": "direct",
+      "question": "How can I restrict a path parameter to a fixed set of allowed values?",
+      "relevant": [
+        "tutorial/path-params#predefined-values",
+        "tutorial/path-params#create-an-enum-class",
+        "tutorial/path-params#declare-a-path-parameter"
+      ],
+      "retrieved": [
+        "tutorial/path-params#predefined-values",
+        "tutorial/path-params#working-with-python-enumerations",
+        "tutorial/path-params-numeric-validations#order-the-parameters-as-you-need-tricks",
+        "tutorial/path-params-numeric-validations#order-the-parameters-as-you-need",
+        "tutorial/path-params-numeric-validations#declare-metadata",
+        "tutorial/path-params-numeric-validations#order-the-parameters-as-you-need",
+        "tutorial/path-params-numeric-validations#number-validations-greater-than-or-equal",
+        "tutorial/path-params-numeric-validations#number-validations-greater-than-and-less-than-or-equal",
+        "tutorial/path-params-numeric-validations#recap",
+        "tutorial/path-params#check-the-docs"
+      ],
+      "scores": [
+        0.765,
+        0.7476,
+        0.7476,
+        0.7414,
+        0.7372,
+        0.7321,
+        0.7303,
+        0.7287,
+        0.7253,
+        0.7149
+      ],
+      "first_hit_rank": 1,
+      "hit": {
+        "1": true,
+        "3": true,
+        "5": true,
+        "10": true
+      },
+      "recall": {
+        "1": 0.3333333333333333,
+        "3": 0.3333333333333333,
+        "5": 0.3333333333333333,
+        "10": 0.3333333333333333
+      }
+    },
+    {
+      "id": "q07",
+      "category": "paraphrase",
+      "question": "How do I accept a file path like /files/home/johndoe/myfile.txt in the URL?",
+      "relevant": [
+        "tutorial/path-params#path-parameters-containing-paths",
+        "tutorial/path-params#path-convertor"
+      ],
+      "retrieved": [
+        "tutorial/path-params#path-parameters-containing-paths",
+        "tutorial/path-params#path-convertor",
+        "tutorial/first-steps#path",
+        "tutorial/bigger-applications#another-module-with-apirouter",
+        "tutorial/request-files#recap",
+        "tutorial/path-params-numeric-validations#recap",
+        "tutorial/bigger-applications#apirouter",
+        "tutorial/bigger-applications#add-some-custom-tags-responses-and-dependencies",
+        "tutorial/request-forms-and-files#define-file-and-form-parameters",
+        "tutorial/request-files#define-file-parameters"
+      ],
+      "scores": [
+        0.7566,
+        0.7507,
+        0.6955,
+        0.6789,
+        0.6775,
+        0.6663,
+        0.6655,
+        0.6652,
+        0.6646,
+        0.662
+      ],
+      "first_hit_rank": 1,
+      "hit": {
+        "1": true,
+        "3": true,
+        "5": true,
+        "10": true
+      },
+      "recall": {
+        "1": 0.5,
+        "3": 1.0,
+        "5": 1.0,
+        "10": 1.0
+      }
+    },
+    {
+      "id": "q08",
+      "category": "direct",
+      "question": "How do I receive a JSON request body?",
+      "relevant": [
+        "tutorial/body#request-body",
+        "tutorial/body#create-your-data-model",
+        "tutorial/body#declare-it-as-a-parameter"
+      ],
+      "retrieved": [
+        "tutorial/first-steps#check-it",
+        "tutorial/body#request-body",
+        "tutorial/body#results",
+        "tutorial/handling-errors#use-the-requestvalidationerror-body",
+        "tutorial/schema-extra-example#body-with-examples",
+        "tutorial/body#automatic-docs",
+        "tutorial/schema-extra-example#example-in-the-docs-ui",
+        "tutorial/schema-extra-example#openapi-examples-in-the-docs-ui",
+        "tutorial/body-multiple-params#embed-a-single-body-parameter",
+        "tutorial/first-steps#step-5-return-the-content"
+      ],
+      "scores": [
+        0.7934,
+        0.7528,
+        0.7506,
+        0.7397,
+        0.7397,
+        0.7372,
+        0.7372,
+        0.7329,
+        0.7308,
+        0.7269
+      ],
+      "first_hit_rank": 2,
+      "hit": {
+        "1": false,
+        "3": true,
+        "5": true,
+        "10": true
+      },
+      "recall": {
+        "1": 0.0,
+        "3": 0.3333333333333333,
+        "5": 0.3333333333333333,
+        "10": 0.3333333333333333
+      }
+    },
+    {
+      "id": "q09",
+      "category": "direct",
+      "question": "How do I limit the length of a query parameter string?",
+      "relevant": [
+        "tutorial/query-params-str-validations#additional-validation",
+        "tutorial/query-params-str-validations#add-query-to-annotated-in-the-q-parameter",
+        "tutorial/query-params-str-validations#add-more-validations"
+      ],
+      "retrieved": [
+        "tutorial/query-params-str-validations#additional-validation",
+        "tutorial/query-params-str-validations#alternative-old-query-as-the-default-value",
+        "tutorial/query-params-str-validations#alternative-old-query-as-the-default-value",
+        "tutorial/query-params-str-validations#add-query-to-annotated-in-the-q-parameter",
+        "tutorial/query-params-str-validations#add-more-validations",
+        "tutorial/query-params-str-validations#default-values",
+        "tutorial/query-params-str-validations#query-parameter-list-multiple-values",
+        "tutorial/query-params-str-validations#required-parameters",
+        "tutorial/query-params-str-validations#required-parameters-and-none",
+        "tutorial/query-params-str-validations#deprecating-parameters"
+      ],
+      "scores": [
+        0.8267,
+        0.8014,
+        0.8001,
+        0.7994,
+        0.7907,
+        0.7636,
+        0.7555,
+        0.7554,
+        0.755,
+        0.747
+      ],
+      "first_hit_rank": 1,
+      "hit": {
+        "1": true,
+        "3": true,
+        "5": true,
+        "10": true
+      },
+      "recall": {
+        "1": 0.3333333333333333,
+        "3": 0.3333333333333333,
+        "5": 1.0,
+        "10": 1.0
+      }
+    },
+    {
+      "id": "q10",
+      "category": "code-name",
+      "question": "How do I validate a query parameter against a regular expression?",
+      "relevant": [
+        "tutorial/query-params-str-validations#add-regular-expressions"
+      ],
+      "retrieved": [
+        "tutorial/query-params-str-validations#add-regular-expressions",
+        "tutorial/query-params-str-validations#deprecating-parameters",
+        "tutorial/query-params-str-validations#additional-validation",
+        "tutorial/path-params-numeric-validations#recap",
+        "tutorial/query-params-str-validations#alternative-old-query-as-the-default-value",
+        "tutorial/query-params-str-validations#required-parameters-and-none",
+        "tutorial/query-params-str-validations#alias-parameters",
+        "tutorial/query-params-str-validations#custom-validation",
+        "tutorial/query-params-str-validations#exclude-parameters-from-openapi",
+        "tutorial/query-params-str-validations#alternative-old-query-as-the-default-value"
+      ],
+      "scores": [
+        0.8043,
+        0.772,
+        0.7716,
+        0.7616,
+        0.7596,
+        0.756,
+        0.752,
+        0.747,
+        0.7456,
+        0.7453
+      ],
+      "first_hit_rank": 1,
+      "hit": {
+        "1": true,
+        "3": true,
+        "5": true,
+        "10": true
+      },
+      "recall": {
+        "1": 1.0,
+        "3": 1.0,
+        "5": 1.0,
+        "10": 1.0
+      }
+    },
+    {
+      "id": "q11",
+      "category": "paraphrase",
+      "question": "How do I accept the same query parameter several times, like ?q=foo&q=bar?",
+      "relevant": [
+        "tutorial/query-params-str-validations#query-parameter-list-multiple-values",
+        "tutorial/query-params-str-validations#query-parameter-list-multiple-values-with-defaults"
+      ],
+      "retrieved": [
+        "tutorial/query-params-str-validations#query-parameter-list-multiple-values",
+        "tutorial/query-params-str-validations#alternative-old-query-as-the-default-value",
+        "tutorial/query-params-str-validations#query-parameter-list-multiple-values-with-defaults",
+        "tutorial/query-params-str-validations#alias-parameters",
+        "tutorial/query-params#multiple-path-and-query-parameters",
+        "tutorial/query-params-str-validations#add-more-validations",
+        "tutorial/query-params-str-validations#default-values",
+        "tutorial/query-params-str-validations#using-just-list",
+        "tutorial/query-params-str-validations#alternative-old-query-as-the-default-value",
+        "tutorial/query-params-str-validations#required-parameters-and-none"
+      ],
+      "scores": [
+        0.79,
+        0.7681,
+        0.7651,
+        0.7552,
+        0.7534,
+        0.7518,
+        0.7516,
+        0.7465,
+        0.7465,
+        0.7465
+      ],
+      "first_hit_rank": 1,
+      "hit": {
+        "1": true,
+        "3": true,
+        "5": true,
+        "10": true
+      },
+      "recall": {
+        "1": 0.5,
+        "3": 1.0,
+        "5": 1.0,
+        "10": 1.0
+      }
+    },
+    {
+      "id": "q12",
+      "category": "paraphrase",
+      "question": "The query parameter name I need is item-query, which is not a valid Python variable name. What can I do?",
+      "relevant": [
+        "tutorial/query-params-str-validations#alias-parameters"
+      ],
+      "retrieved": [
+        "tutorial/query-params-str-validations#alias-parameters",
+        "tutorial/query-params-str-validations#required-parameters-and-none",
+        "tutorial/query-params-str-validations#query-parameter-list-multiple-values-with-defaults",
+        "tutorial/path-params-numeric-validations#order-the-parameters-as-you-need-tricks",
+        "tutorial/query-params-str-validations#query-parameter-list-multiple-values",
+        "tutorial/query-params-str-validations#required-parameters",
+        "tutorial/query-params-str-validations#alternative-old-query-as-the-default-value",
+        "tutorial/query-params-str-validations#default-values",
+        "tutorial/query-params#optional-parameters",
+        "tutorial/query-params-str-validations#using-just-list"
+      ],
+      "scores": [
+        0.8731,
+        0.8192,
+        0.8135,
+        0.8129,
+        0.8117,
+        0.8084,
+        0.8074,
+        0.8073,
+        0.8061,
+        0.8055
+      ],
+      "first_hit_rank": 1,
+      "hit": {
+        "1": true,
+        "3": true,
+        "5": true,
+        "10": true
+      },
+      "recall": {
+        "1": 1.0,
+        "3": 1.0,
+        "5": 1.0,
+        "10": 1.0
+      }
+    },
+    {
+      "id": "q13",
+      "category": "direct",
+      "question": "How do I mark a query parameter as deprecated?",
+      "relevant": [
+        "tutorial/query-params-str-validations#deprecating-parameters"
+      ],
+      "retrieved": [
+        "tutorial/query-params-str-validations#deprecating-parameters",
+        "tutorial/query-params-str-validations#alternative-old-query-as-the-default-value",
+        "tutorial/query-params-str-validations#query-as-the-default-value-or-in-annotated",
+        "tutorial/query-params-str-validations#alternative-old-query-as-the-default-value",
+        "tutorial/path-params-numeric-validations#recap",
+        "tutorial/query-params-str-validations#required-parameters-and-none",
+        "tutorial/query-params-str-validations#add-query-to-annotated-in-the-q-parameter",
+        "tutorial/query-params-str-validations#default-values",
+        "tutorial/query-params-str-validations#required-parameters",
+        "tutorial/query-params-str-validations#advantages-of-annotated"
+      ],
+      "scores": [
+        0.8533,
+        0.7785,
+        0.7728,
+        0.7677,
+        0.7488,
+        0.7486,
+        0.7484,
+        0.7471,
+        0.7463,
+        0.7444
+      ],
+      "first_hit_rank": 1,
+      "hit": {
+        "1": true,
+        "3": true,
+        "5": true,
+        "10": true
+      },
+      "recall": {
+        "1": 1.0,
+        "3": 1.0,
+        "5": 1.0,
+        "10": 1.0
+      }
+    },
+    {
+      "id": "q14",
+      "category": "code-name",
+      "question": "How do I hide a query parameter from the generated OpenAPI schema?",
+      "relevant": [
+        "tutorial/query-params-str-validations#exclude-parameters-from-openapi"
+      ],
+      "retrieved": [
+        "tutorial/query-params-str-validations#exclude-parameters-from-openapi",
+        "tutorial/metadata#openapi-url",
+        "tutorial/query-params-str-validations#declare-more-metadata",
+        "tutorial/query-params-str-validations#add-query-to-annotated-in-the-q-parameter",
+        "tutorial/schema-extra-example#using-the-openapi-examples-parameter",
+        "tutorial/query-params#optional-parameters",
+        "tutorial/body-fields#add-extra-information",
+        "tutorial/path-params-numeric-validations#recap",
+        "tutorial/query-params-str-validations#alternative-old-query-as-the-default-value",
+        "tutorial/query-params-str-validations#deprecating-parameters"
+      ],
+      "scores": [
+        0.8655,
+        0.7561,
+        0.7481,
+        0.742,
+        0.72,
+        0.7165,
+        0.7153,
+        0.7089,
+        0.7081,
+        0.7079
+      ],
+      "first_hit_rank": 1,
+      "hit": {
+        "1": true,
+        "3": true,
+        "5": true,
+        "10": true
+      },
+      "recall": {
+        "1": 1.0,
+        "3": 1.0,
+        "5": 1.0,
+        "10": 1.0
+      }
+    },
+    {
+      "id": "q15",
+      "category": "direct",
+      "question": "How do I require that a numeric path parameter is greater than or equal to 1?",
+      "relevant": [
+        "tutorial/path-params-numeric-validations#number-validations-greater-than-or-equal",
+        "tutorial/path-params-numeric-validations#number-validations-greater-than-and-less-than-or-equal"
+      ],
+      "retrieved": [
+        "tutorial/path-params-numeric-validations#number-validations-greater-than-and-less-than-or-equal",
+        "tutorial/path-params-numeric-validations#number-validations-floats-greater-than-and-less-than",
+        "tutorial/path-params-numeric-validations#number-validations-greater-than-or-equal",
+        "tutorial/path-params-numeric-validations#order-the-parameters-as-you-need",
+        "tutorial/path-params-numeric-validations#order-the-parameters-as-you-need-tricks",
+        "tutorial/path-params-numeric-validations#order-the-parameters-as-you-need",
+        "tutorial/path-params#predefined-values",
+        "tutorial/path-params-numeric-validations#recap",
+        "tutorial/path-params#data-validation",
+        "tutorial/path-params-numeric-validations#declare-metadata"
+      ],
+      "scores": [
+        0.8387,
+        0.8117,
+        0.8064,
+        0.7754,
+        0.7674,
+        0.7625,
+        0.7579,
+        0.7564,
+        0.7477,
+        0.7467
+      ],
+      "first_hit_rank": 1,
+      "hit": {
+        "1": true,
+        "3": true,
+        "5": true,
+        "10": true
+      },
+      "recall": {
+        "1": 0.5,
+        "3": 1.0,
+        "5": 1.0,
+        "10": 1.0
+      }
+    },
+    {
+      "id": "q16",
+      "category": "code-name",
+      "question": "What does Body(embed=True) do?",
+      "relevant": [
+        "tutorial/body-multiple-params#embed-a-single-body-parameter"
+      ],
+      "retrieved": [
+        "tutorial/body-multiple-params#embed-a-single-body-parameter",
+        "tutorial/body-multiple-params#embed-a-single-body-parameter",
+        "tutorial/body-multiple-params#recap",
+        "tutorial/body#request-body",
+        "tutorial/body-fields#declare-model-attributes",
+        "tutorial/body-fields#body-fields",
+        "tutorial/body-nested-models#bodies-of-pure-lists",
+        "tutorial/body-multiple-params#body-multiple-parameters",
+        "tutorial/body-multiple-params#singular-values-in-body",
+        "tutorial/body-multiple-params#multiple-body-parameters"
+      ],
+      "scores": [
+        0.7821,
+        0.7649,
+        0.7207,
+        0.7142,
+        0.7089,
+        0.7006,
+        0.7001,
+        0.6975,
+        0.6923,
+        0.6908
+      ],
+      "first_hit_rank": 1,
+      "hit": {
+        "1": true,
+        "3": true,
+        "5": true,
+        "10": true
+      },
+      "recall": {
+        "1": 1.0,
+        "3": 1.0,
+        "5": 1.0,
+        "10": 1.0
+      }
+    },
+    {
+      "id": "q17",
+      "category": "direct",
+      "question": "How do I add validation and metadata to fields inside a Pydantic model?",
+      "relevant": [
+        "tutorial/body-fields#body-fields",
+        "tutorial/body-fields#declare-model-attributes",
+        "tutorial/body-fields#import-field"
+      ],
+      "retrieved": [
+        "tutorial/body-fields#recap",
+        "tutorial/body-fields#body-fields",
+        "tutorial/schema-extra-example#field-additional-arguments",
+        "tutorial/body-nested-models#special-types-and-validation",
+        "tutorial/body-fields#declare-model-attributes",
+        "tutorial/extra-models#recap",
+        "tutorial/body-nested-models#body-nested-models",
+        "tutorial/schema-extra-example#extra-json-schema-data-in-pydantic-models",
+        "tutorial/schema-extra-example#extra-json-schema-data-in-pydantic-models",
+        "tutorial/path-params#pydantic"
+      ],
+      "scores": [
+        0.8629,
+        0.86,
+        0.7811,
+        0.7694,
+        0.7681,
+        0.7635,
+        0.7623,
+        0.751,
+        0.7505,
+        0.7488
+      ],
+      "first_hit_rank": 2,
+      "hit": {
+        "1": false,
+        "3": true,
+        "5": true,
+        "10": true
+      },
+      "recall": {
+        "1": 0.0,
+        "3": 0.3333333333333333,
+        "5": 0.6666666666666666,
+        "10": 0.6666666666666666
+      }
+    },
+    {
+      "id": "q18",
+      "category": "direct",
+      "question": "How do I use a Pydantic model inside another model?",
+      "relevant": [
+        "tutorial/body-nested-models#nested-models",
+        "tutorial/body-nested-models#define-a-submodel",
+        "tutorial/body-nested-models#use-the-submodel-as-a-type"
+      ],
+      "retrieved": [
+        "tutorial/extra-models#a-pydantic-model-from-the-contents-of-another",
+        "tutorial/extra-models#recap",
+        "tutorial/body#use-the-model",
+        "tutorial/body#without-pydantic",
+        "tutorial/body-fields#recap",
+        "tutorial/body#import-pydantics-basemodel",
+        "tutorial/extra-models#pydantics-model-dump",
+        "tutorial/body-nested-models#editor-support-everywhere",
+        "tutorial/body-fields#body-fields",
+        "tutorial/body-nested-models#body-nested-models"
+      ],
+      "scores": [
+        0.8002,
+        0.799,
+        0.7843,
+        0.7765,
+        0.7753,
+        0.7739,
+        0.7735,
+        0.768,
+        0.7628,
+        0.7601
+      ],
+      "first_hit_rank": null,
+      "hit": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "recall": {
+        "1": 0.0,
+        "3": 0.0,
+        "5": 0.0,
+        "10": 0.0
+      }
+    },
+    {
+      "id": "q19",
+      "category": "direct",
+      "question": "How do I add example data to the request body shown in the docs?",
+      "relevant": [
+        "tutorial/schema-extra-example#declare-request-example-data",
+        "tutorial/schema-extra-example#extra-json-schema-data-in-pydantic-models",
+        "tutorial/schema-extra-example#field-additional-arguments",
+        "tutorial/schema-extra-example#body-with-examples"
+      ],
+      "retrieved": [
+        "tutorial/schema-extra-example#openapi-examples-in-the-docs-ui",
+        "tutorial/schema-extra-example#example-in-the-docs-ui",
+        "tutorial/schema-extra-example#body-with-examples",
+        "tutorial/schema-extra-example#body-with-multiple-examples",
+        "tutorial/schema-extra-example#using-the-openapi-examples-parameter",
+        "tutorial/schema-extra-example#examples-in-json-schema-openapi",
+        "tutorial/schema-extra-example#declare-request-example-data",
+        "tutorial/schema-extra-example#using-the-openapi-examples-parameter",
+        "tutorial/schema-extra-example#using-the-openapi-examples-parameter",
+        "tutorial/schema-extra-example#extra-json-schema-data-in-pydantic-models"
+      ],
+      "scores": [
+        0.8456,
+        0.8376,
+        0.8195,
+        0.7983,
+        0.7945,
+        0.7944,
+        0.7937,
+        0.7849,
+        0.779,
+        0.7758
+      ],
+      "first_hit_rank": 3,
+      "hit": {
+        "1": false,
+        "3": true,
+        "5": true,
+        "10": true
+      },
+      "recall": {
+        "1": 0.0,
+        "3": 0.25,
+        "5": 0.25,
+        "10": 0.75
+      }
+    },
+    {
+      "id": "q20",
+      "category": "direct",
+      "question": "How do I read a cookie in a path operation?",
+      "relevant": [
+        "tutorial/cookie-params#declare-cookie-parameters",
+        "tutorial/cookie-params#cookie-parameters"
+      ],
+      "retrieved": [
+        "tutorial/cookie-params#declare-cookie-parameters",
+        "tutorial/cookie-params#recap",
+        "tutorial/cookie-params#declare-cookie-parameters",
+        "tutorial/cookie-params#cookie-parameters",
+        "tutorial/cookie-params#import-cookie",
+        "tutorial/header-params#header-parameters",
+        "tutorial/bigger-applications#another-module-with-apirouter",
+        "tutorial/path-operation-configuration#deprecate-a-path-operation",
+        "tutorial/header-params#declare-header-parameters",
+        "tutorial/path-params#return-enumeration-members"
+      ],
+      "scores": [
+        0.798,
+        0.7888,
+        0.7888,
+        0.7829,
+        0.7595,
+        0.7118,
+        0.7064,
+        0.7018,
+        0.6988,
+        0.697
+      ],
+      "first_hit_rank": 1,
+      "hit": {
+        "1": true,
+        "3": true,
+        "5": true,
+        "10": true
+      },
+      "recall": {
+        "1": 0.5,
+        "3": 0.5,
+        "5": 1.0,
+        "10": 1.0
+      }
+    },
+    {
+      "id": "q21",
+      "category": "code-name",
+      "question": "Why is my header parameter user_agent read from the User-Agent header, and how do I turn that off?",
+      "relevant": [
+        "tutorial/header-params#automatic-conversion"
+      ],
+      "retrieved": [
+        "tutorial/header-params#import-header",
+        "tutorial/header-params#automatic-conversion",
+        "tutorial/header-params#declare-header-parameters",
+        "tutorial/security/simple-oauth2#update-the-dependencies",
+        "tutorial/header-params#automatic-conversion",
+        "tutorial/security/simple-oauth2#return-the-token",
+        "tutorial/sql-databases#read-heroes",
+        "tutorial/security/simple-oauth2#use-the-form-data",
+        "tutorial/security/simple-oauth2#why-use-password-hashing",
+        "tutorial/query-params-str-validations#exclude-parameters-from-openapi"
+      ],
+      "scores": [
+        0.7798,
+        0.7773,
+        0.7533,
+        0.7033,
+        0.6699,
+        0.6668,
+        0.6602,
+        0.6591,
+        0.6582,
+        0.6581
+      ],
+      "first_hit_rank": 2,
+      "hit": {
+        "1": false,
+        "3": true,
+        "5": true,
+        "10": true
+      },
+      "recall": {
+        "1": 0.0,
+        "3": 1.0,
+        "5": 1.0,
+        "10": 1.0
+      }
+    },
+    {
+      "id": "q22",
+      "category": "paraphrase",
+      "question": "How do I make sure the password field is never returned to the client?",
+      "relevant": [
+        "tutorial/response-model#add-an-output-model",
+        "tutorial/response-model#return-the-same-input-data",
+        "tutorial/response-model#return-type-and-data-filtering",
+        "tutorial/extra-models#multiple-models"
+      ],
+      "retrieved": [
+        "tutorial/security/simple-oauth2#oauth2passwordrequestform",
+        "tutorial/security/simple-oauth2#use-the-form-data",
+        "tutorial/security/oauth2-jwt#hash-and-verify-the-passwords",
+        "tutorial/security/simple-oauth2#why-use-password-hashing",
+        "tutorial/security/first-steps#what-it-does",
+        "tutorial/security/simple-oauth2#use-the-form-data",
+        "tutorial/security/simple-oauth2#update-the-dependencies",
+        "tutorial/security/simple-oauth2#return-the-token",
+        "tutorial/security/oauth2-jwt#hash-and-verify-the-passwords",
+        "tutorial/security/simple-oauth2#use-the-form-data"
+      ],
+      "scores": [
+        0.7148,
+        0.7037,
+        0.7028,
+        0.7024,
+        0.7016,
+        0.6938,
+        0.693,
+        0.6922,
+        0.6898,
+        0.6894
+      ],
+      "first_hit_rank": null,
+      "hit": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "recall": {
+        "1": 0.0,
+        "3": 0.0,
+        "5": 0.0,
+        "10": 0.0
+      }
+    },
+    {
+      "id": "q23",
+      "category": "code-name",
+      "question": "What does response_model_exclude_unset do?",
+      "relevant": [
+        "tutorial/response-model#use-the-response-model-exclude-unset-parameter"
+      ],
+      "retrieved": [
+        "tutorial/response-model#use-the-response-model-exclude-unset-parameter",
+        "tutorial/response-model#use-the-response-model-exclude-unset-parameter",
+        "tutorial/response-model#data-with-values-for-fields-with-defaults",
+        "tutorial/response-model#response-model-include-and-response-model-exclude",
+        "tutorial/response-model#recap",
+        "tutorial/response-model#data-with-the-same-values-as-the-defaults",
+        "tutorial/body-updates#using-pydantics-exclude-unset-parameter",
+        "tutorial/response-model#response-model-include-and-response-model-exclude",
+        "tutorial/response-model#using-lists-instead-of-sets",
+        "tutorial/response-model#disable-response-model"
+      ],
+      "scores": [
+        0.8247,
+        0.8072,
+        0.7874,
+        0.7794,
+        0.7747,
+        0.7505,
+        0.7444,
+        0.726,
+        0.7094,
+        0.6998
+      ],
+      "first_hit_rank": 1,
+      "hit": {
+        "1": true,
+        "3": true,
+        "5": true,
+        "10": true
+      },
+      "recall": {
+        "1": 1.0,
+        "3": 1.0,
+        "5": 1.0,
+        "10": 1.0
+      }
+    },
+    {
+      "id": "q24",
+      "category": "direct",
+      "question": "How do I return status code 201 when an item is created?",
+      "relevant": [
+        "tutorial/response-status-code#response-status-code",
+        "tutorial/response-status-code#shortcut-to-remember-the-names",
+        "tutorial/path-operation-configuration#response-status-code"
+      ],
+      "retrieved": [
+        "tutorial/response-status-code#shortcut-to-remember-the-names",
+        "tutorial/response-status-code#about-http-status-codes",
+        "tutorial/path-operation-configuration#response-status-code",
+        "tutorial/handling-errors#handling-errors",
+        "tutorial/response-status-code#response-status-code",
+        "tutorial/testing#extended-testing-file",
+        "tutorial/first-steps#check-it",
+        "tutorial/response-status-code#about-http-status-codes",
+        "tutorial/handling-errors#the-resulting-response",
+        "tutorial/bigger-applications#add-some-custom-tags-responses-and-dependencies"
+      ],
+      "scores": [
+        0.7459,
+        0.7202,
+        0.7017,
+        0.6908,
+        0.6906,
+        0.6867,
+        0.6794,
+        0.6759,
+        0.6744,
+        0.6649
+      ],
+      "first_hit_rank": 1,
+      "hit": {
+        "1": true,
+        "3": true,
+        "5": true,
+        "10": true
+      },
+      "recall": {
+        "1": 0.3333333333333333,
+        "3": 0.6666666666666666,
+        "5": 1.0,
+        "10": 1.0
+      }
+    },
+    {
+      "id": "q25",
+      "category": "direct",
+      "question": "How do I receive HTML form fields instead of JSON?",
+      "relevant": [
+        "tutorial/request-forms#form-data",
+        "tutorial/request-forms#define-form-parameters",
+        "tutorial/request-forms#import-form"
+      ],
+      "retrieved": [
+        "tutorial/request-forms#form-data",
+        "tutorial/request-forms#about-form-fields",
+        "tutorial/request-files#what-is-form-data",
+        "tutorial/request-forms#about-form-fields",
+        "tutorial/first-steps#check-it",
+        "tutorial/request-forms-and-files#define-file-and-form-parameters",
+        "tutorial/request-forms-and-files#request-forms-and-files",
+        "tutorial/schema-extra-example#example-in-the-docs-ui",
+        "tutorial/body-multiple-params#embed-a-single-body-parameter",
+        "tutorial/handling-errors#use-the-requestvalidationerror-body"
+      ],
+      "scores": [
+        0.8042,
+        0.7677,
+        0.7454,
+        0.7181,
+        0.7075,
+        0.6949,
+        0.6897,
+        0.6838,
+        0.6808,
+        0.6765
+      ],
+      "first_hit_rank": 1,
+      "hit": {
+        "1": true,
+        "3": true,
+        "5": true,
+        "10": true
+      },
+      "recall": {
+        "1": 0.3333333333333333,
+        "3": 0.3333333333333333,
+        "5": 0.3333333333333333,
+        "10": 0.3333333333333333
+      }
+    },
+    {
+      "id": "q26",
+      "category": "paraphrase",
+      "question": "Should I use bytes or UploadFile for file uploads, and what's the difference?",
+      "relevant": [
+        "tutorial/request-files#file-parameters-with-uploadfile",
+        "tutorial/request-files#uploadfile",
+        "tutorial/request-files#define-file-parameters"
+      ],
+      "retrieved": [
+        "tutorial/request-files#define-file-parameters",
+        "tutorial/request-files#recap",
+        "tutorial/request-files#file-parameters-with-uploadfile",
+        "tutorial/request-files#file-parameters-with-uploadfile",
+        "tutorial/request-files#uploadfile",
+        "tutorial/request-files#uploadfile-with-additional-metadata",
+        "tutorial/request-files#define-file-parameters",
+        "tutorial/request-forms-and-files#define-file-and-form-parameters",
+        "tutorial/request-files#uploadfile",
+        "tutorial/request-files#optional-file-upload"
+      ],
+      "scores": [
+        0.8377,
+        0.8319,
+        0.8054,
+        0.802,
+        0.8001,
+        0.7914,
+        0.7869,
+        0.7769,
+        0.7713,
+        0.7486
+      ],
+      "first_hit_rank": 1,
+      "hit": {
+        "1": true,
+        "3": true,
+        "5": true,
+        "10": true
+      },
+      "recall": {
+        "1": 0.3333333333333333,
+        "3": 0.6666666666666666,
+        "5": 1.0,
+        "10": 1.0
+      }
+    },
+    {
+      "id": "q27",
+      "category": "direct",
+      "question": "How do I return a 404 error when an item is not found?",
+      "relevant": [
+        "tutorial/handling-errors#use-httpexception",
+        "tutorial/handling-errors#raise-an-httpexception-in-your-code"
+      ],
+      "retrieved": [
+        "tutorial/handling-errors#the-resulting-response",
+        "tutorial/handling-errors#handling-errors",
+        "tutorial/handling-errors#override-request-validation-exceptions",
+        "tutorial/handling-errors#import-httpexception",
+        "tutorial/bigger-applications#another-module-with-apirouter",
+        "tutorial/handling-errors#raise-an-httpexception-in-your-code",
+        "tutorial/bigger-applications#add-some-custom-tags-responses-and-dependencies",
+        "tutorial/response-model#response-model-return-type",
+        "tutorial/handling-errors#override-the-httpexception-error-handler",
+        "tutorial/handling-errors#use-the-requestvalidationerror-body"
+      ],
+      "scores": [
+        0.7003,
+        0.6964,
+        0.6912,
+        0.6846,
+        0.6734,
+        0.6691,
+        0.6655,
+        0.6604,
+        0.6596,
+        0.6588
+      ],
+      "first_hit_rank": 6,
+      "hit": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": true
+      },
+      "recall": {
+        "1": 0.0,
+        "3": 0.0,
+        "5": 0.0,
+        "10": 0.5
+      }
+    },
+    {
+      "id": "q28",
+      "category": "code-name",
+      "question": "How do I customize the response FastAPI sends for a RequestValidationError?",
+      "relevant": [
+        "tutorial/handling-errors#override-request-validation-exceptions",
+        "tutorial/handling-errors#use-the-requestvalidationerror-body"
+      ],
+      "retrieved": [
+        "tutorial/handling-errors#use-the-requestvalidationerror-body",
+        "tutorial/handling-errors#override-request-validation-exceptions",
+        "tutorial/handling-errors#override-the-httpexception-error-handler",
+        "tutorial/handling-errors#override-request-validation-exceptions",
+        "tutorial/handling-errors#override-the-httpexception-error-handler",
+        "tutorial/handling-errors#reuse-fastapis-exception-handlers",
+        "tutorial/handling-errors#install-custom-exception-handlers",
+        "tutorial/handling-errors#fastapis-httpexception-vs-starlettes-httpexception",
+        "tutorial/handling-errors#add-custom-headers",
+        "tutorial/handling-errors#import-httpexception"
+      ],
+      "scores": [
+        0.8521,
+        0.8427,
+        0.8415,
+        0.8327,
+        0.8275,
+        0.8003,
+        0.7781,
+        0.768,
+        0.7626,
+        0.7618
+      ],
+      "first_hit_rank": 1,
+      "hit": {
+        "1": true,
+        "3": true,
+        "5": true,
+        "10": true
+      },
+      "recall": {
+        "1": 0.5,
+        "3": 1.0,
+        "5": 1.0,
+        "10": 1.0
+      }
+    },
+    {
+      "id": "q29",
+      "category": "paraphrase",
+      "question": "How do I update only the fields the client actually sent?",
+      "relevant": [
+        "tutorial/body-updates#partial-updates-with-patch",
+        "tutorial/body-updates#using-pydantics-exclude-unset-parameter",
+        "tutorial/body-updates#using-pydantics-update-parameter"
+      ],
+      "retrieved": [
+        "tutorial/body-updates#using-pydantics-exclude-unset-parameter",
+        "tutorial/schema-extra-example#field-additional-arguments",
+        "tutorial/body-updates#using-pydantics-exclude-unset-parameter",
+        "tutorial/body-updates#using-pydantics-update-parameter",
+        "tutorial/body-fields#recap",
+        "tutorial/body-updates#partial-updates-with-patch",
+        "tutorial/body-updates#partial-updates-recap",
+        "tutorial/body-updates#partial-updates-recap",
+        "tutorial/body-fields#import-field",
+        "tutorial/sql-databases#update-a-hero-with-heroupdate"
+      ],
+      "scores": [
+        0.7039,
+        0.7021,
+        0.7011,
+        0.6966,
+        0.6949,
+        0.6934,
+        0.6912,
+        0.6901,
+        0.6889,
+        0.685
+      ],
+      "first_hit_rank": 1,
+      "hit": {
+        "1": true,
+        "3": true,
+        "5": true,
+        "10": true
+      },
+      "recall": {
+        "1": 0.3333333333333333,
+        "3": 0.3333333333333333,
+        "5": 0.6666666666666666,
+        "10": 1.0
+      }
+    },
+    {
+      "id": "q30",
+      "category": "direct",
+      "question": "What is dependency injection in FastAPI and how do I create a dependency?",
+      "relevant": [
+        "tutorial/dependencies/index#what-is-dependency-injection",
+        "tutorial/dependencies/index#create-a-dependency-or-dependable",
+        "tutorial/dependencies/index#declare-the-dependency-in-the-dependant"
+      ],
+      "retrieved": [
+        "tutorial/dependencies/index#what-is-dependency-injection",
+        "tutorial/dependencies/index#fastapi-plug-ins",
+        "tutorial/dependencies/index#create-a-dependency-or-dependable",
+        "tutorial/dependencies/classes-as-dependencies#use-it",
+        "tutorial/dependencies/index#create-a-dependency-or-dependable",
+        "tutorial/dependencies/index#dependencies",
+        "tutorial/dependencies/sub-dependencies#first-dependency-dependable",
+        "tutorial/dependencies/classes-as-dependencies#shortcut",
+        "tutorial/dependencies/sub-dependencies#use-the-dependency",
+        "tutorial/dependencies/classes-as-dependencies#classes-as-dependencies_1"
+      ],
+      "scores": [
+        0.844,
+        0.83,
+        0.8239,
+        0.8151,
+        0.813,
+        0.8097,
+        0.806,
+        0.8053,
+        0.7969,
+        0.7943
+      ],
+      "first_hit_rank": 1,
+      "hit": {
+        "1": true,
+        "3": true,
+        "5": true,
+        "10": true
+      },
+      "recall": {
+        "1": 0.3333333333333333,
+        "3": 0.6666666666666666,
+        "5": 0.6666666666666666,
+        "10": 0.6666666666666666
+      }
+    },
+    {
+      "id": "q31",
+      "category": "code-name",
+      "question": "If two dependencies both depend on the same sub-dependency, is it called twice per request?",
+      "relevant": [
+        "tutorial/dependencies/sub-dependencies#using-the-same-dependency-multiple-times"
+      ],
+      "retrieved": [
+        "tutorial/dependencies/sub-dependencies#using-the-same-dependency-multiple-times",
+        "tutorial/dependencies/sub-dependencies#using-the-same-dependency-multiple-times",
+        "tutorial/dependencies/sub-dependencies#second-dependency-dependable-and-dependant",
+        "tutorial/dependencies/dependencies-with-yield#scope-for-sub-dependencies",
+        "tutorial/dependencies/sub-dependencies#use-the-dependency",
+        "tutorial/dependencies/sub-dependencies#first-dependency-dependable",
+        "tutorial/dependencies/dependencies-in-path-operation-decorators#dependency-requirements",
+        "tutorial/bigger-applications#avoid-name-collisions",
+        "tutorial/dependencies/sub-dependencies#sub-dependencies",
+        "tutorial/dependencies/classes-as-dependencies#shortcut"
+      ],
+      "scores": [
+        0.842,
+        0.8031,
+        0.7808,
+        0.7463,
+        0.7347,
+        0.7344,
+        0.7328,
+        0.7318,
+        0.7301,
+        0.7247
+      ],
+      "first_hit_rank": 1,
+      "hit": {
+        "1": true,
+        "3": true,
+        "5": true,
+        "10": true
+      },
+      "recall": {
+        "1": 1.0,
+        "3": 1.0,
+        "5": 1.0,
+        "10": 1.0
+      }
+    },
+    {
+      "id": "q32",
+      "category": "paraphrase",
+      "question": "How do I run a dependency for a path operation when I don't need its return value?",
+      "relevant": [
+        "tutorial/dependencies/dependencies-in-path-operation-decorators#add-dependencies-to-the-path-operation-decorator",
+        "tutorial/dependencies/dependencies-in-path-operation-decorators#dependencies-in-path-operation-decorators"
+      ],
+      "retrieved": [
+        "tutorial/dependencies/dependencies-in-path-operation-decorators#dependencies-in-path-operation-decorators",
+        "tutorial/dependencies/dependencies-in-path-operation-decorators#return-values",
+        "tutorial/dependencies/index#declare-the-dependency-in-the-dependant",
+        "tutorial/dependencies/dependencies-in-path-operation-decorators#add-dependencies-to-the-path-operation-decorator",
+        "tutorial/dependencies/dependencies-in-path-operation-decorators#dependencies-errors-and-return-values",
+        "tutorial/dependencies/index#create-a-dependency-or-dependable",
+        "tutorial/dependencies/dependencies-with-yield#early-exit-and-scope",
+        "tutorial/dependencies/index#simple-usage",
+        "tutorial/dependencies/dependencies-in-path-operation-decorators#add-dependencies-to-the-path-operation-decorator",
+        "tutorial/path-params-numeric-validations#order-the-parameters-as-you-need"
+      ],
+      "scores": [
+        0.8137,
+        0.7748,
+        0.767,
+        0.7626,
+        0.7624,
+        0.7606,
+        0.7565,
+        0.7472,
+        0.7407,
+        0.7363
+      ],
+      "first_hit_rank": 1,
+      "hit": {
+        "1": true,
+        "3": true,
+        "5": true,
+        "10": true
+      },
+      "recall": {
+        "1": 0.5,
+        "3": 0.5,
+        "5": 1.0,
+        "10": 1.0
+      }
+    },
+    {
+      "id": "q33",
+      "category": "paraphrase",
+      "question": "How do I open a database session for each request and make sure it is closed afterwards?",
+      "relevant": [
+        "tutorial/dependencies/dependencies-with-yield#a-database-dependency-with-yield",
+        "tutorial/dependencies/dependencies-with-yield#dependencies-with-yield",
+        "tutorial/sql-databases#create-a-session-dependency"
+      ],
+      "retrieved": [
+        "tutorial/sql-databases#create-an-engine",
+        "tutorial/sql-databases#create-a-session-dependency",
+        "tutorial/sql-databases#create-a-session-dependency",
+        "tutorial/sql-databases#create-a-hero",
+        "tutorial/sql-databases#create-the-tables",
+        "tutorial/sql-databases#create-database-tables-on-startup",
+        "tutorial/sql-databases#read-heroes",
+        "tutorial/sql-databases#hero-the-table-model",
+        "tutorial/sql-databases#heroupdate-the-data-model-to-update-a-hero",
+        "tutorial/sql-databases#delete-a-hero-again"
+      ],
+      "scores": [
+        0.6689,
+        0.6665,
+        0.6623,
+        0.6609,
+        0.6532,
+        0.6525,
+        0.6493,
+        0.6459,
+        0.6453,
+        0.6452
+      ],
+      "first_hit_rank": 2,
+      "hit": {
+        "1": false,
+        "3": true,
+        "5": true,
+        "10": true
+      },
+      "recall": {
+        "1": 0.0,
+        "3": 0.3333333333333333,
+        "5": 0.3333333333333333,
+        "10": 0.3333333333333333
+      }
+    },
+    {
+      "id": "q34",
+      "category": "code-name",
+      "question": "How do I read the username and password sent to my /token endpoint?",
+      "relevant": [
+        "tutorial/security/simple-oauth2#oauth2passwordrequestform",
+        "tutorial/security/simple-oauth2#code-to-get-the-username-and-password",
+        "tutorial/security/simple-oauth2#get-the-username-and-password"
+      ],
+      "retrieved": [
+        "tutorial/security/simple-oauth2#use-the-form-data",
+        "tutorial/security/simple-oauth2#return-the-token",
+        "tutorial/security/simple-oauth2#why-use-password-hashing",
+        "tutorial/security/simple-oauth2#oauth2passwordrequestform",
+        "tutorial/security/simple-oauth2#update-the-dependencies",
+        "tutorial/security/oauth2-jwt#handle-jwt-tokens",
+        "tutorial/security/first-steps#the-password-flow",
+        "tutorial/security/simple-oauth2#code-to-get-the-username-and-password",
+        "tutorial/security/simple-oauth2#return-the-token",
+        "tutorial/security/simple-oauth2#about-user-dict"
+      ],
+      "scores": [
+        0.7936,
+        0.7815,
+        0.7715,
+        0.7628,
+        0.7597,
+        0.7586,
+        0.7556,
+        0.7549,
+        0.7545,
+        0.7544
+      ],
+      "first_hit_rank": 4,
+      "hit": {
+        "1": false,
+        "3": false,
+        "5": true,
+        "10": true
+      },
+      "recall": {
+        "1": 0.0,
+        "3": 0.0,
+        "5": 0.3333333333333333,
+        "10": 0.6666666666666666
+      }
+    },
+    {
+      "id": "q35",
+      "category": "multi",
+      "question": "How do I hash passwords and issue JWT access tokens?",
+      "relevant": [
+        "tutorial/security/oauth2-jwt#hash-and-verify-the-passwords",
+        "tutorial/security/oauth2-jwt#handle-jwt-tokens",
+        "tutorial/security/oauth2-jwt#password-hashing",
+        "tutorial/security/oauth2-jwt#install-pwdlib"
+      ],
+      "retrieved": [
+        "tutorial/security/oauth2-jwt#update-the-token-path-operation",
+        "tutorial/security/oauth2-jwt#check-it",
+        "tutorial/security/oauth2-jwt#oauth2-with-password-and-hashing-bearer-with-jwt-tokens",
+        "tutorial/security/oauth2-jwt#handle-jwt-tokens",
+        "tutorial/security/oauth2-jwt#password-hashing",
+        "tutorial/security/oauth2-jwt#hash-and-verify-the-passwords",
+        "tutorial/security/oauth2-jwt#update-the-dependencies",
+        "tutorial/security/oauth2-jwt#handle-jwt-tokens",
+        "tutorial/security/oauth2-jwt#handle-jwt-tokens",
+        "tutorial/security/oauth2-jwt#hash-and-verify-the-passwords"
+      ],
+      "scores": [
+        0.811,
+        0.8092,
+        0.8064,
+        0.8048,
+        0.787,
+        0.7836,
+        0.7819,
+        0.7799,
+        0.7784,
+        0.7767
+      ],
+      "first_hit_rank": 4,
+      "hit": {
+        "1": false,
+        "3": false,
+        "5": true,
+        "10": true
+      },
+      "recall": {
+        "1": 0.0,
+        "3": 0.0,
+        "5": 0.5,
+        "10": 0.75
+      }
+    },
+    {
+      "id": "q36",
+      "category": "direct",
+      "question": "How do I allow my frontend on another domain to call my API from the browser?",
+      "relevant": [
+        "tutorial/cors#use-corsmiddleware",
+        "tutorial/cors#cors-cross-origin-resource-sharing"
+      ],
+      "retrieved": [
+        "tutorial/cors#steps",
+        "tutorial/security/first-steps#security-first-steps",
+        "tutorial/cors#use-corsmiddleware",
+        "tutorial/cors#use-corsmiddleware",
+        "tutorial/cors#use-corsmiddleware",
+        "tutorial/middleware#create-a-middleware",
+        "tutorial/bigger-applications#add-some-custom-tags-responses-and-dependencies",
+        "tutorial/cors#use-corsmiddleware",
+        "tutorial/cors#cors-cross-origin-resource-sharing",
+        "tutorial/metadata#docs-urls"
+      ],
+      "scores": [
+        0.7617,
+        0.7111,
+        0.6949,
+        0.6907,
+        0.6906,
+        0.6855,
+        0.6779,
+        0.6711,
+        0.6672,
+        0.6669
+      ],
+      "first_hit_rank": 3,
+      "hit": {
+        "1": false,
+        "3": true,
+        "5": true,
+        "10": true
+      },
+      "recall": {
+        "1": 0.0,
+        "3": 0.5,
+        "5": 0.5,
+        "10": 1.0
+      }
+    },
+    {
+      "id": "q37",
+      "category": "direct",
+      "question": "How do I split my application into multiple files?",
+      "relevant": [
+        "tutorial/bigger-applications#bigger-applications-multiple-files",
+        "tutorial/bigger-applications#apirouter",
+        "tutorial/bigger-applications#an-example-file-structure"
+      ],
+      "retrieved": [
+        "tutorial/bigger-applications#an-example-file-structure",
+        "tutorial/bigger-applications#bigger-applications-multiple-files",
+        "tutorial/testing#separating-tests",
+        "tutorial/bigger-applications#an-example-file-structure",
+        "tutorial/bigger-applications#an-example-file-structure",
+        "tutorial/bigger-applications#another-module-with-apirouter",
+        "tutorial/request-files#multiple-file-uploads-with-additional-metadata",
+        "tutorial/testing#fastapi-app-file",
+        "tutorial/bigger-applications#apirouter",
+        "tutorial/bigger-applications#the-main-fastapi"
+      ],
+      "scores": [
+        0.7479,
+        0.7456,
+        0.7301,
+        0.7208,
+        0.7127,
+        0.7055,
+        0.7054,
+        0.699,
+        0.6954,
+        0.6823
+      ],
+      "first_hit_rank": 1,
+      "hit": {
+        "1": true,
+        "3": true,
+        "5": true,
+        "10": true
+      },
+      "recall": {
+        "1": 0.3333333333333333,
+        "3": 0.6666666666666666,
+        "5": 0.6666666666666666,
+        "10": 1.0
+      }
+    },
+    {
+      "id": "q38",
+      "category": "code-name",
+      "question": "How do I test my FastAPI app with pytest?",
+      "relevant": [
+        "tutorial/testing#using-testclient",
+        "tutorial/testing#testing"
+      ],
+      "retrieved": [
+        "tutorial/testing#testing",
+        "tutorial/testing#using-testclient",
+        "tutorial/first-steps#step-1-import-fastapi",
+        "tutorial/first-steps#step-2-create-a-fastapi-instance",
+        "tutorial/testing#fastapi-app-file",
+        "tutorial/testing#extended-fastapi-app-file",
+        "tutorial/testing#using-testclient",
+        "tutorial/first-steps#first-steps",
+        "tutorial/testing#run-it",
+        "tutorial/testing#extended-testing-file"
+      ],
+      "scores": [
+        0.8491,
+        0.8263,
+        0.7622,
+        0.7517,
+        0.7431,
+        0.7422,
+        0.7326,
+        0.7294,
+        0.7271,
+        0.7265
+      ],
+      "first_hit_rank": 1,
+      "hit": {
+        "1": true,
+        "3": true,
+        "5": true,
+        "10": true
+      },
+      "recall": {
+        "1": 0.5,
+        "3": 1.0,
+        "5": 1.0,
+        "10": 1.0
+      }
+    },
+    {
+      "id": "q39",
+      "category": "paraphrase",
+      "question": "How do I serve images and CSS files from a folder?",
+      "relevant": [
+        "tutorial/static-files#use-staticfiles",
+        "tutorial/static-files#static-files"
+      ],
+      "retrieved": [
+        "tutorial/first-steps#first-steps",
+        "tutorial/first-steps#first-steps",
+        "tutorial/first-steps#first-steps",
+        "tutorial/path-operation-configuration#response-description",
+        "tutorial/static-files#static-files",
+        "tutorial/request-forms-and-files#request-forms-and-files",
+        "tutorial/bigger-applications#check-the-automatic-api-docs",
+        "tutorial/testing#run-it",
+        "tutorial/request-files#recap",
+        "tutorial/request-files#request-files"
+      ],
+      "scores": [
+        0.7284,
+        0.703,
+        0.6931,
+        0.675,
+        0.6737,
+        0.6665,
+        0.6527,
+        0.651,
+        0.6508,
+        0.6487
+      ],
+      "first_hit_rank": 5,
+      "hit": {
+        "1": false,
+        "3": false,
+        "5": true,
+        "10": true
+      },
+      "recall": {
+        "1": 0.0,
+        "3": 0.0,
+        "5": 0.5,
+        "10": 0.5
+      }
+    },
+    {
+      "id": "q40",
+      "category": "paraphrase",
+      "question": "How do I change or disable the /docs URL?",
+      "relevant": [
+        "tutorial/metadata#docs-urls"
+      ],
+      "retrieved": [
+        "tutorial/metadata#docs-urls",
+        "tutorial/metadata#openapi-url",
+        "tutorial/metadata#metadata-and-docs-urls",
+        "tutorial/metadata#check-the-docs",
+        "tutorial/metadata#metadata-for-api",
+        "tutorial/metadata#license-identifier",
+        "tutorial/metadata#metadata-for-tags",
+        "tutorial/metadata#metadata-for-api",
+        "tutorial/metadata#metadata-for-api",
+        "tutorial/bigger-applications#check-the-automatic-api-docs"
+      ],
+      "scores": [
+        0.7966,
+        0.7003,
+        0.6883,
+        0.6608,
+        0.6559,
+        0.6335,
+        0.6308,
+        0.6247,
+        0.6222,
+        0.6182
+      ],
+      "first_hit_rank": 1,
+      "hit": {
+        "1": true,
+        "3": true,
+        "5": true,
+        "10": true
+      },
+      "recall": {
+        "1": 1.0,
+        "3": 1.0,
+        "5": 1.0,
+        "10": 1.0
+      }
+    },
+    {
+      "id": "q41",
+      "category": "multi",
+      "question": "How do I protect an endpoint so only logged-in users can call it, and get the current user inside it?",
+      "relevant": [
+        "tutorial/security/get-current-user#create-a-get-current-user-dependency",
+        "tutorial/security/get-current-user#inject-the-current-user",
+        "tutorial/security/first-steps#fastapis-oauth2passwordbearer",
+        "tutorial/security/simple-oauth2#update-the-dependencies"
+      ],
+      "retrieved": [
+        "tutorial/security/simple-oauth2#update-the-dependencies",
+        "tutorial/security/get-current-user#recap",
+        "tutorial/security/simple-oauth2#return-the-token",
+        "tutorial/security/oauth2-jwt#handle-jwt-tokens",
+        "tutorial/security/simple-oauth2#use-the-form-data",
+        "tutorial/security/simple-oauth2#update-the-dependencies",
+        "tutorial/security/oauth2-jwt#handle-jwt-tokens",
+        "tutorial/security/simple-oauth2#why-use-password-hashing",
+        "tutorial/security/oauth2-jwt#update-the-token-path-operation",
+        "tutorial/security/simple-oauth2#get-your-own-user-data"
+      ],
+      "scores": [
+        0.716,
+        0.6988,
+        0.6987,
+        0.6945,
+        0.6944,
+        0.6931,
+        0.6926,
+        0.6918,
+        0.6918,
+        0.6906
+      ],
+      "first_hit_rank": 1,
+      "hit": {
+        "1": true,
+        "3": true,
+        "5": true,
+        "10": true
+      },
+      "recall": {
+        "1": 0.25,
+        "3": 0.25,
+        "5": 0.25,
+        "10": 0.25
+      }
+    },
+    {
+      "id": "q42",
+      "category": "multi",
+      "question": "How do I add a header with the processing time to every response?",
+      "relevant": [
+        "tutorial/middleware#create-a-middleware",
+        "tutorial/middleware#before-and-after-the-response"
+      ],
+      "retrieved": [
+        "tutorial/middleware#before-and-after-the-response",
+        "tutorial/middleware#create-a-middleware",
+        "tutorial/handling-errors#add-custom-headers",
+        "tutorial/header-params#automatic-conversion",
+        "tutorial/header-params#recap",
+        "tutorial/header-params#import-header",
+        "tutorial/header-params#declare-header-parameters",
+        "tutorial/header-params#duplicate-headers",
+        "tutorial/header-params#header-parameters",
+        "tutorial/background-tasks#caveat"
+      ],
+      "scores": [
+        0.7807,
+        0.7115,
+        0.6901,
+        0.6862,
+        0.6818,
+        0.6748,
+        0.6698,
+        0.6652,
+        0.6618,
+        0.6578
+      ],
+      "first_hit_rank": 1,
+      "hit": {
+        "1": true,
+        "3": true,
+        "5": true,
+        "10": true
+      },
+      "recall": {
+        "1": 0.5,
+        "3": 1.0,
+        "5": 1.0,
+        "10": 1.0
+      }
+    }
+  ]
+}

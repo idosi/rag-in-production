@@ -65,3 +65,13 @@ def test_golden_set_labels_exist_in_corpus():
     golden = json.loads(GOLDEN_SET.read_text())
     missing = [(q["id"], r) for q in golden for r in q["relevant"] if r not in valid]
     assert not missing
+
+
+def test_diff_hits_lists_fixed_and_broken_questions():
+    from rag.evals.retrieval import diff_hits
+
+    qa = {"id": "a", "category": "c", "question": "?", "relevant": ["d#a"]}
+    qb = {"id": "b", "category": "c", "question": "?", "relevant": ["d#b"]}
+    base = [score_question(qa, [hit("d", "x")]), score_question(qb, [hit("d", "b")])]
+    other = [score_question(qa, [hit("d", "a")]), score_question(qb, [hit("d", "x")])]
+    assert diff_hits(base, other) == {"fixed": ["a"], "broke": ["b"]}
