@@ -1,9 +1,12 @@
 """Retrieval evaluation: does search put the right sections in the top k?
 
 HOW TO RUN
-    make eval-retrieval        (same as: uv run python -m rag.evals.retrieval)
+    make eval-retrieval                    every retrieval mode, side by side
+    make eval-retrieval MODES=vector,rerank   only some modes
+    (same as: uv run python -m rag.evals.retrieval --modes vector,rerank)
 Prerequisites: `make up` and `make ingest`. No LLM is called, so it costs nothing
-and takes seconds. Run it before and after every retrieval change.
+and takes seconds (the reranker modes take longer: a model runs per candidate).
+Run it before and after every retrieval change.
 
 WHY EVALUATE RETRIEVAL SEPARATELY FROM ANSWERS
 The LLM can only answer from what retrieval gives it. If the right section isn't
@@ -14,18 +17,22 @@ cheap and deterministic, while judging answers needs an LLM and costs money.
 WHAT IT DOES, IN ORDER
     1. Load the golden set: questions + the sections that answer them
        (evals/golden_set.json, labelled by hand as "page#anchor")
-    2. For each answerable question: embed it, search top MAX_K chunks
+    2. For each retrieval mode, for each answerable question: retrieve top MAX_K
     3. Map each retrieved chunk to its section key ("tutorial/body#request-body")
     4. Compute hit@k, recall@k and reciprocal rank for that question
     5. Average per category and overall, print a report, list the misses
-    6. Save everything to evals/results/ so runs can be compared over time
+    6. Compare the modes: one summary row each, plus which questions each mode
+       fixed or broke compared to plain vector search
+    7. Save everything to evals/results/ so runs can be compared over time
 
 Labels are SECTIONS, not chunk ids, on purpose: chunk ids change whenever chunk
 size changes, section anchors don't. So the same golden set can compare
 different chunking settings.
 """
 
+import argparse
 import json
+import statistics
 import time
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
@@ -115,6 +122,18 @@ def run(search, golden: list[dict]) -> list[QuestionResult]:
     return [score_question(q, search(q["question"], MAX_K)) for q in answerable]
 
 
+def diff_hits(base: list[QuestionResult], other: list[QuestionResult], k: int = 5) -> dict:
+    """Which questions a mode fixed or broke at k, compared with a base mode.
+
+    The averages can hide trades: +3 fixed and -2 broken looks like a small
+    gain, but the 2 broken questions might matter more. Always read this list.
+    """
+    before = {r.id: r.hit[k] for r in base}
+    fixed = [r.id for r in other if r.hit[k] and not before[r.id]]
+    broke = [r.id for r in other if before[r.id] and not r.hit[k]]
+    return {"fixed": fixed, "broke": broke}
+
+
 def print_report(results: list[QuestionResult], summary: dict) -> None:
     categories = sorted({r.category for r in results})
     cols = ["hit@1", "hit@3", "hit@5", "hit@10", "recall@5", "mrr"]
@@ -133,24 +152,64 @@ def print_report(results: list[QuestionResult], summary: dict) -> None:
 
 def main() -> None:
     from rag.config import get_settings
-    from rag.db import connect
+    from rag.db import connect, init_schema
     from rag.embeddings import FastEmbedEmbedder
+    from rag.retrieval import MODES, CrossEncoderReranker, Retriever
     from rag.store import ChunkStore
+
+    parser = argparse.ArgumentParser(description="Measure retrieval on the golden set.")
+    parser.add_argument("--modes", default=",".join(MODES), help="comma-separated modes")
+    modes = [m.strip() for m in parser.parse_args().modes.split(",") if m.strip()]
 
     s = get_settings()
     embedder = FastEmbedEmbedder(s.embedding_model, s.embedding_dim)
-    store = ChunkStore(connect(s.database_url))
+    conn = connect(s.database_url)
+    init_schema(conn, s.embedding_dim)  # adds the keyword column to an existing index
+    store = ChunkStore(conn)
     if store.count_chunks() == 0:
         raise SystemExit("The index is empty. Run `make ingest` first.")
-
-    def search(question: str, k: int) -> list[RetrievedChunk]:
-        return store.search(embedder.embed_query(question), k)
+    # Load the cross-encoder once and share it between the two modes that use it.
+    reranker = CrossEncoderReranker(s.reranker_model) if any("rerank" in m for m in modes) else None
 
     golden = json.loads(GOLDEN_SET.read_text())
-    start = time.perf_counter()
-    results = run(search, golden)
-    summary = summarize(results)
-    print_report(results, summary)
+    runs: dict[str, dict] = {}
+    for mode in modes:
+        retriever = Retriever(
+            store, embedder, mode, reranker if "rerank" in mode else None, s.candidate_k, s.rrf_k
+        )
+        timings: list[float] = []
+
+        def search(question: str, k: int, retriever=retriever, timings=timings):
+            t = time.perf_counter()
+            out = retriever.retrieve(question, k)
+            timings.append((time.perf_counter() - t) * 1000)
+            return out
+
+        results = run(search, golden)
+        summary = summarize(results)
+        # Latency per question, in milliseconds. p50 = the typical question,
+        # max = the slowest one (a user waits for that too).
+        latency = {
+            "p50_ms": round(statistics.median(timings), 1),
+            "max_ms": round(max(timings), 1),
+        }
+        print(f"\n=== mode: {mode} ===")
+        print_report(results, summary)
+        runs[mode] = {"summary": summary, "latency": latency, "results": results}
+
+    # --- Compare the modes side by side ---
+    base = runs.get("vector")
+    print("\n=== comparison (k=5; fixed/broke vs vector) ===")
+    print(f"{'mode':<15}{'hit@1':>8}{'hit@5':>8}{'rec@5':>8}{'mrr':>8}{'p50 ms':>9}  fixed / broke")
+    for mode, r in runs.items():
+        sm, lat = r["summary"], r["latency"]
+        d = diff_hits(base["results"], r["results"]) if base and mode != "vector" else None
+        change = f"{d['fixed']} / {d['broke']}" if d else ""
+        r["vs_vector"] = d
+        print(
+            f"{mode:<15}{sm['hit@1']:>8.3f}{sm['hit@5']:>8.3f}{sm['recall@5']:>8.3f}"
+            f"{sm['mrr']:>8.3f}{lat['p50_ms']:>9.1f}  {change}"
+        )
 
     # Save the run with the settings that produced it. Comparing runs without
     # knowing what changed between them is useless.
@@ -162,14 +221,14 @@ def main() -> None:
         "chunk_size": s.chunk_size,
         "chunk_overlap": s.chunk_overlap,
         "docs_version": s.docs_version,
+        "candidate_k": s.candidate_k,
+        "rrf_k": s.rrf_k,
+        "reranker_model": s.reranker_model,
     }
-    out.write_text(
-        json.dumps(
-            {"config": config, "summary": summary, "results": [asdict(r) for r in results]},
-            indent=2,
-        )
-    )
-    print(f"\n{len(results)} questions in {time.perf_counter() - start:.1f}s. Saved to {out}")
+    for r in runs.values():
+        r["results"] = [asdict(q) for q in r["results"]]
+    out.write_text(json.dumps({"config": config, "modes": runs}, indent=2))
+    print(f"\nSaved to {out}")
 
 
 if __name__ == "__main__":

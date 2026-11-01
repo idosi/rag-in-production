@@ -18,8 +18,9 @@ ask:                ## Ask a question from the CLI: make ask Q="How do I declare
 api:                ## Run the HTTP API on http://localhost:8000 (docs at /docs)
 	uv run uvicorn rag.api:app --reload
 
-eval-retrieval:     ## Measure search quality on the golden set (no LLM calls, free)
-	uv run python -m rag.evals.retrieval
+MODES ?= vector,hybrid,rerank,hybrid_rerank
+eval-retrieval:     ## Measure search quality per retrieval mode (no LLM calls, free): make eval-retrieval MODES=vector,rerank
+	uv run python -m rag.evals.retrieval --modes $(MODES)
 
 test:               ## Run the test suite
 	uv run pytest -q

@@ -13,6 +13,7 @@ a clear error, instead of breaking somewhere deep in the chunker later.
 """
 
 from functools import lru_cache
+from typing import Literal
 
 from pydantic import SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -48,6 +49,12 @@ class Settings(BaseSettings):
 
     # --- Retrieval ---
     top_k: int = 5  # chunks given to the LLM per question
+    # vector | hybrid | rerank | hybrid_rerank  (see retrieval.py). The default
+    # changes only when `make eval-retrieval` shows another mode is better.
+    retrieval_mode: Literal["vector", "hybrid", "rerank", "hybrid_rerank"] = "vector"
+    candidate_k: int = 30  # pool size for hybrid / rerank before cutting to top_k
+    rrf_k: int = 60  # RRF constant, see retrieval.rrf
+    reranker_model: str = "Xenova/ms-marco-MiniLM-L-6-v2"  # ~80MB cross-encoder, CPU
 
     # --- Generation ---
     llm_model: str = "claude-opus-5-5"  # try claude-haiku-5-5 to save money

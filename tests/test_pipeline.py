@@ -4,6 +4,7 @@ from rag.generator import NOT_FOUND
 from rag.ingest.pipeline import ingest_documents
 from rag.models import Answer, Document
 from rag.pipeline import RAGPipeline
+from rag.retrieval import Retriever
 from rag.store import ChunkStore
 
 DOCS = [
@@ -33,7 +34,7 @@ def test_ingest_then_retrieve(conn, embedder):
     stats = ingest_documents(DOCS, store, embedder, chunk_size=1000, chunk_overlap=100)
     assert stats == {"documents": 2, "skipped": 0, "chunks": 2, "deleted": 0}
 
-    pipeline = RAGPipeline(embedder, store, EchoGenerator(), top_k=2)
+    pipeline = RAGPipeline(Retriever(store, embedder), EchoGenerator(), top_k=2)
     answer = pipeline.ask("How do I allow cross origin requests?")
     assert answer.sources[0].chunk.document_id == "tutorial/cors"
     assert answer.sources[0].score > answer.sources[1].score
@@ -57,7 +58,7 @@ def test_changed_document_replaces_old_chunks(conn, embedder):
 
 
 def test_empty_index_skips_llm(conn, embedder):
-    pipeline = RAGPipeline(embedder, ChunkStore(conn), EchoGenerator(), top_k=3)
+    pipeline = RAGPipeline(Retriever(ChunkStore(conn), embedder), EchoGenerator(), top_k=3)
     assert pipeline.ask("anything").text == NOT_FOUND
 
 
@@ -73,7 +74,8 @@ def test_document_removed_from_source_is_deleted(conn, embedder):
     stats = ingest_documents(DOCS[:1], store, embedder, 1000, 100)
     assert stats["deleted"] == 1
     assert store.count_chunks() == 1
-    found = RAGPipeline(embedder, store, EchoGenerator(), top_k=5).ask("background tasks")
+    pipeline = RAGPipeline(Retriever(store, embedder), EchoGenerator(), top_k=5)
+    found = pipeline.ask("background tasks")
     assert all(s.chunk.document_id != "tutorial/background-tasks" for s in found.sources)
 
 
