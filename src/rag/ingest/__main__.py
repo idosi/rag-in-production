@@ -29,7 +29,8 @@ def main() -> None:
     print(
         f"Done in {time.perf_counter() - start:.1f}s: "
         f"{stats['documents']} ingested, {stats['skipped']} unchanged, "
-        f"{stats['chunks']} new chunks, {store.count_chunks()} chunks in total"
+        f"{stats['deleted']} removed, {stats['chunks']} new chunks, "
+        f"{store.count_chunks()} chunks in total"
     )
 
 

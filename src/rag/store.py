@@ -53,6 +53,16 @@ class ChunkStore:
                 ],
             )
 
+    def delete_missing(self, keep_ids: list[str]) -> int:
+        """Delete every document not in keep_ids (and, by cascade, its chunks).
+
+        Without this, a page removed from the source stays in the index forever
+        and keeps being cited: the system would serve answers that are no longer true.
+        """
+        with self.conn.transaction(), self.conn.cursor() as cur:
+            cur.execute("DELETE FROM documents WHERE NOT (id = ANY(%s))", (keep_ids,))
+            return cur.rowcount
+
     def search(self, query_vector: list[float], k: int) -> list[RetrievedChunk]:
         """Return the k chunks closest to the query vector.
 
