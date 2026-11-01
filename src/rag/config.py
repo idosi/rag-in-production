@@ -1,0 +1,60 @@
+"""All tunable settings in one place.
+
+Values come from environment variables (or a .env file), so the same code runs
+locally, in tests and in the cloud with different settings and no code change.
+
+How a value is chosen, highest priority first:
+    1. an environment variable      CHUNK_SIZE=400 make ingest
+    2. a line in .env               CHUNK_SIZE=400
+    3. the default written below    chunk_size: int = 1200
+Names are case-insensitive: the field chunk_size is set by CHUNK_SIZE.
+pydantic also converts types and validates: CHUNK_SIZE=abc fails at startup with
+a clear error, instead of breaking somewhere deep in the chunker later.
+"""
+
+from functools import lru_cache
+
+from pydantic import SecretStr
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+class Settings(BaseSettings):
+    # Read .env if it exists; ignore unknown keys in it instead of failing.
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+
+    # --- Secrets ---
+    # SecretStr hides the value when printed or logged ("**********"), so the key
+    # doesn't leak into logs by accident. Read it with .get_secret_value().
+    anthropic_api_key: SecretStr | None = None
+
+    # --- Storage ---
+    # Matches the user/password/db in docker-compose.yml.
+    database_url: str = "postgresql://rag:rag@localhost:5432/rag"
+
+    # --- Corpus ---
+    # Pinned to a release tag so the corpus never changes under our feet.
+    # Reproducible data is what makes evals (step 2) meaningful.
+    docs_version: str = "0.162.0"
+    docs_cache_dir: str = "data/raw"  # downloaded pages are cached here
+
+    # --- Chunking ---  (changing these re-ingests every page, see store.py)
+    chunk_size: int = 1200  # max characters per chunk (~300 tokens)
+    chunk_overlap: int = 200  # max characters carried over from the previous chunk
+
+    # --- Embeddings ---  (changing the model requires a full re-ingest)
+    # Small, fast, runs locally on CPU. 384-dimensional vectors.
+    embedding_model: str = "BAAI/bge-small-en-v1.5"
+    embedding_dim: int = 384  # must match the model's output size
+
+    # --- Retrieval ---
+    top_k: int = 5  # chunks given to the LLM per question
+
+    # --- Generation ---
+    llm_model: str = "claude-opus-5-5"  # try claude-haiku-5-5 to save money
+    llm_effort: str = "medium"  # low | medium | high | xhigh | max
+    llm_max_tokens: int = 16000  # cap on reply length; you pay for what's used
+
+
+@lru_cache  # build Settings once per process and reuse it (reading .env every call is waste)
+def get_settings() -> Settings:
+    return Settings()
