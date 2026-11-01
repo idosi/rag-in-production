@@ -82,3 +82,21 @@ def test_empty_load_does_not_wipe_index(conn, embedder):
     ingest_documents(DOCS, store, embedder, 1000, 100)
     assert ingest_documents([], store, embedder, 1000, 100)["deleted"] == 0
     assert store.count_chunks() == 2
+
+
+def test_ingested_rows_are_committed(conn, embedder, test_database):
+    """Regression: a write must be visible from a NEW connection.
+
+    Every other test reads back on the same connection, which also sees
+    uncommitted rows. That hid a bug where ingestion never committed: the CLI
+    printed "661 chunks in total", then the process exited and Postgres rolled
+    everything back.
+    """
+    from rag.db import connect
+
+    ingest_documents(DOCS, ChunkStore(conn), embedder, 1000, 100)
+    other = connect(test_database)
+    try:
+        assert ChunkStore(other).count_chunks() == 2
+    finally:
+        other.close()

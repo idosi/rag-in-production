@@ -35,6 +35,10 @@ from rag.store import ChunkStore
 
 def main() -> None:
     logging.basicConfig(level=logging.INFO, format="%(message)s")
+    # Libraries log every HTTP request at INFO level (~200 lines here). Show only
+    # their warnings, so our own progress lines stay readable.
+    for noisy in ("httpx", "huggingface_hub"):
+        logging.getLogger(noisy).setLevel(logging.WARNING)
     start = time.perf_counter()
 
     # 1. Settings: chunk size, model names, DB URL... (defaults in config.py,

@@ -16,4 +16,5 @@ data/
 # OS / editors
 .DS_Store
 .idea/
+.qodo/
 .vscode/

@@ -54,13 +54,20 @@ def connect(database_url: str) -> psycopg.Connection:
     database_url looks like postgresql://user:password@host:5432/dbname
     (defaults to the docker-compose database, see config.py).
     """
-    # autocommit=False: changes are only saved on commit(), which lets us group
-    # several statements into one all-or-nothing transaction (see store.py).
-    conn = psycopg.connect(database_url, autocommit=False)
+    # autocommit=True: every statement is saved immediately, EXCEPT inside a
+    # `with conn.transaction():` block, which is one real all-or-nothing
+    # transaction that COMMITs when the block ends (see store.py).
+    #
+    # Why not autocommit=False? Then the first SELECT silently opens a transaction
+    # that stays open, and `conn.transaction()` blocks inside it become mere
+    # savepoints that never commit. That was a real bug here: ingestion reported
+    # "661 chunks in total" (visible on its own connection), then the process
+    # exited, Postgres rolled everything back, and the table was empty.
+    # tests/test_pipeline.py::test_ingested_rows_are_committed guards against it.
+    conn = psycopg.connect(database_url, autocommit=True)
     # The extension must exist before register_vector can look up the type.
     with conn.cursor() as cur:
         cur.execute("CREATE EXTENSION IF NOT EXISTS vector")
-    conn.commit()
     register_vector(conn)  # teach psycopg to send/receive the vector type
     return conn
 
@@ -71,4 +78,3 @@ def init_schema(conn: psycopg.Connection, dim: int) -> None:
     # can end up in the statement.
     with conn.cursor() as cur:
         cur.execute(SCHEMA.replace("{dim}", str(int(dim))))
-    conn.commit()

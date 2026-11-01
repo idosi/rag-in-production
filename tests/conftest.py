@@ -6,7 +6,11 @@ import re
 import psycopg
 import pytest
 
-TEST_DB = os.environ.get("TEST_DATABASE_URL", "postgresql://rag:rag@localhost:5432/rag")
+# Tests use their OWN database (rag_test) on the same Postgres server, because the
+# fixture below drops and recreates the tables. Pointing tests at the dev database
+# would wipe the index that `make ingest` built.
+ADMIN_DB = os.environ.get("TEST_ADMIN_DATABASE_URL", "postgresql://rag:rag@localhost:5432/rag")
+TEST_DB = os.environ.get("TEST_DATABASE_URL", "postgresql://rag:rag@localhost:5432/rag_test")
 
 
 class FakeEmbedder:
@@ -37,15 +41,28 @@ def embedder():
     return FakeEmbedder()
 
 
-@pytest.fixture
-def conn():
-    """A fresh schema per test. Skips if Postgres is not running."""
-    from rag.db import connect, init_schema
-
+@pytest.fixture(scope="session")
+def test_database():
+    """Create the rag_test database once per test run, if it doesn't exist yet."""
     try:
-        c = connect(TEST_DB)
+        with psycopg.connect(ADMIN_DB, autocommit=True) as admin:
+            exists = admin.execute(
+                "SELECT 1 FROM pg_database WHERE datname = 'rag_test'"
+            ).fetchone()
+            if not exists:
+                # CREATE DATABASE can't run inside a transaction, hence autocommit.
+                admin.execute("CREATE DATABASE rag_test")
     except psycopg.OperationalError:
         pytest.skip("Postgres not available (run `make up`)")
+    return TEST_DB
+
+
+@pytest.fixture
+def conn(test_database):
+    """A fresh schema per test, in the rag_test database."""
+    from rag.db import connect, init_schema
+
+    c = connect(test_database)
     with c.cursor() as cur:
         cur.execute("DROP TABLE IF EXISTS chunks, documents CASCADE")
     c.commit()
