@@ -19,7 +19,7 @@ api:                ## Run the HTTP API on http://localhost:8000 (docs at /docs)
 	uv run uvicorn rag.api:app --reload
 
 MODES ?= vector,hybrid,rerank,hybrid_rerank
-eval-retrieval:     ## Measure search quality per retrieval mode (no LLM calls, free): make eval-retrieval MODES=vector,rerank
+eval-retrieval:     ## Measure search quality per retrieval mode (free by default; the rewrite modes call Haiku): make eval-retrieval MODES=vector,rerank,rewrite_rerank
 	uv run python -m rag.evals.retrieval --modes $(MODES)
 
 ANSWER_MODELS ?= claude-haiku-5-5,claude-sonnet-5-5,claude-opus-5-5
