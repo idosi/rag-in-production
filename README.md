@@ -37,6 +37,7 @@ make ask Q="How do I make a query parameter optional?"
 make api                  # http://localhost:8000/docs
 make eval-retrieval        # search quality per retrieval mode, no LLM calls
 make eval-answers          # answer quality + cost per model, LLM judge (costs ~$4)
+# a local model too, with Ollama:  make eval-answers ANSWER_MODELS=claude-haiku-5-5,ollama:llama3.1:8b
 make test
 ```
 
@@ -47,5 +48,6 @@ make test
   - [x] 2a: golden set (47 questions) and retrieval evals ([explanation](docs/learning/02a-retrieval-evals.md))
   - [x] 2b: hybrid search and reranking, four modes compared ([explanation](docs/learning/02b-hybrid-search-rerank.md))
   - [x] 2c: answer evals (LLM-as-judge) and model comparison ([explanation](docs/learning/02c-answer-evals.md))
+  - [x] 2d: local models with Ollama in the same comparison ([explanation](docs/learning/02d-local-models.md))
 - [ ] **Step 3: Production.** Tracing, cost tracking, caching, auth, rate limiting, prompt-injection defenses, Docker, CI, cloud deploy
 - [ ] **Step 4: Write-up.** Architecture, results, and the trade-off behind every decision

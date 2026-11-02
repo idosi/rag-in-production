@@ -66,6 +66,7 @@ class Settings(BaseSettings):
     llm_model: str = "claude-opus-5-5"  # try claude-haiku-5-5 to save money
     llm_effort: str = "medium"  # low | medium | high | xhigh | max
     llm_max_tokens: int = 16000  # cap on reply length; you pay for what's used
+    ollama_url: str = "http://localhost:11434"  # local models, used when a model is "ollama:<name>"
 
 
 @lru_cache  # build Settings once per process and reuse it (reading .env every call is waste)

@@ -324,12 +324,16 @@ def main() -> None:
     from rag.config import get_settings
     from rag.db import connect, init_schema
     from rag.embeddings import FastEmbedEmbedder
-    from rag.generator import ClaudeGenerator
+    from rag.generator import build_generator
     from rag.retrieval import build_retriever
     from rag.store import ChunkStore
 
     parser = argparse.ArgumentParser(description="Grade answers per model on the golden set.")
-    parser.add_argument("--models", default=",".join(DEFAULT_MODELS))
+    parser.add_argument(
+        "--models",
+        default=",".join(DEFAULT_MODELS),
+        help="comma-separated; a local model is written ollama:<name>, e.g. ollama:llama3.1:8b",
+    )
     parser.add_argument("--judge", default=DEFAULT_JUDGE)
     parser.add_argument("--limit", type=int, default=0, help="only the first N questions")
     parser.add_argument("--workers", type=int, default=4, help="parallel API calls")
@@ -364,7 +368,7 @@ def main() -> None:
     summaries: dict[str, dict] = {}
     judge_total = 0.0
     for model in models:
-        generator = ClaudeGenerator(model, s.llm_effort, s.llm_max_tokens, api_key=api_key)
+        generator = build_generator(model, s)
         print(f"\n{model}: answering {len(golden)} questions...")
         # 2-3. Answer. Calls are I/O-bound (waiting on the API), so threads give a
         # real speed-up. 4 workers keeps us well under typical rate limits.
