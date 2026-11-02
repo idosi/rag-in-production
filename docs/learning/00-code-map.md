@@ -9,8 +9,18 @@
 <div dir="ltr">
 
 ```
-OFFLINE (פעם אחת):   דפי תיעוד  ->  chunks  ->  וקטורים  ->  Postgres
-ONLINE (כל שאלה):    שאלה  ->  וקטור  ->  5 chunks קרובים  ->  Claude  ->  תשובה עם [1][2]
+OFFLINE (once):
+  FastAPI docs page
+    -> split into chunks
+    -> each chunk becomes a vector (384 numbers)
+    -> stored in Postgres
+
+ONLINE (every question), example: "How do I make a query parameter optional?"
+  1. question text
+  2. -> vector (384 numbers)            same model as the chunks
+  3. -> the 5 closest chunks            Postgres compares vectors
+  4. -> Claude gets question + 5 chunks, labelled [1]..[5]
+  5. -> answer: "Give the parameter a default of None [1][3]"
 ```
 
 </div>
