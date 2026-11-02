@@ -63,7 +63,7 @@ class Settings(BaseSettings):
     reranker_model: str = "Xenova/ms-marco-MiniLM-L-6-v2"  # ~80MB cross-encoder, CPU
 
     # --- Generation ---
-    llm_model: str = "claude-opus-5-5"  # try claude-haiku-5-5 to save money
+    llm_model: str = "claude-sonnet-5-5"  # chosen by make eval-answers, see docs/learning/02c
     llm_effort: str = "medium"  # low | medium | high | xhigh | max
     llm_max_tokens: int = 16000  # cap on reply length; you pay for what's used
 
