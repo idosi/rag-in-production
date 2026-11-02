@@ -70,3 +70,64 @@ def test_api_key_from_settings_reaches_the_client():
     # passed to the SDK explicitly.
     gen = ClaudeGenerator("claude-opus-5-5", "medium", 1000, api_key="sk-from-settings")
     assert gen.client.api_key == "sk-from-settings"
+
+
+# --- Step 2d: local models through Ollama ---
+
+import json  # noqa: E402
+
+import httpx  # noqa: E402
+
+from rag.generator import OllamaGenerator, build_generator  # noqa: E402
+
+
+def ollama_with(reply: dict):
+    """An OllamaGenerator whose HTTP calls are answered by `reply`, no server needed."""
+    seen = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen["path"] = request.url.path
+        seen["body"] = json.loads(request.content)
+        return httpx.Response(200, json=reply)
+
+    client = httpx.Client(base_url="http://x", transport=httpx.MockTransport(handler))
+    return OllamaGenerator("llama3.1:8b", client=client), seen
+
+
+def test_ollama_generator_returns_answer_with_citations_and_usage():
+    gen, seen = ollama_with(
+        {
+            "message": {"content": "Use None [1]. See [9]."},
+            "prompt_eval_count": 2300,
+            "eval_count": 40,
+        }
+    )
+    answer = gen.generate("How?", [src(0), src(1)])
+    assert answer.text == "Use None [1]. See [9]."
+    assert answer.cited == [1]  # [9] is not one of the 2 sources
+    assert answer.usage == {
+        "model": "ollama:llama3.1:8b",
+        "input_tokens": 2300,
+        "output_tokens": 40,
+    }
+    assert seen["path"] == "/api/chat"
+    assert seen["body"]["options"]["num_ctx"] == 8192  # not the silently-truncating default
+    assert seen["body"]["messages"][0]["role"] == "system"
+    assert '<source id="2"' in seen["body"]["messages"][1]["content"]
+
+
+def test_ollama_generator_hides_think_blocks():
+    gen, _ = ollama_with({"message": {"content": "<think>hmm\nlet me see</think>\nAnswer [1]."}})
+    assert gen.generate("q", [src(0)]).text == "Answer [1]."
+
+
+def test_build_generator_picks_the_class_from_the_model_name():
+    settings = SimpleNamespace(
+        ollama_url="http://localhost:11434",
+        anthropic_api_key=None,
+        llm_effort="low",
+        llm_max_tokens=100,
+    )
+    local = build_generator("ollama:llama3.1:8b", settings)
+    assert isinstance(local, OllamaGenerator) and local.model == "llama3.1:8b"
+    assert isinstance(build_generator("claude-haiku-5-5", settings), ClaudeGenerator)

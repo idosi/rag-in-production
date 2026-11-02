@@ -33,6 +33,7 @@ import re
 from typing import Protocol
 
 import anthropic
+import httpx
 
 from rag.models import Answer, RetrievedChunk
 
@@ -148,3 +149,76 @@ class ClaudeGenerator:
                 "output_tokens": response.usage.output_tokens,
             },
         )
+
+
+class OllamaGenerator:
+    """Same job as ClaudeGenerator, with a model running on YOUR machine (step 2d).
+
+    Ollama is a local server (default http://localhost:11434) that downloads open
+    models (`ollama pull llama3.1:8b`) and serves them over HTTP. We use its native
+    /api/chat endpoint with httpx, which the project already depends on, so this
+    adds no new dependency.
+
+    Differences from Claude that matter:
+    - Cost is 0 dollars. The real cost is your CPU/GPU time: a laptop without a GPU
+      can take 10-60 seconds per answer.
+    - Nothing leaves the machine. Documents and questions stay private.
+    - No `effort`, no fallbacks, no refusal classifier: small models just answer.
+    - num_ctx: Ollama's default context window is small (2048-4096 tokens) and it
+      TRUNCATES an over-long prompt silently, dropping the start of the prompt, which
+      is exactly where our rules are. We set 8192 (5 sources are ~2,500 tokens).
+    - temperature 0: same question, same answer, so eval runs are comparable.
+    """
+
+    def __init__(
+        self,
+        model: str,
+        base_url: str = "http://localhost:11434",
+        timeout: float = 300.0,
+        client: httpx.Client | None = None,  # tests pass one with a fake transport
+    ):
+        self.model = model  # e.g. "llama3.1:8b"
+        self.client = client or httpx.Client(base_url=base_url, timeout=timeout)
+
+    def generate(self, question: str, sources: list[RetrievedChunk]) -> Answer:
+        response = self.client.post(
+            "/api/chat",
+            json={
+                "model": self.model,
+                "stream": False,  # one JSON reply instead of a stream of pieces
+                "messages": [
+                    {"role": "system", "content": SYSTEM_PROMPT},
+                    {
+                        "role": "user",
+                        "content": f"{format_sources(sources)}\n\nQuestion: {question}",
+                    },
+                ],
+                "options": {"temperature": 0, "num_ctx": 8192},
+            },
+        )
+        response.raise_for_status()
+        data = response.json()
+        text = data["message"]["content"]
+        # Reasoning models (e.g. qwen3, deepseek-r1) put their thinking inside
+        # <think> tags in the text. Like Claude's thinking blocks, we don't show it.
+        text = re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL).strip()
+        return Answer(
+            text=text,
+            sources=sources,
+            cited=parse_citations(text, len(sources)),
+            usage={
+                # "ollama:" prefix: keeps it apart from Claude models in reports,
+                # and it is not in PRICES, so its cost is 0.
+                "model": f"ollama:{self.model}",
+                "input_tokens": data.get("prompt_eval_count", 0),
+                "output_tokens": data.get("eval_count", 0),
+            },
+        )
+
+
+def build_generator(spec: str, settings) -> Generator:
+    """Make a generator from a model spec: "claude-haiku-5-5" or "ollama:llama3.1:8b"."""
+    if spec.startswith("ollama:"):
+        return OllamaGenerator(spec.removeprefix("ollama:"), settings.ollama_url)
+    api_key = settings.anthropic_api_key.get_secret_value() if settings.anthropic_api_key else None
+    return ClaudeGenerator(spec, settings.llm_effort, settings.llm_max_tokens, api_key=api_key)

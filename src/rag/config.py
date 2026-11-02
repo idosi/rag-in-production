@@ -69,6 +69,7 @@ class Settings(BaseSettings):
     llm_model: str = "claude-sonnet-5-5"  # chosen by make eval-answers, see docs/learning/02c
     llm_effort: str = "medium"  # low | medium | high | xhigh | max
     llm_max_tokens: int = 16000  # cap on reply length; you pay for what's used
+    ollama_url: str = "http://localhost:11434"  # local models, used when a model is "ollama:<name>"
 
 
 @lru_cache  # build Settings once per process and reuse it (reading .env every call is waste)
