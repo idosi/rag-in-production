@@ -1,0 +1,28 @@
+# Everything here is NOT sent to the Docker build. Two reasons: speed (the build
+# context is uploaded) and safety (secrets must never end up inside an image layer).
+
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Python / tooling
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+
+# Not needed to run the API
+.git/
+.github/
+data/
+tests/
+docs/
+evals/
+scripts/
+.cache/
+.DS_Store
+.idea/
+.vscode/
+.qodo/
