@@ -154,11 +154,15 @@ def main() -> None:
     from rag.config import get_settings
     from rag.db import connect, init_schema
     from rag.embeddings import FastEmbedEmbedder
-    from rag.retrieval import MODES, CrossEncoderReranker, Retriever
+    from rag.retrieval import ALL_MODES, MODES, CrossEncoderReranker, Retriever
     from rag.store import ChunkStore
 
     parser = argparse.ArgumentParser(description="Measure retrieval on the golden set.")
-    parser.add_argument("--modes", default=",".join(MODES), help="comma-separated modes")
+    parser.add_argument(
+        "--modes",
+        default=",".join(MODES),
+        help=f"comma-separated, from {', '.join(ALL_MODES)}. The rewrite modes call an LLM",
+    )
     modes = [m.strip() for m in parser.parse_args().modes.split(",") if m.strip()]
 
     s = get_settings()
@@ -171,11 +175,24 @@ def main() -> None:
     # Load the cross-encoder once and share it between the two modes that use it.
     reranker = CrossEncoderReranker(s.reranker_model) if any("rerank" in m for m in modes) else None
 
+    rewriter = None
+    if any("rewrite" in m for m in modes):
+        from rag.rewrite import ClaudeQueryRewriter
+
+        key = s.anthropic_api_key.get_secret_value() if s.anthropic_api_key else None
+        rewriter = ClaudeQueryRewriter(s.rewriter_model, key)
+
     golden = json.loads(GOLDEN_SET.read_text())
     runs: dict[str, dict] = {}
     for mode in modes:
         retriever = Retriever(
-            store, embedder, mode, reranker if "rerank" in mode else None, s.candidate_k, s.rrf_k
+            store,
+            embedder,
+            mode,
+            reranker if "rerank" in mode else None,
+            s.candidate_k,
+            s.rrf_k,
+            rewriter if "rewrite" in mode else None,
         )
         timings: list[float] = []
 
@@ -224,6 +241,7 @@ def main() -> None:
         "candidate_k": s.candidate_k,
         "rrf_k": s.rrf_k,
         "reranker_model": s.reranker_model,
+        "rewriter_model": s.rewriter_model if rewriter else None,
     }
     for r in runs.values():
         r["results"] = [asdict(q) for q in r["results"]]

@@ -2,13 +2,18 @@
 
 Used by question step 2 (pipeline.py) and by the retrieval eval (evals/retrieval.py).
 
-THE FOUR MODES (set RETRIEVAL_MODE in .env, or compare all of them with
-`make eval-retrieval`, which runs every mode on the golden set)
+THE MODES (set RETRIEVAL_MODE in .env, or compare them with `make eval-retrieval`,
+which runs the first four on the golden set without any LLM call)
 
     vector         embed the question, take the k nearest chunks       (step 1)
     hybrid         vector top N + keyword top N, merged with RRF, take k
     rerank         vector top N, re-scored by a cross-encoder, take k   (default)
     hybrid_rerank  hybrid top N, re-scored by a cross-encoder, take k
+
+    Step 2e adds two modes that call a small LLM once per question (costs money):
+    rewrite        search with the question AND its rewrites, merged with RRF
+    rewrite_rerank the same, then the cross-encoder re-scores against the ORIGINAL
+                   question (rewrites find candidates, they don't decide the order)
 N = CANDIDATE_K (default 10). Why rerank with N=10 won, with the numbers:
 docs/learning/02b-hybrid-search-rerank.md, section 7.
 
@@ -32,10 +37,15 @@ from typing import Literal, Protocol
 
 from rag.embeddings import Embedder
 from rag.models import RetrievedChunk
+from rag.rewrite import QueryRewriter
 from rag.store import ChunkStore
 
-Mode = Literal["vector", "hybrid", "rerank", "hybrid_rerank"]
+Mode = Literal["vector", "hybrid", "rerank", "hybrid_rerank", "rewrite", "rewrite_rerank"]
+# The modes that need no API key. `make eval-retrieval` runs these by default.
 MODES: tuple[Mode, ...] = ("vector", "hybrid", "rerank", "hybrid_rerank")
+# These call an LLM per question, so they are opt-in: MODES=vector,rerank,rewrite_rerank
+LLM_MODES: tuple[Mode, ...] = ("rewrite", "rewrite_rerank")
+ALL_MODES: tuple[Mode, ...] = MODES + LLM_MODES
 
 
 def rrf(ranked_lists: Sequence[list[RetrievedChunk]], k: int = 60) -> list[RetrievedChunk]:
@@ -115,17 +125,21 @@ class Retriever:
         reranker: Reranker | None = None,
         candidate_k: int = 30,
         rrf_k: int = 60,
+        rewriter: QueryRewriter | None = None,
     ):
-        if mode not in MODES:
-            raise ValueError(f"unknown retrieval mode {mode!r}, expected one of {MODES}")
+        if mode not in ALL_MODES:
+            raise ValueError(f"unknown retrieval mode {mode!r}, expected one of {ALL_MODES}")
         if "rerank" in mode and reranker is None:
             raise ValueError(f"mode {mode!r} needs a reranker")
+        if "rewrite" in mode and rewriter is None:
+            raise ValueError(f"mode {mode!r} needs a rewriter")
         self.store = store
         self.embedder = embedder
         self.mode = mode
         self.reranker = reranker
         self.candidate_k = candidate_k  # how many candidates the cheap stages pass on
         self.rrf_k = rrf_k
+        self.rewriter = rewriter
 
     def retrieve(self, question: str, k: int) -> list[RetrievedChunk]:
         # Plain vector search fetches exactly k. Every other mode fetches a wider
@@ -135,15 +149,22 @@ class Retriever:
         # the list and broke 4 questions; at 10 it broke none.
         pool = k if self.mode == "vector" else max(k, self.candidate_k)
 
-        # 1. Vector search: always runs.
-        results = self.store.search(self.embedder.embed_query(question), pool)
+        # 1. Vector search: always runs. In the rewrite modes it runs once for the
+        # original question and once for each rewrite, and the lists are merged by
+        # rank: a chunk that several phrasings agree on rises (same idea as hybrid).
+        queries = [question]
+        if "rewrite" in self.mode:
+            queries += self.rewriter.rewrite(question)  # [] if the rewriter failed
+        lists = [self.store.search(self.embedder.embed_query(q), pool) for q in queries]
+        results = lists[0] if len(lists) == 1 else rrf(lists, k=self.rrf_k)[:pool]
 
         # 2 + 3. Keyword search, merged with the vector list by rank.
         if self.mode in ("hybrid", "hybrid_rerank"):
             keyword = self.store.keyword_search(question, pool)
             results = rrf([results, keyword], k=self.rrf_k)[:pool]
 
-        # 4. Rerank: score every candidate with the cross-encoder, best first.
+        # 4. Rerank: score every candidate with the cross-encoder, best first. Always
+        # against the ORIGINAL question: that is what the user asked.
         if self.reranker is not None and "rerank" in self.mode and results:
             scores = self.reranker.score(question, [r.chunk.text for r in results])
             ranked = sorted(zip(results, scores, strict=True), key=lambda p: p[1], reverse=True)
@@ -161,4 +182,10 @@ def build_retriever(store: ChunkStore, embedder: Embedder, mode: Mode | None = N
     s = get_settings()
     mode = mode or s.retrieval_mode
     reranker = CrossEncoderReranker(s.reranker_model) if "rerank" in mode else None
-    return Retriever(store, embedder, mode, reranker, s.candidate_k, s.rrf_k)
+    rewriter = None
+    if "rewrite" in mode:
+        from rag.rewrite import ClaudeQueryRewriter
+
+        key = s.anthropic_api_key.get_secret_value() if s.anthropic_api_key else None
+        rewriter = ClaudeQueryRewriter(s.rewriter_model, key)
+    return Retriever(store, embedder, mode, reranker, s.candidate_k, s.rrf_k, rewriter)
