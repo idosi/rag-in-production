@@ -16,5 +16,26 @@ services:
       timeout: 3s
       retries: 15
 
+  # The API as a container. Behind a profile, so `make up` (Postgres only, for local
+  # development) is unchanged. Start it with `make docker-up`.
+  api:
+    profiles: ["app"]
+    build: .
+    ports:
+      - "8000:8000"
+    env_file:
+      - path: .env  # ANTHROPIC_API_KEY comes from here; the file is optional
+        required: false
+    environment:
+      # Inside the compose network the database is called "db", not "localhost".
+      # `environment` wins over `env_file`, so a localhost URL in .env can't break this.
+      DATABASE_URL: postgresql://rag:rag@db:5432/rag
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - docs_cache:/app/data  # downloaded docs, so re-running ingest doesn't re-download
+
 volumes:
   pgdata:
+  docs_cache:

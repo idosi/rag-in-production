@@ -19,7 +19,13 @@ RLM = "‏"
 
 
 def mark(s: str) -> str:
-    return s if s.startswith(RLM) else RLM + s
+    if s.startswith(RLM) or s.startswith("**" + RLM):
+        return s
+    # Put the mark INSIDE a leading ** : "RLM**`x`" breaks bold on GitHub
+    # (the opening ** is followed by punctuation and preceded by a non-space).
+    if s.startswith("**"):
+        return "**" + RLM + s[2:]
+    return RLM + s
 
 
 def convert(text: str) -> str:

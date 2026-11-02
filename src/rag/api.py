@@ -28,7 +28,7 @@ async def lifespan(app: FastAPI):
     # every question that much slower. app.state is a place to keep shared objects.
     app.state.pipeline = build_pipeline()
     yield
-    app.state.pipeline.store.conn.close()
+    app.state.pipeline.retriever.store.conn.close()
 
 
 app = FastAPI(title="RAG in production", version="0.1.0", lifespan=lifespan)
@@ -93,5 +93,5 @@ def ask(body: AskRequest, request: Request) -> AskResponse:
 def health(request: Request) -> dict:
     # Used by load balancers / cloud platforms (step 3) to check the service is
     # alive. It touches the DB, so "ok" means the database is reachable too.
-    count = request.app.state.pipeline.store.count_chunks()
+    count = request.app.state.pipeline.retriever.store.count_chunks()
     return {"status": "ok", "chunks": count}

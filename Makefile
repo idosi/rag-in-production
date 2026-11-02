@@ -1,4 +1,4 @@
-.PHONY: install up down ingest ask api test lint eval-retrieval eval-answers
+.PHONY: install up down ingest ask api test lint eval-retrieval eval-answers docker-build docker-up docker-ingest
 
 install:            ## Install dependencies into .venv
 	uv sync
@@ -6,8 +6,8 @@ install:            ## Install dependencies into .venv
 up:                 ## Start Postgres + pgvector
 	docker compose up -d --wait
 
-down:               ## Stop Postgres (data is kept in a volume)
-	docker compose down
+down:               ## Stop Postgres and the API container (data is kept in volumes)
+	docker compose --profile app down
 
 ingest:             ## Download the FastAPI docs, chunk, embed and store them
 	uv run python -m rag.ingest
@@ -32,3 +32,12 @@ test:               ## Run the test suite
 
 lint:
 	uv run ruff check src tests
+
+docker-build:       ## Build the API image
+	docker compose --profile app build
+
+docker-up:          ## Run Postgres + the API in containers (http://localhost:8000/docs)
+	docker compose --profile app up -d --build --wait
+
+docker-ingest:      ## Fill the index from inside the container (first time, or after docs change)
+	docker compose --profile app run --rm api python -m rag.ingest
