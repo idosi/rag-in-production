@@ -125,3 +125,12 @@ def test_claude_rewriter_returns_cleaned_queries():
 def test_claude_rewriter_never_raises():
     assert rewriter_with(FakeMessages(error=RuntimeError("429"))).rewrite("q") == []
     assert rewriter_with(FakeMessages(SimpleNamespace(parsed_output=None))).rewrite("q") == []
+
+
+def test_retriever_remembers_the_queries_it_searched():
+    store = StubStore({"q": [A], "rw": [B]})
+    retriever = Retriever(
+        store, TextEmbedder(), "rewrite", candidate_k=10, rewriter=FixedRewriter(["rw"])
+    )
+    retriever.retrieve("q", 2)
+    assert retriever.last_queries == ["q", "rw"]

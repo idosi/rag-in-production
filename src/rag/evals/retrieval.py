@@ -195,11 +195,13 @@ def main() -> None:
             rewriter if "rewrite" in mode else None,
         )
         timings: list[float] = []
+        queries_used: dict[str, list[str]] = {}  # question -> what was really searched
 
-        def search(question: str, k: int, retriever=retriever, timings=timings):
+        def search(question: str, k: int, retriever=retriever, timings=timings, used=queries_used):
             t = time.perf_counter()
             out = retriever.retrieve(question, k)
             timings.append((time.perf_counter() - t) * 1000)
+            used[question] = list(retriever.last_queries)
             return out
 
         results = run(search, golden)
@@ -212,7 +214,19 @@ def main() -> None:
         }
         print(f"\n=== mode: {mode} ===")
         print_report(results, summary)
-        runs[mode] = {"summary": summary, "latency": latency, "results": results}
+        if "rewrite" in mode:
+            # Show the rewrites for every question that still misses: this is how you
+            # find out whether the rewriter said the right thing and search ignored
+            # it, or the rewriter never said it.
+            for r in results:
+                if r.first_hit_rank is None or r.first_hit_rank > 5:
+                    print(f"  rewrites for {r.id}: {queries_used[r.question][1:]}")
+        runs[mode] = {
+            "summary": summary,
+            "latency": latency,
+            "results": results,
+            "queries": queries_used if "rewrite" in mode else None,
+        }
 
     # --- Compare the modes side by side ---
     base = runs.get("vector")

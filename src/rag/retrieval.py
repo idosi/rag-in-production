@@ -140,6 +140,9 @@ class Retriever:
         self.candidate_k = candidate_k  # how many candidates the cheap stages pass on
         self.rrf_k = rrf_k
         self.rewriter = rewriter
+        # The queries the last retrieve() searched with (question + rewrites). The eval
+        # prints and saves them: without seeing the rewrites you can't explain a miss.
+        self.last_queries: list[str] = []
 
     def retrieve(self, question: str, k: int) -> list[RetrievedChunk]:
         # Plain vector search fetches exactly k. Every other mode fetches a wider
@@ -155,6 +158,7 @@ class Retriever:
         queries = [question]
         if "rewrite" in self.mode:
             queries += self.rewriter.rewrite(question)  # [] if the rewriter failed
+        self.last_queries = queries
         lists = [self.store.search(self.embedder.embed_query(q), pool) for q in queries]
         results = lists[0] if len(lists) == 1 else rrf(lists, k=self.rrf_k)[:pool]
 
