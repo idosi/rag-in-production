@@ -103,7 +103,7 @@ class ClaudeGenerator:
         # The SDK retries 429 (rate limit), 5xx (server error) and connection
         # errors twice, with exponential backoff.
         self.client = anthropic.Anthropic(api_key=api_key)
-        self.model = model  # e.g. "claude-opus-5-5", or "claude-haiku-5-5" to save money
+        self.model = model  # e.g. "claude-sonnet-5-5" (the one chosen in step 2c)
         self.effort = effort  # how hard the model thinks: low | medium | high | ...
         self.max_tokens = max_tokens  # upper bound on the reply length, not a target
 
