@@ -7,7 +7,7 @@ HOW TO RUN
 
 WHAT HAPPENS, IN ORDER (follow the numbers into the other files)
     1. Load settings from .env / environment         -> config.py
-    2. Download 43 pages, inline code examples       -> ingest/loader.py
+    2. Download 48 pages, inline code examples       -> ingest/loader.py
     3. Connect to Postgres, create tables + index    -> db.py
     4. Load the embedding model into memory          -> embeddings.py
     5. For every page:                               -> ingest/pipeline.py
@@ -74,7 +74,7 @@ def main() -> None:
         f"{stats['deleted']} removed, {stats['chunks']} new chunks, "
         f"{store.count_chunks()} chunks in total"
     )
-    # Try running it twice: the second run should say "43 unchanged" and finish
+    # Try running it twice: the second run should say "48 unchanged" and finish
     # in seconds. That is idempotency (see docs/learning/01-foundations.md, 4.5).
 
 
