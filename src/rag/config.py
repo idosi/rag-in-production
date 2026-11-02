@@ -54,13 +54,16 @@ class Settings(BaseSettings):
     #   vector                      hit@5 0.905   8ms
     #   rerank, 30 candidates       hit@5 0.881   620ms   fixed 3, broke 4
     #   rerank, 10 candidates       hit@5 0.952   163ms   fixed 2, broke 0  <- default
-    retrieval_mode: Literal["vector", "hybrid", "rerank", "hybrid_rerank"] = "rerank"
+    retrieval_mode: Literal[
+        "vector", "hybrid", "rerank", "hybrid_rerank", "rewrite", "rewrite_rerank"
+    ] = "rerank"
     # Pool size for hybrid / rerank before cutting to top_k. Small on purpose: the
     # reranker only reorders the vector search's best 10, so it can't promote a
     # chunk the vector search ranked far down (that is what broke 4 questions at 30).
     candidate_k: int = 10
     rrf_k: int = 60  # RRF constant, see retrieval.rrf
     reranker_model: str = "Xenova/ms-marco-MiniLM-L-6-v2"  # ~80MB cross-encoder, CPU
+    rewriter_model: str = "claude-haiku-5-5"  # rewrite modes only (rewrite.py), 1 call/question
 
     # --- Generation ---
     llm_model: str = "claude-sonnet-5-5"  # chosen by make eval-answers, see docs/learning/02c

@@ -154,11 +154,15 @@ def main() -> None:
     from rag.config import get_settings
     from rag.db import connect, init_schema
     from rag.embeddings import FastEmbedEmbedder
-    from rag.retrieval import MODES, CrossEncoderReranker, Retriever
+    from rag.retrieval import ALL_MODES, MODES, CrossEncoderReranker, Retriever
     from rag.store import ChunkStore
 
     parser = argparse.ArgumentParser(description="Measure retrieval on the golden set.")
-    parser.add_argument("--modes", default=",".join(MODES), help="comma-separated modes")
+    parser.add_argument(
+        "--modes",
+        default=",".join(MODES),
+        help=f"comma-separated, from {', '.join(ALL_MODES)}. The rewrite modes call an LLM",
+    )
     modes = [m.strip() for m in parser.parse_args().modes.split(",") if m.strip()]
 
     s = get_settings()
@@ -171,18 +175,33 @@ def main() -> None:
     # Load the cross-encoder once and share it between the two modes that use it.
     reranker = CrossEncoderReranker(s.reranker_model) if any("rerank" in m for m in modes) else None
 
+    rewriter = None
+    if any("rewrite" in m for m in modes):
+        from rag.rewrite import ClaudeQueryRewriter
+
+        key = s.anthropic_api_key.get_secret_value() if s.anthropic_api_key else None
+        rewriter = ClaudeQueryRewriter(s.rewriter_model, key)
+
     golden = json.loads(GOLDEN_SET.read_text())
     runs: dict[str, dict] = {}
     for mode in modes:
         retriever = Retriever(
-            store, embedder, mode, reranker if "rerank" in mode else None, s.candidate_k, s.rrf_k
+            store,
+            embedder,
+            mode,
+            reranker if "rerank" in mode else None,
+            s.candidate_k,
+            s.rrf_k,
+            rewriter if "rewrite" in mode else None,
         )
         timings: list[float] = []
+        queries_used: dict[str, list[str]] = {}  # question -> what was really searched
 
-        def search(question: str, k: int, retriever=retriever, timings=timings):
+        def search(question: str, k: int, retriever=retriever, timings=timings, used=queries_used):
             t = time.perf_counter()
             out = retriever.retrieve(question, k)
             timings.append((time.perf_counter() - t) * 1000)
+            used[question] = list(retriever.last_queries)
             return out
 
         results = run(search, golden)
@@ -195,7 +214,19 @@ def main() -> None:
         }
         print(f"\n=== mode: {mode} ===")
         print_report(results, summary)
-        runs[mode] = {"summary": summary, "latency": latency, "results": results}
+        if "rewrite" in mode:
+            # Show the rewrites for every question that still misses: this is how you
+            # find out whether the rewriter said the right thing and search ignored
+            # it, or the rewriter never said it.
+            for r in results:
+                if r.first_hit_rank is None or r.first_hit_rank > 5:
+                    print(f"  rewrites for {r.id}: {queries_used[r.question][1:]}")
+        runs[mode] = {
+            "summary": summary,
+            "latency": latency,
+            "results": results,
+            "queries": queries_used if "rewrite" in mode else None,
+        }
 
     # --- Compare the modes side by side ---
     base = runs.get("vector")
@@ -224,6 +255,7 @@ def main() -> None:
         "candidate_k": s.candidate_k,
         "rrf_k": s.rrf_k,
         "reranker_model": s.reranker_model,
+        "rewriter_model": s.rewriter_model if rewriter else None,
     }
     for r in runs.values():
         r["results"] = [asdict(q) for q in r["results"]]
