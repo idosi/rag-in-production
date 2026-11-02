@@ -16,7 +16,7 @@ flowchart LR
 
 | Layer | Choice | Why |
 |---|---|---|
-| Corpus | 43 FastAPI tutorial pages, pinned to `0.162.0` | Small enough to understand, stable enough to evaluate |
+| Corpus | 48 FastAPI docs pages (43 tutorial + overview pages), pinned to `0.162.0` | Small enough to understand, stable enough to evaluate |
 | Chunking | Markdown-structure aware, ~1200 chars, heading path prefix | Never splits code examples; every chunk knows its context |
 | Embeddings | `BAAI/bge-small-en-v1.5` via fastembed (local) | No API key, no per-call cost |
 | Store | Postgres 16 + pgvector, HNSW index | One database for text, metadata and vectors |
@@ -49,5 +49,6 @@ make test
   - [x] 2b: hybrid search and reranking, four modes compared ([explanation](docs/learning/02b-hybrid-search-rerank.md))
   - [x] 2c: answer evals (LLM-as-judge) and model comparison ([explanation](docs/learning/02c-answer-evals.md))
   - [x] 2e: query rewriting, measured: no gain in hit@5, kept opt-in (a useful negative result, [explanation](docs/learning/02e-query-rewriting.md)) ([explanation](docs/learning/02e-query-rewriting.md))
+  - [x] 2f: overview pages in the corpus + 6 new golden questions (old 42 questions unchanged after adding them) ([explanation](docs/learning/02f-corpus-overview-pages.md))
 - [ ] **Step 3: Production.** Tracing, cost tracking, caching, auth, rate limiting, prompt-injection defenses, Docker, CI, cloud deploy
 - [ ] **Step 4: Write-up.** Architecture, results, and the trade-off behind every decision

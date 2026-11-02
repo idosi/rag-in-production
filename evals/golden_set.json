@@ -83,9 +83,20 @@
    "relevant": ["tutorial/security/get-current-user#create-a-get-current-user-dependency", "tutorial/security/get-current-user#inject-the-current-user", "tutorial/security/first-steps#fastapis-oauth2passwordbearer", "tutorial/security/simple-oauth2#update-the-dependencies"]},
   {"id": "q42", "category": "multi", "question": "How do I add a header with the processing time to every response?",
    "relevant": ["tutorial/middleware#create-a-middleware", "tutorial/middleware#before-and-after-the-response"]},
+  {"id": "q43", "category": "overview", "question": "what is FastAPI ?",
+   "relevant": ["index#fastapi"]},
+  {"id": "q44", "category": "overview", "question": "what are the benefits of using FastAPI ?",
+   "relevant": ["index#fastapi", "features#fastapi-features", "features#based-on-open-standards", "features#automatic-docs"]},
+  {"id": "q45", "category": "overview", "question": "what do i need to install to use FastAPI ?",
+   "relevant": ["index#requirements", "index#installation", "index#standard-dependencies"]},
+  {"id": "q46", "category": "overview", "question": "How to install FastAPI?",
+   "relevant": ["index#installation"]},
+  {"id": "q47", "category": "overview", "question": "Does it cost money to use FastAPI?",
+   "relevant": ["index#license"]},
   {"id": "u01", "category": "unanswerable", "question": "How do I deploy FastAPI to Kubernetes?", "relevant": []},
   {"id": "u02", "category": "unanswerable", "question": "How do I use WebSockets in FastAPI?", "relevant": []},
   {"id": "u03", "category": "unanswerable", "question": "How do I add rate limiting to my endpoints?", "relevant": []},
   {"id": "u04", "category": "unanswerable", "question": "How do I stream a large file to the client with StreamingResponse?", "relevant": []},
-  {"id": "u05", "category": "unanswerable", "question": "What is the capital of France?", "relevant": []}
+  {"id": "u05", "category": "unanswerable", "question": "What is the capital of France?", "relevant": []},
+  {"id": "u06", "category": "unanswerable", "question": "Does FestAPI works with all LLM models?", "relevant": []}
 ]
