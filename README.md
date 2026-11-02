@@ -36,6 +36,7 @@ make ingest               # download, chunk, embed, store
 make ask Q="How do I make a query parameter optional?"
 make api                  # http://localhost:8000/docs
 make eval-retrieval        # search quality per retrieval mode, no LLM calls
+make eval-answers          # answer quality + cost per model, LLM judge (costs ~$4)
 make test
 ```
 
@@ -45,6 +46,6 @@ make test
 - [ ] **Step 2: Measured quality.**
   - [x] 2a: golden set (47 questions) and retrieval evals ([explanation](docs/learning/02a-retrieval-evals.md))
   - [x] 2b: hybrid search and reranking, four modes compared ([explanation](docs/learning/02b-hybrid-search-rerank.md))
-  - [ ] 2c: answer evals (LLM-as-judge) and model comparison
+  - [x] 2c: answer evals (LLM-as-judge) and model comparison ([explanation](docs/learning/02c-answer-evals.md))
 - [ ] **Step 3: Production.** Tracing, cost tracking, caching, auth, rate limiting, prompt-injection defenses, Docker, CI, cloud deploy
 - [ ] **Step 4: Write-up.** Architecture, results, and the trade-off behind every decision
