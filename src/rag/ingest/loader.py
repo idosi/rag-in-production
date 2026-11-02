@@ -68,7 +68,26 @@ PAGES = [
     "tutorial/static-files",
     "tutorial/testing",
     "tutorial/debugging",
+    # Step 2f: the pages a NEW user's first questions are about (what is FastAPI,
+    # why use it, how to install it, who made it). The tutorial alone can't answer
+    # them. See docs/learning/02f-corpus-overview-pages.md.
+    "index",
+    "features",
+    "history-design-future",
+    "alternatives",
+    "deployment/index",
 ]
+
+# Sections that are marketing or page chrome, not documentation. They would only
+# add chunks that match nothing a user asks. Removed whole, by heading title.
+DROP_SECTIONS = {
+    "index": [
+        "Sponsors",
+        "Opinions",
+        "FastAPI mini documentary",
+        "**Typer**, the FastAPI of CLIs",
+    ],
+}
 
 # Matches a whole line like:  {* ../../docs_src/body/tutorial001_py310.py hl[2] *}
 # and captures the file path ("../../docs_src/body/tutorial001_py310.py").
@@ -91,8 +110,42 @@ def page_url(page: str) -> str:
     tutorial/query-params        -> https://fastapi.tiangolo.com/tutorial/query-params/
     tutorial/dependencies/index  -> https://fastapi.tiangolo.com/tutorial/dependencies/
     """
-    path = page.removesuffix("/index").removesuffix("index")
-    return f"{SITE_BASE}{path}/"
+    path = page.removesuffix("index").removesuffix("/")
+    return f"{SITE_BASE}{path}/" if path else SITE_BASE
+
+
+FRONT_MATTER_RE = re.compile(r"\A---\n.*?\n---\n", re.DOTALL)
+STYLE_RE = re.compile(r"<style>.*?</style>\s*", re.DOTALL)
+CENTERED_RE = re.compile(r"<p align=\"center\">.*?</p>\s*", re.DOTALL)  # logo and badges
+HEADING_RE = re.compile(r"^(#{1,6})\s+(.+?)(?:\s*\{\s*#[^}]*\})?\s*$")
+
+
+def drop_sections(text: str, titles: list[str]) -> str:
+    """Remove each section with one of these titles, up to the next heading of the
+    same or a higher level (so its sub-sections go with it)."""
+    out: list[str] = []
+    skip_level = 0  # 0 = not skipping
+    for line in text.split("\n"):
+        m = HEADING_RE.match(line)
+        if m:
+            level = len(m.group(1))
+            if skip_level and level <= skip_level:
+                skip_level = 0
+            if not skip_level and m.group(2).strip() in titles:
+                skip_level = level
+        if not skip_level:
+            out.append(line)
+    return "\n".join(out)
+
+
+def clean_page(page: str, text: str) -> str:
+    """Take out page chrome that is noise for search: front matter, <style>, the
+    centered logo/badge block and the sections listed in DROP_SECTIONS. Pages
+    without any of these come out unchanged."""
+    text = FRONT_MATTER_RE.sub("", text)
+    text = STYLE_RE.sub("", text)
+    text = CENTERED_RE.sub("", text)
+    return drop_sections(text, DROP_SECTIONS.get(page, []))
 
 
 def resolve_includes(markdown: str, fetch: Fetcher) -> str:
@@ -149,7 +202,7 @@ def make_fetcher(version: str, cache_dir: str | Path, client: httpx.Client) -> F
 def load_page(page: str, fetch: Fetcher) -> Document:
     """One page path -> one Document with its code examples inlined."""
     raw = fetch(f"docs/en/docs/{page}.md")  # e.g. docs/en/docs/tutorial/body.md
-    text = resolve_includes(raw, fetch)
+    text = resolve_includes(clean_page(page, raw), fetch)
     m = TITLE_RE.search(text)
     title = m.group(1).strip() if m else page
     return Document(id=page, title=title, url=page_url(page), text=text)

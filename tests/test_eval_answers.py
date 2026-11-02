@@ -132,3 +132,28 @@ def test_answer_result_is_serialisable():
     r = run_one(ANSWERABLE, [src("a")], "Use X [1].", FixedJudge())
     assert isinstance(r, AnswerResult)
     json.dumps(asdict(r))
+
+
+def test_unanswerable_grounded_non_answer_is_not_a_hallucination():
+    """u02 case: 'supported, but no how-to in my sources' is honest."""
+    text = "FastAPI supports WebSockets [1], but the sources show no example."
+    honest = FixedJudge(answers_question="no")
+    assert run_one(UNANSWERABLE, [src("a")], text, honest).outcome == "grounded_non_answer"
+    # An unsupported claim, or an answer that claims to answer, is still a hallucination.
+    invented = FixedJudge(answers_question="no", unsupported_claims=["use @app.websocket"])
+    assert run_one(UNANSWERABLE, [src("a")], text, invented).outcome == "hallucinated"
+    assert run_one(UNANSWERABLE, [src("a")], text, FixedJudge()).outcome == "hallucinated"
+
+
+def test_summary_counts_a_grounded_non_answer_as_a_correct_unanswerable():
+    rs = [
+        run_one(UNANSWERABLE, [src("a")], NOT_FOUND, FixedJudge()),
+        run_one(
+            UNANSWERABLE | {"id": "u2"},
+            [src("a")],
+            "Supported [1].",
+            FixedJudge(answers_question="no"),
+        ),
+    ]
+    s = summarize_answers(rs)
+    assert s["correct_refusals"] == "2/2" and s["grounded_non_answers"] == 1

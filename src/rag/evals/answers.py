@@ -194,7 +194,12 @@ def is_refusal(text: str) -> bool:
 def classify(q: dict, retrieval_hit: bool, refused: bool, verdict: dict | None) -> str:
     """One label per answer, so the summary can count them.
 
-    unanswerable question:  correct_refusal | hallucinated
+    unanswerable question:  correct_refusal      (the exact NOT_FOUND sentence)
+                            grounded_non_answer  (no NOT_FOUND, but the judge says: no
+                                                  unsupported claim AND it does not
+                                                  answer; e.g. "WebSocket is supported,
+                                                  but the sources show no how-to")
+                            hallucinated         (anything else)
     answerable question:
         refused + retrieval missed  -> justified_refusal (retrieval's fault, not the model's)
         refused + retrieval hit     -> false_refusal
@@ -204,7 +209,15 @@ def classify(q: dict, retrieval_hit: bool, refused: bool, verdict: dict | None) 
                   wrong    (does not answer)
     """
     if not q["relevant"]:
-        return "correct_refusal" if refused else "hallucinated"
+        if refused:
+            return "correct_refusal"
+        # Added after step 2f (u02, WebSockets): the new overview pages say WebSocket
+        # is supported, and Sonnet answered "supported, but no how-to in my sources".
+        # That is honest, so it must not count as a hallucination. Strict on purpose:
+        # BOTH conditions are needed, and the report lists these answers to be read.
+        if verdict and not verdict["unsupported_claims"] and verdict["answers_question"] == "no":
+            return "grounded_non_answer"
+        return "hallucinated"
     if refused:
         return "false_refusal" if retrieval_hit else "justified_refusal"
     if verdict is None:
@@ -237,7 +250,12 @@ def summarize_answers(results: list[AnswerResult]) -> dict:
         "phantom_citations": sum(len(r.phantom_citations) for r in results),
         "false_refusals": outcomes.count("false_refusal"),
         "justified_refusals": outcomes.count("justified_refusal"),
-        "correct_refusals": f"{outcomes.count('correct_refusal')}/{len(unanswerable)}",
+        # Both a refusal and a grounded non-answer are the right behaviour here.
+        "correct_refusals": (
+            f"{outcomes.count('correct_refusal') + outcomes.count('grounded_non_answer')}"
+            f"/{len(unanswerable)}"
+        ),
+        "grounded_non_answers": outcomes.count("grounded_non_answer"),
         "latency_p50_s": round(statistics.median(r.latency_s for r in results), 2),
         "cost_per_question_usd": round(sum(r.cost_usd for r in results) / len(results), 5),
         "cost_total_usd": round(sum(r.cost_usd for r in results), 4),
