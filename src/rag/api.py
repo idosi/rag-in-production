@@ -13,12 +13,18 @@ LIFECYCLE
     server stops   -> lifespan(): close the DB connection
 """
 
+import logging
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, Request
+from fastapi import Depends, FastAPI, Request
+from fastapi.security import APIKeyHeader
 from pydantic import BaseModel, Field
 
+from rag.config import get_settings
 from rag.pipeline import RAGPipeline, build_pipeline
+from rag.security import Guard, RateLimiter, parse_keys
+
+log = logging.getLogger("rag.api")
 
 
 @asynccontextmanager
@@ -27,6 +33,12 @@ async def lifespan(app: FastAPI):
     # Loading the embedding model takes seconds; doing it per request would make
     # every question that much slower. app.state is a place to keep shared objects.
     app.state.pipeline = build_pipeline()
+    s = get_settings()
+    keys = parse_keys(s.api_keys.get_secret_value() if s.api_keys else None)
+    limiter = RateLimiter(s.rate_limit_per_minute) if s.rate_limit_per_minute > 0 else None
+    app.state.guard = Guard(keys, limiter)
+    if not keys:
+        log.warning("API_KEYS is empty: /ask is OPEN to anyone who can reach it")
     yield
     app.state.pipeline.retriever.store.conn.close()
 
@@ -62,7 +74,20 @@ class AskResponse(BaseModel):
     usage: dict
 
 
-@app.post("/ask", response_model=AskResponse)
+# Declares "this API takes a key in the X-API-Key header". Besides reading the header,
+# it adds an Authorize button to /docs, so you can try the protected endpoint there.
+# auto_error=False: a missing header gives None and OUR guard answers 401 (one place).
+api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
+
+
+def check_access(request: Request, x_api_key: str | None = Depends(api_key_header)) -> None:
+    """Runs BEFORE the endpoint (Depends below). Raises 401/429 and the endpoint never
+    executes, so a rejected request costs no embedding and no LLM call."""
+    ip = request.client.host if request.client else "unknown"
+    request.app.state.guard.check(x_api_key, ip)
+
+
+@app.post("/ask", response_model=AskResponse, dependencies=[Depends(check_access)])
 def ask(body: AskRequest, request: Request) -> AskResponse:
     # By the time we get here, FastAPI has already parsed and validated the JSON
     # into `body`. An invalid request never reaches this line.

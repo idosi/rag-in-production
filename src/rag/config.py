@@ -27,6 +27,10 @@ class Settings(BaseSettings):
     # SecretStr hides the value when printed or logged ("**********"), so the key
     # doesn't leak into logs by accident. Read it with .get_secret_value().
     anthropic_api_key: SecretStr | None = None
+    # Keys that may call POST /ask, comma-separated (API_KEYS=key1,key2). Several keys
+    # allow rotation. EMPTY = authentication is OFF (fine for local development; in
+    # production always set it, see security.py).
+    api_keys: SecretStr | None = None
 
     # --- Storage ---
     # Matches the user/password/db in docker-compose.yml.
@@ -70,6 +74,9 @@ class Settings(BaseSettings):
     llm_effort: str = "medium"  # low | medium | high | xhigh | max
     llm_max_tokens: int = 16000  # cap on reply length; you pay for what's used
     ollama_url: str = "http://localhost:11434"  # local models, used when a model is "ollama:<name>"
+
+    # --- API protection ---  (security.py)
+    rate_limit_per_minute: int = 20  # per caller; 0 turns the limit off
 
 
 @lru_cache  # build Settings once per process and reuse it (reading .env every call is waste)
