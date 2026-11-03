@@ -38,16 +38,32 @@ HINTS (open one at a time)
     - Write a small helper method `_valid(self, api_key) -> bool`.
 """
 
-import hmac  # noqa: F401  (you will need it)
-
-from fastapi import HTTPException  # noqa: F401  (you will need it)
+import hmac
+from fastapi import HTTPException
 
 
 class Guard:
     def __init__(self, keys: list[str], limiter):
-        # TODO: store what you need
-        pass
+        self.keys = keys
+        self.limiter = limiter
 
     def check(self, api_key: str | None, client_ip: str) -> None:
-        # TODO: implement the spec above, authentication first
-        raise NotImplementedError
+        if self.keys:
+            if not api_key or not self._valid(api_key):
+                raise HTTPException(status_code=401, detail="Missing or invalid API key")
+
+        if self.limiter:
+            caller = api_key if self.keys else client_ip
+            wait = self.limiter.allow(caller)
+            if wait > 0:
+                raise HTTPException(
+                    status_code=429,
+                    detail="Rate limit exceeded",
+                    headers={"Retry-After": str(int(wait) + 1)},
+                )
+
+    def _valid(self, api_key: str) -> bool:
+        ok = False
+        for key in self.keys:
+            ok |= hmac.compare_digest(api_key.encode(), key.encode())
+        return ok

@@ -37,7 +37,6 @@ from collections import deque
 from collections.abc import Callable
 
 
-
 class RateLimiter:
     def __init__(
         self, limit: int, window: float = 60.0, clock: Callable[[], float] = time.monotonic
@@ -47,7 +46,6 @@ class RateLimiter:
         self.clock = clock
         self.hits = {}  # Dictionary to store caller -> list of request times
         self._lock = threading.Lock()  # FastAPI runs sync endpoints in several threads
-
 
     def allow(self, caller: str) -> float:
         now = self.clock()
