@@ -79,6 +79,7 @@ make test
 
 ## Roadmap
 
+- [x] **Code map.** One-hour reading tour of the whole codebase ([guide](docs/learning/00-code-map.md))
 - [x] **Step 1: Foundations.** End-to-end RAG with citations ([explanation](docs/learning/01-foundations.md))
 - [ ] **Step 2: Measured quality.**
   - [x] 2a: golden set (47 answerable + 6 unanswerable questions) and retrieval evals ([explanation](docs/learning/02a-retrieval-evals.md))
@@ -87,5 +88,5 @@ make test
   - [x] 2d: local models with Ollama in the same comparison ([explanation](docs/learning/02d-local-models.md))
   - [x] 2e: query rewriting, measured: no gain in hit@5, kept opt-in (a useful negative result, [explanation](docs/learning/02e-query-rewriting.md))
   - [x] 2f: overview pages in the corpus + 6 new golden questions (old 42 questions unchanged after adding them) ([explanation](docs/learning/02f-corpus-overview-pages.md))
-- [ ] **Step 3: Production.** Tracing, cost tracking, caching, auth, rate limiting, prompt-injection defenses, Docker, CI, cloud deploy ([3a Docker and CI](docs/learning/03a-docker-ci.md): done, the image builds and CI runs the tests against a real Postgres)
+- [ ] **Step 3: Production.** Tracing, cost tracking, caching, auth, rate limiting, prompt-injection defenses, Docker, CI, cloud deploy ([3a Docker and CI](docs/learning/03a-docker-ci.md): done, the image builds and CI runs the tests against a real Postgres; [3b-1 auth and rate limit](docs/learning/03b-auth-rate-limit.md): done)
 - [ ] **Step 4: Write-up.** Architecture, results, and the trade-off behind every decision
