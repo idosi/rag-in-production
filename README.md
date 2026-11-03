@@ -48,6 +48,7 @@ make test
 
 ## Roadmap
 
+- [x] **Code map.** One-hour reading tour of the whole codebase ([guide](docs/learning/00-code-map.md))
 - [x] **Step 1: Foundations.** End-to-end RAG with citations ([explanation](docs/learning/01-foundations.md))
 - [ ] **Step 2: Measured quality.**
   - [x] 2a: golden set (47 answerable + 6 unanswerable questions) and retrieval evals ([explanation](docs/learning/02a-retrieval-evals.md))
