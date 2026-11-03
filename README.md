@@ -57,5 +57,5 @@ make test
   - [x] 2d: local models with Ollama in the same comparison ([explanation](docs/learning/02d-local-models.md))
   - [x] 2e: query rewriting, measured: no gain in hit@5, kept opt-in (a useful negative result, [explanation](docs/learning/02e-query-rewriting.md)) ([explanation](docs/learning/02e-query-rewriting.md))
   - [x] 2f: overview pages in the corpus + 6 new golden questions (old 42 questions unchanged after adding them) ([explanation](docs/learning/02f-corpus-overview-pages.md))
-- [ ] **Step 3: Production.** Tracing, cost tracking, caching, auth, rate limiting, prompt-injection defenses, Docker, CI, cloud deploy ([3a Docker and CI](docs/learning/03a-docker-ci.md): built, first CI run pending)
+- [ ] **Step 3: Production.** Tracing, cost tracking, caching, auth, rate limiting, prompt-injection defenses, Docker, CI, cloud deploy ([3a Docker and CI](docs/learning/03a-docker-ci.md): done; [3b-1 auth and rate limit](docs/learning/03b-auth-rate-limit.md): built)
 - [ ] **Step 4: Write-up.** Architecture, results, and the trade-off behind every decision
