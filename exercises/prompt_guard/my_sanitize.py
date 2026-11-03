@@ -40,8 +40,9 @@ HINTS (open one at a time)
     - "sources?" matches both "source" and "sources".
     - \\b means "word boundary": it is what makes <sourcecode> NOT match.
 """
-
+import re
 
 def sanitize(text: str) -> str:
-    # TODO
-    raise NotImplementedError
+    text = re.sub(r"<(?=\s*/?\s*sources?\b)", "&lt;", text, flags=re.IGNORECASE)
+    #text = re.sub(r"<(?=\s*/?\s*sources\b)", "&lt;", text, flags=re.IGNORECASE)
+    return text
