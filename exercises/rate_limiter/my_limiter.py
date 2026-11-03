@@ -33,7 +33,7 @@ HINTS (open one at a time, only when stuck)
 
 import threading
 import time
-import deque
+from collections import deque
 from collections.abc import Callable
 
 
@@ -51,10 +51,11 @@ class RateLimiter:
 
     def allow(self, caller: str) -> float:
         now = self.clock()
-        hits = self.hits.setdefault(caller, deque())
-        while hits and now - hits[0] >= self.window:
-            hits.popleft()
-        if len(hits) >= self.limit:
-            return self.window - (now - hits[0])
-        hits.append(self.clock()) 
+        with self._lock:
+            hits = self.hits.setdefault(caller, deque())
+            while hits and now - hits[0] >= self.window:
+                hits.popleft()
+            if len(hits) >= self.limit:
+                return self.window - (now - hits[0])
+            hits.append(now)
         return 0.0
