@@ -1,0 +1,1560 @@
+{
+  "config": {
+    "retrieval_mode": "rerank",
+    "top_k": 5,
+    "candidate_k": 10,
+    "llm_effort": "medium",
+    "judge": "claude-opus-5-5",
+    "prices_per_mtok": {
+      "claude-haiku-5-5": [
+        0.1,
+        0.5
+      ],
+      "claude-sonnet-5-5": [
+        2.0,
+        10.0
+      ],
+      "claude-opus-5-5": [
+        4.0,
+        20.0
+      ]
+    }
+  },
+  "summary": {
+    "claude-sonnet-5-5": {
+      "questions": 53,
+      "correct": 0.894,
+      "partial": 0.021,
+      "unfaithful": 0.023,
+      "bad_citations": 0.023,
+      "uncited": 0.0,
+      "phantom_citations": 0,
+      "false_refusals": 0,
+      "justified_refusals": 3,
+      "correct_refusals": "5/6",
+      "latency_p50_s": 2.68,
+      "cost_per_question_usd": 0.00677,
+      "cost_total_usd": 0.3587
+    }
+  },
+  "judge_cost_usd": 0.6895,
+  "results": {
+    "claude-sonnet-5-5": [
+      {
+        "id": "q01",
+        "category": "direct",
+        "question": "How do I make a query parameter optional?",
+        "model": "claude-sonnet-5-5",
+        "answer": "Give the query parameter a default value. If you just want it to be optional without a specific value, set the default to `None` [2].\n\n```python\nfrom fastapi import FastAPI\n\napp = FastAPI()\n\n\n@app.get(\"/items/{item_id}\")\nasync def read_item(item_id: str, q: str | None = None):\n    if q:\n        return {\"item_id\": item_id, \"q\": q}\n    return {\"item_id\": item_id}\n```\n\nHere `q` is optional and is `None` by default [1]. FastAPI recognizes `item_id` as a path parameter and `q` as a query parameter [1].\n\nNotes:\n- Any default value makes a non-path parameter optional, for example `skip: int = 0` [2][4].\n- Using the type `str | None` alone does not make a parameter optional. Without a default, it is still required [3]. When using `Query`, add `= None` to allow clients to omit it:\n\n```python\nq: Annotated[str | None, Query(min_length=3)] = None\n```\n[3]",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [
+          2,
+          1,
+          4,
+          3
+        ],
+        "phantom_citations": [],
+        "latency_s": 2.84,
+        "cost_usd": 0.007396,
+        "usage": {
+          "model": "claude-sonnet-5-5",
+          "input_tokens": 2103,
+          "output_tokens": 319
+        },
+        "verdict": {
+          "reasoning": "The answer states that a default value makes a parameter optional and that None is used when no specific value is wanted, both from [2]. The code example and the explanation of q come from [1]. The note that skip: int = 0 is optional is supported by [2] (any default makes it not required) and [4] (the skip example). The point that str | None alone is still required, and that Query needs = None, matches [3]. All claims and citations are grounded.",
+          "unsupported_claims": [],
+          "answers_question": "fully",
+          "bad_citations": []
+        },
+        "outcome": "correct",
+        "notes": []
+      },
+      {
+        "id": "q02",
+        "category": "code-name",
+        "question": "What does jsonable_encoder do?",
+        "model": "claude-sonnet-5-5",
+        "answer": "`jsonable_encoder()` is a FastAPI function that converts a data type, such as a Pydantic model, into something compatible with JSON, such as a `dict` or `list`. This is useful, for example, when you need to store the data in a database [3].\n\n- **Input and output:** It receives an object, like a Pydantic model, and returns a JSON-compatible version [5].\n- **What it returns:** It does not return a big `str` of JSON. It returns a standard Python data structure (e.g. a `dict`) whose values and sub-values are all JSON-compatible, so the result can be encoded with `json.dumps()` [1].\n- **Type conversions:** A Pydantic model becomes a `dict`, and a `datetime` becomes a `str` in ISO format [5].\n- **Internal use:** FastAPI uses it internally to convert data, but it is also useful in other scenarios [1].\n\nExample:\n\n```python\nfrom datetime import datetime\n\nfrom fastapi import FastAPI\nfrom fastapi.encoders import jsonable_encoder\nfrom pydantic import BaseModel\n\nfake_db = {}\n\n\nclass Item(BaseModel):\n    title: str\n    timestamp: datetime\n    description: str | None = None\n\n\napp = FastAPI()\n\n\n@app.put(\"/items/{id}\")\ndef update_item(id: str, item: Item):\n    json_compatible_item_data = jsonable_encoder(item)\n    fake_db[id] = json_compatible_item_data\n```\n[5]",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [
+          3,
+          5,
+          1
+        ],
+        "phantom_citations": [],
+        "latency_s": 4.55,
+        "cost_usd": 0.008614,
+        "usage": {
+          "model": "claude-sonnet-5-5",
+          "input_tokens": 1922,
+          "output_tokens": 477
+        },
+        "verdict": {
+          "reasoning": "Every statement in the answer is supported by the sources. The definition and the database use case come from [3]. The input/output description, the conversion of a Pydantic model to a dict and a datetime to an ISO-format str, and the code example all come from [5]. The return-type details, json.dumps compatibility and FastAPI's internal use come from [1]. The answer fully explains what the function does, and every citation supports the sentence it follows.",
+          "unsupported_claims": [],
+          "answers_question": "fully",
+          "bad_citations": []
+        },
+        "outcome": "correct",
+        "notes": []
+      },
+      {
+        "id": "q03",
+        "category": "paraphrase",
+        "question": "How do I run code after returning a response?",
+        "model": "claude-sonnet-5-5",
+        "answer": "You can use **background tasks**, which are defined to run *after* returning a response [1]. This suits operations the client doesn't need to wait for [1]. Examples from the docs:\n\n- Sending email notifications: connecting to an email server and sending an email can take several seconds, so you can return the response right away and send the email in the background [1].\n- Processing data: for a file that needs slow processing, you can return an \"Accepted\" (HTTP 202) response and process the file in the background [1].\n\nThe excerpt I have doesn't include a code example showing how to declare a background task, so I can't show the exact syntax.\n\nNote that middleware is different. It can run code before a path operation receives the request and after the response is generated, but before it is returned [2]. That is not the same as running code after the response has been returned.",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [
+          1,
+          2
+        ],
+        "phantom_citations": [],
+        "latency_s": 2.85,
+        "cost_usd": 0.006598,
+        "usage": {
+          "model": "claude-sonnet-5-5",
+          "input_tokens": 2069,
+          "output_tokens": 246
+        },
+        "verdict": {
+          "reasoning": "The answer correctly states, with citations to [1], that background tasks run after returning a response, and it accurately reproduces both examples. The middleware distinction is drawn accurately from [2]. It honestly says the sources contain no code for declaring a background task, which is true: source 1 has no syntax. The answer gives what the sources allow.",
+          "unsupported_claims": [],
+          "answers_question": "fully",
+          "bad_citations": []
+        },
+        "outcome": "correct",
+        "notes": []
+      },
+      {
+        "id": "q04",
+        "category": "direct",
+        "question": "How do I declare a path parameter with a type?",
+        "model": "claude-sonnet-5-5",
+        "answer": "Declare the type with a standard Python type annotation on the function parameter that matches the path variable [1]:\n\n```python\nfrom fastapi import FastAPI\n\napp = FastAPI()\n\n\n@app.get(\"/items/{item_id}\")\nasync def read_item(item_id: int):\n    return {\"item_id\": item_id}\n```\n\nHere, `item_id` is declared to be an `int` [1]. This also gives you editor support inside your function, such as error checks and completion [1].\n\nYou can also use an `Enum` class as the type annotation to restrict the parameter to predefined values [2]:\n\n```python\n@app.get(\"/models/{model_name}\")\nasync def get_model(model_name: ModelName):\n    ...\n```\n\nIf you need metadata such as a title, you can use `Annotated` with `Path`, for example `item_id: Annotated[int, Path(title=\"The ID of the item to get\")]` [3]. A path parameter is always required, because it has to be part of the URL path [3].",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [
+          1,
+          2,
+          3
+        ],
+        "phantom_citations": [],
+        "latency_s": 2.89,
+        "cost_usd": 0.006656,
+        "usage": {
+          "model": "claude-sonnet-5-5",
+          "input_tokens": 1798,
+          "output_tokens": 306
+        },
+        "verdict": {
+          "reasoning": "The answer correctly reproduces source 1's example and explanation, the Enum usage from source 2, and the Annotated/Path metadata and required-ness note from source 3. The claim that an Enum restricts the parameter to predefined values is a reasonable paraphrase of the 'Predefined values' section title. All citations match their sentences.",
+          "unsupported_claims": [],
+          "answers_question": "fully",
+          "bad_citations": []
+        },
+        "outcome": "correct",
+        "notes": []
+      },
+      {
+        "id": "q05",
+        "category": "paraphrase",
+        "question": "My route /users/me is being matched by /users/{user_id}. Why?",
+        "model": "claude-sonnet-5-5",
+        "answer": "Path operations are evaluated in order. If `/users/{user_id}` is declared before `/users/me`, it also matches `/users/me` and treats `\"me\"` as the value of `user_id` [1].\n\nThe fix is to declare the fixed path `/users/me` before `/users/{user_id}` [1]:\n\n```python\nfrom fastapi import FastAPI\n\napp = FastAPI()\n\n\n@app.get(\"/users/me\")\nasync def read_user_me():\n    return {\"user_id\": \"the current user\"}\n\n\n@app.get(\"/users/{user_id}\")\nasync def read_user(user_id: str):\n    return {\"user_id\": user_id}\n```\n\nSimilarly, you can't redefine a path operation. If the same path is declared twice, the first one is always used because it matches first [1].",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [
+          1
+        ],
+        "phantom_citations": [],
+        "latency_s": 3.15,
+        "cost_usd": 0.00644,
+        "usage": {
+          "model": "claude-sonnet-5-5",
+          "input_tokens": 2005,
+          "output_tokens": 243
+        },
+        "verdict": {
+          "reasoning": "The answer explains that path operations are evaluated in order, so /users/{user_id} declared first captures /users/me with user_id=\"me\", and that the fix is to declare /users/me first. It reproduces the source's code exactly and correctly paraphrases the note about redefining paths. All claims are drawn from source 1, and the citations are accurate.",
+          "unsupported_claims": [],
+          "answers_question": "fully",
+          "bad_citations": []
+        },
+        "outcome": "correct",
+        "notes": []
+      },
+      {
+        "id": "q06",
+        "category": "direct",
+        "question": "How can I restrict a path parameter to a fixed set of allowed values?",
+        "model": "claude-sonnet-5-5",
+        "answer": "Use a standard Python `Enum` for the path parameter. If you want the valid values of a path parameter to be predefined, that is the approach the docs describe [1].\n\nInside your function, the value of the path parameter will be an enumeration member [4]. Because the allowed values are predefined, the interactive docs can also display them nicely [2].\n\nThe excerpts I have don't include a code example for the Enum approach, so I can't show the exact declaration here.",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [
+          1,
+          4,
+          2
+        ],
+        "phantom_citations": [],
+        "latency_s": 2.56,
+        "cost_usd": 0.004412,
+        "usage": {
+          "model": "claude-sonnet-5-5",
+          "input_tokens": 1491,
+          "output_tokens": 143
+        },
+        "verdict": {
+          "reasoning": "The answer recommends a standard Python Enum, which matches source 1. It says the parameter value will be an enumeration member, which matches source 4, and that the interactive docs display the predefined values, which matches source 2. It correctly notes that the sources contain no code example for the Enum approach, so every claim is grounded and every citation fits its sentence.",
+          "unsupported_claims": [],
+          "answers_question": "fully",
+          "bad_citations": []
+        },
+        "outcome": "correct",
+        "notes": []
+      },
+      {
+        "id": "q07",
+        "category": "paraphrase",
+        "question": "How do I accept a file path like /files/home/johndoe/myfile.txt in the URL?",
+        "model": "claude-sonnet-5-5",
+        "answer": "Use Starlette's path convertor by declaring the parameter as `{file_path:path}`. The `:path` part tells FastAPI that the parameter should match any path, including slashes [2].\n\n```python\nfrom fastapi import FastAPI\n\napp = FastAPI()\n\n\n@app.get(\"/files/{file_path:path}\")\nasync def read_file(file_path: str):\n    return {\"file_path\": file_path}\n```\n[2]\n\nWith this, a request to `/files/home/johndoe/myfile.txt` gives `file_path` the value `home/johndoe/myfile.txt` [1][2].\n\nIf you need the value to have a leading slash (`/home/johndoe/myfile.txt`), use a double slash in the URL: `/files//home/johndoe/myfile.txt` [2].",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [
+          2,
+          1
+        ],
+        "phantom_citations": [],
+        "latency_s": 2.25,
+        "cost_usd": 0.005872,
+        "usage": {
+          "model": "claude-sonnet-5-5",
+          "input_tokens": 1681,
+          "output_tokens": 251
+        },
+        "verdict": {
+          "reasoning": "The answer correctly describes the :path convertor, reproduces the code from source 2, and gives the leading-slash tip from source 2. Saying the parameter matches 'including slashes' is a reasonable paraphrase of 'any path'. The example mapping of the URL to the value 'home/johndoe/myfile.txt' is supported by sources 1 and 2 together.",
+          "unsupported_claims": [],
+          "answers_question": "fully",
+          "bad_citations": []
+        },
+        "outcome": "correct",
+        "notes": []
+      },
+      {
+        "id": "q08",
+        "category": "direct",
+        "question": "How do I receive a JSON request body?",
+        "model": "claude-sonnet-5-5",
+        "answer": "To receive a JSON request body, declare the body using a Pydantic model [4]. Then use that model as the type of a function parameter. For example, with a parameter `item` of type `Item`, FastAPI will:\n\n- Read the request body as JSON [1].\n- Convert the corresponding types, if needed [1].\n- Validate the data, and return a clear error showing exactly where and what the incorrect data was if it's invalid [1].\n- Give you the received data in the `item` parameter, with editor support (completion, etc.) for its attributes and types [1].\n- Generate JSON Schema definitions for your model, which become part of the OpenAPI schema and are used by the automatic docs UIs [1][3].\n\nThe sources don't include the full code for the `Item` model or the path operation, so I can't show a complete example.\n\nTo send a body, clients should use `POST` (the most common), `PUT`, `DELETE` or `PATCH`. A body in a `GET` request has undefined behavior in the specifications. FastAPI supports it, but it is discouraged [4].",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [
+          4,
+          1,
+          3
+        ],
+        "phantom_citations": [],
+        "latency_s": 3.32,
+        "cost_usd": 0.00672,
+        "usage": {
+          "model": "claude-sonnet-5-5",
+          "input_tokens": 1665,
+          "output_tokens": 339
+        },
+        "verdict": {
+          "reasoning": "The answer says to declare the body with a Pydantic model, which source 4 supports, and lists FastAPI's behaviors from source 1, which is accurate. Source 1 implies the parameter-typing step, since the parameter `item` is declared as type `Item`. The JSON Schema and docs claim is supported by sources 1 and 3, and the HTTP methods note matches source 4. It honestly states that no full code example is available, and all citations are appropriate.",
+          "unsupported_claims": [],
+          "answers_question": "fully",
+          "bad_citations": []
+        },
+        "outcome": "correct",
+        "notes": []
+      },
+      {
+        "id": "q09",
+        "category": "direct",
+        "question": "How do I limit the length of a query parameter string?",
+        "model": "claude-sonnet-5-5",
+        "answer": "Use `Query` with the `max_length` parameter (and optionally `min_length`) to limit the length of a query parameter string.\n\n**Recommended: inside `Annotated`**\n\n```python\nfrom typing import Annotated\n\nfrom fastapi import FastAPI, Query\n\napp = FastAPI()\n\n\n@app.get(\"/items/\")\nasync def read_items(q: Annotated[str | None, Query(max_length=50)] = None):\n    results = {\"items\": [{\"item_id\": \"Foo\"}, {\"item_id\": \"Bar\"}]}\n    if q:\n        results.update({\"q\": q})\n    return results\n```\n\nThe default is still `None`, so the parameter stays optional, but `Query(max_length=50)` tells FastAPI to validate that the value has at most 50 characters [3].\n\n**Adding a minimum length too**\n\n```python\nq: Annotated[str | None, Query(min_length=3, max_length=50)] = None\n```\n[5]\n\n**Alternative (older) style: `Query` as the default value**\n\n```python\nq: str | None = Query(default=None, max_length=50)\n```\n\nThis validates the data, shows a clear error when it is not valid, and documents the parameter in the OpenAPI schema [1][2]. Here `Query(default=None)` makes the parameter optional, just like `= None` does, but it explicitly declares it as a query parameter [2].",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [
+          3,
+          5,
+          1,
+          2
+        ],
+        "phantom_citations": [],
+        "latency_s": 2.95,
+        "cost_usd": 0.00835,
+        "usage": {
+          "model": "claude-sonnet-5-5",
+          "input_tokens": 2010,
+          "output_tokens": 433
+        },
+        "verdict": {
+          "reasoning": "The answer correctly describes using Query with max_length, both inside Annotated [3] and as the older default-value style [1][2], and shows min_length [5]. All claims are grounded in the sources. However, source 2 does not state that the validation shows a clear error and documents the parameter in OpenAPI; only source 1 does, so citation [2] on that sentence is bad. The later [2] citation about Query(default=None) is supported.",
+          "unsupported_claims": [],
+          "answers_question": "fully",
+          "bad_citations": [
+            2
+          ]
+        },
+        "outcome": "correct",
+        "notes": []
+      },
+      {
+        "id": "q10",
+        "category": "code-name",
+        "question": "How do I validate a query parameter against a regular expression?",
+        "model": "claude-sonnet-5-5",
+        "answer": "Use the `pattern` parameter of `Query` to define a regular expression that the parameter must match [1]:\n\n```python\nfrom typing import Annotated\n\nfrom fastapi import FastAPI, Query\n\napp = FastAPI()\n\n\n@app.get(\"/items/\")\nasync def read_items(\n    q: Annotated[\n        str | None, Query(min_length=3, max_length=50, pattern=\"^fixedquery$\")\n    ] = None,\n):\n    results = {\"items\": [{\"item_id\": \"Foo\"}, {\"item_id\": \"Bar\"}]}\n    if q:\n        results.update({\"q\": q})\n    return results\n```\n\nIn this example, the pattern `^fixedquery$` checks that the value starts with `fixedquery` with no characters before it (`^`), is exactly `fixedquery`, and ends there with no characters after it (`$`) [1].",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [
+          1
+        ],
+        "phantom_citations": [],
+        "latency_s": 1.91,
+        "cost_usd": 0.007068,
+        "usage": {
+          "model": "claude-sonnet-5-5",
+          "input_tokens": 2174,
+          "output_tokens": 272
+        },
+        "verdict": {
+          "reasoning": "The answer uses the `pattern` parameter of `Query` and reproduces the code and the explanation of the pattern from source 1. Every claim, including the code, matches source 1, and both [1] citations are supported. It fully answers how to validate a query parameter against a regex.",
+          "unsupported_claims": [],
+          "answers_question": "fully",
+          "bad_citations": []
+        },
+        "outcome": "correct",
+        "notes": []
+      },
+      {
+        "id": "q11",
+        "category": "paraphrase",
+        "question": "How do I accept the same query parameter several times, like ?q=foo&q=bar?",
+        "model": "claude-sonnet-5-5",
+        "answer": "Declare the parameter as a `list` type and explicitly use `Query` [1]:\n\n```python\nfrom typing import Annotated\n\nfrom fastapi import FastAPI, Query\n\napp = FastAPI()\n\n\n@app.get(\"/items/\")\nasync def read_items(q: Annotated[list[str] | None, Query()] = None):\n    query_items = {\"q\": q}\n    return query_items\n```\n\nWith a URL like `http://localhost:8000/items/?q=foo&q=bar`, the function receives the values as a Python `list` in the parameter `q`, so the response is `{\"q\": [\"foo\", \"bar\"]}` [1].\n\n**Important:** you need to explicitly use `Query` for a `list` type, otherwise it would be interpreted as a request body [1].\n\n**Default list:** to use a default list when no values are provided, set it as the default value [3]:\n\n```python\nq: Annotated[list[str], Query()] = [\"foo\", \"bar\"]\n```\n\nRequesting `/items/` without any `q` then gives `{\"q\": [\"foo\", \"bar\"]}` [3].",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [
+          1,
+          3
+        ],
+        "phantom_citations": [],
+        "latency_s": 2.68,
+        "cost_usd": 0.007824,
+        "usage": {
+          "model": "claude-sonnet-5-5",
+          "input_tokens": 2207,
+          "output_tokens": 341
+        },
+        "verdict": {
+          "reasoning": "The answer reproduces source 1's code, URL behavior, response, and the tip about needing Query; the default-list section matches source 3. All claims are grounded and the citations are correct.",
+          "unsupported_claims": [],
+          "answers_question": "fully",
+          "bad_citations": []
+        },
+        "outcome": "correct",
+        "notes": []
+      },
+      {
+        "id": "q12",
+        "category": "paraphrase",
+        "question": "The query parameter name I need is item-query, which is not a valid Python variable name. What can I do?",
+        "model": "claude-sonnet-5-5",
+        "answer": "Declare an `alias` on `Query`. The alias is what FastAPI uses to find the parameter value, so the Python variable can be a valid name while the URL still uses `item-query` [1].\n\n```python\nfrom typing import Annotated\n\nfrom fastapi import FastAPI, Query\n\napp = FastAPI()\n\n\n@app.get(\"/items/\")\nasync def read_items(q: Annotated[str | None, Query(alias=\"item-query\")] = None):\n    results = {\"items\": [{\"item_id\": \"Foo\"}, {\"item_id\": \"Bar\"}]}\n    if q:\n        results.update({\"q\": q})\n    return results\n```\n\nWith this, a request like `http://127.0.0.1:8000/items/?item-query=foobaritems` supplies the value for `q` [1].\n\nThe closest valid Python name would be `item_query`, but that wouldn't match the exact `item-query` name you need, which is why the alias is used [1].",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [
+          1
+        ],
+        "phantom_citations": [],
+        "latency_s": 2.64,
+        "cost_usd": 0.007358,
+        "usage": {
+          "model": "claude-sonnet-5-5",
+          "input_tokens": 2214,
+          "output_tokens": 293
+        },
+        "verdict": {
+          "reasoning": "The answer explains using Query(alias=\"item-query\"), reproduces the source code exactly, and gives the example URL, all from source 1. The claim that the Python variable can be a valid name while the URL uses item-query is a reasonable rephrasing of what source 1 shows. All citations are to source 1, which supports them.",
+          "unsupported_claims": [],
+          "answers_question": "fully",
+          "bad_citations": []
+        },
+        "outcome": "correct",
+        "notes": []
+      },
+      {
+        "id": "q13",
+        "category": "direct",
+        "question": "How do I mark a query parameter as deprecated?",
+        "model": "claude-sonnet-5-5",
+        "answer": "Pass `deprecated=True` to `Query`. This keeps the parameter working for existing clients, while the docs clearly show it as deprecated [1].\n\n```python\nfrom typing import Annotated\n\nfrom fastapi import FastAPI, Query\n\napp = FastAPI()\n\n\n@app.get(\"/items/\")\nasync def read_items(\n    q: Annotated[\n        str | None,\n        Query(\n            alias=\"item-query\",\n            title=\"Query string\",\n            description=\"Query string for the items to search in the database that have a good match\",\n            min_length=3,\n            max_length=50,\n            pattern=\"^fixedquery$\",\n            deprecated=True,\n        ),\n    ] = None,\n):\n    results = {\"items\": [{\"item_id\": \"Foo\"}, {\"item_id\": \"Bar\"}]}\n    if q:\n        results.update({\"q\": q})\n    return results\n```\n[1]",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [
+          1
+        ],
+        "phantom_citations": [],
+        "latency_s": 2.25,
+        "cost_usd": 0.007068,
+        "usage": {
+          "model": "claude-sonnet-5-5",
+          "input_tokens": 2154,
+          "output_tokens": 276
+        },
+        "verdict": {
+          "reasoning": "The answer says to pass deprecated=True to Query, which source 1 states directly, and it reproduces source 1's code exactly. The claim that the parameter keeps working for existing clients while the docs show it as deprecated is a fair paraphrase of source 1. Both [1] citations are supported.",
+          "unsupported_claims": [],
+          "answers_question": "fully",
+          "bad_citations": []
+        },
+        "outcome": "correct",
+        "notes": []
+      },
+      {
+        "id": "q14",
+        "category": "code-name",
+        "question": "How do I hide a query parameter from the generated OpenAPI schema?",
+        "model": "claude-sonnet-5-5",
+        "answer": "Set `include_in_schema=False` on `Query`. The parameter is then excluded from the generated OpenAPI schema, and so from the automatic documentation systems too [1].\n\n```python\nfrom typing import Annotated\n\nfrom fastapi import FastAPI, Query\n\napp = FastAPI()\n\n\n@app.get(\"/items/\")\nasync def read_items(\n    hidden_query: Annotated[str | None, Query(include_in_schema=False)] = None,\n):\n    if hidden_query:\n        return {\"hidden_query\": hidden_query}\n    else:\n        return {\"hidden_query\": \"Not found\"}\n```\n[1]",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [
+          1
+        ],
+        "phantom_citations": [],
+        "latency_s": 1.99,
+        "cost_usd": 0.005506,
+        "usage": {
+          "model": "claude-sonnet-5-5",
+          "input_tokens": 1758,
+          "output_tokens": 199
+        },
+        "verdict": {
+          "reasoning": "The answer says to set include_in_schema=False on Query, which excludes the parameter from the OpenAPI schema and the docs. This matches source 1 exactly, and the code is copied verbatim from that source. Both [1] citations are correct.",
+          "unsupported_claims": [],
+          "answers_question": "fully",
+          "bad_citations": []
+        },
+        "outcome": "correct",
+        "notes": []
+      },
+      {
+        "id": "q15",
+        "category": "direct",
+        "question": "How do I require that a numeric path parameter is greater than or equal to 1?",
+        "model": "claude-sonnet-5-5",
+        "answer": "Use `Path` with `ge=1`. This makes `item_id` an integer \"greater than or equal\" to `1` [2].\n\n```python\nfrom typing import Annotated\n\nfrom fastapi import FastAPI, Path\n\napp = FastAPI()\n\n\n@app.get(\"/items/{item_id}\")\nasync def read_items(\n    item_id: Annotated[int, Path(title=\"The ID of the item to get\", ge=1)], q: str\n):\n    results = {\"item_id\": item_id}\n    if q:\n        results.update({\"q\": q})\n    return results\n```\n\nThe same number constraints work with `Query` as well as `Path` [2]. If you need a strict bound instead, `gt` means \"greater than\" and `le` means \"less than or equal\" [3].",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [
+          2,
+          3
+        ],
+        "phantom_citations": [],
+        "latency_s": 2.28,
+        "cost_usd": 0.006736,
+        "usage": {
+          "model": "claude-sonnet-5-5",
+          "input_tokens": 2198,
+          "output_tokens": 234
+        },
+        "verdict": {
+          "reasoning": "The answer correctly uses Path with ge=1, matching source 2's code exactly. The claim about Query also supporting number constraints is supported by source 2. The gt/le explanation matches source 3. All claims are grounded.",
+          "unsupported_claims": [],
+          "answers_question": "fully",
+          "bad_citations": []
+        },
+        "outcome": "correct",
+        "notes": []
+      },
+      {
+        "id": "q16",
+        "category": "code-name",
+        "question": "What does Body(embed=True) do?",
+        "model": "claude-sonnet-5-5",
+        "answer": "`Body(embed=True)` makes FastAPI expect the body nested under a key, even when there is only a single body parameter. By default, a single body parameter is expected directly as the body [1]. With `embed=True`, FastAPI instead expects a JSON object with a key named after the parameter (here `item`), and the model contents inside it [1].\n\n```python\nfrom typing import Annotated\n\nfrom fastapi import Body, FastAPI\nfrom pydantic import BaseModel\n\napp = FastAPI()\n\n\nclass Item(BaseModel):\n    name: str\n    description: str | None = None\n    price: float\n    tax: float | None = None\n\n\n@app.put(\"/items/{item_id}\")\nasync def update_item(item_id: int, item: Annotated[Item, Body(embed=True)]):\n    results = {\"item_id\": item_id, \"item\": item}\n    return results\n```\n\nWith `embed=True`, the expected body is [1]:\n\n```json\n{\n    \"item\": {\n        \"name\": \"Foo\",\n        \"description\": \"The pretender\",\n        \"price\": 42.0,\n        \"tax\": 3.2\n    }\n}\n```\n\nWithout it, the expected body would be [2]:\n\n```json\n{\n    \"name\": \"Foo\",\n    \"description\": \"The pretender\",\n    \"price\": 42.0,\n    \"tax\": 3.2\n}\n```\n\nThis matches how the body looks when you declare multiple body parameters [1][3].",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [
+          1,
+          2,
+          3
+        ],
+        "phantom_citations": [],
+        "latency_s": 3.03,
+        "cost_usd": 0.00825,
+        "usage": {
+          "model": "claude-sonnet-5-5",
+          "input_tokens": 1935,
+          "output_tokens": 438
+        },
+        "verdict": {
+          "reasoning": "The answer explains that Body(embed=True) makes FastAPI expect a single body parameter nested under a key, rather than the model contents directly at the top level. It includes the code and both JSON examples, all of which come from sources 1 and 2. The final sentence about matching the multiple-body-parameter format is supported by source 1 (\"as it does when you declare extra body parameters\") and source 3's recap. All claims and citations are grounded.",
+          "unsupported_claims": [],
+          "answers_question": "fully",
+          "bad_citations": []
+        },
+        "outcome": "correct",
+        "notes": []
+      },
+      {
+        "id": "q17",
+        "category": "direct",
+        "question": "How do I add validation and metadata to fields inside a Pydantic model?",
+        "model": "claude-sonnet-5-5",
+        "answer": "Use Pydantic's `Field` inside the model. It lets you declare extra validation and metadata on model attributes, much like `Query`, `Path` and `Body` do for *path operation function* parameters [1]. `Field` works the same way as those and has all the same parameters [5].\n\n```python\nfrom typing import Annotated\n\nfrom fastapi import Body, FastAPI\nfrom pydantic import BaseModel, Field\n\napp = FastAPI()\n\n\nclass Item(BaseModel):\n    name: str\n    description: str | None = Field(\n        default=None, title=\"The description of the item\", max_length=300\n    )\n    price: float = Field(gt=0, description=\"The price must be greater than zero\")\n    tax: float | None = None\n\n\n@app.put(\"/items/{item_id}\")\nasync def update_item(item_id: int, item: Annotated[Item, Body(embed=True)]):\n    results = {\"item_id\": item_id, \"item\": item}\n    return results\n```\n[5]\n\nHere, `max_length=300` and `gt=0` are validations, while `title` and `description` are metadata [5].\n\nAdditional options:\n- Use `json_schema_extra` to pass additional JSON Schema metadata [2].\n- Use special Pydantic types such as `HttpUrl` instead of `str`, so the value is checked as a valid URL and documented that way in JSON Schema / OpenAPI [3].\n- To add `examples` to the whole model's JSON Schema, set `json_schema_extra` in the model's `model_config` [4].",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [
+          1,
+          5,
+          2,
+          3,
+          4
+        ],
+        "phantom_citations": [],
+        "latency_s": 4.24,
+        "cost_usd": 0.008694,
+        "usage": {
+          "model": "claude-sonnet-5-5",
+          "input_tokens": 1937,
+          "output_tokens": 482
+        },
+        "verdict": {
+          "reasoning": "The answer recommends Pydantic's `Field` (sources 1, 5), reproduces the example code from source 5, and lists extras: `json_schema_extra` (source 2), `HttpUrl` (source 3), and model-level examples via `model_config` (source 4). Labeling `max_length`/`gt` as validations and `title`/`description` as metadata is a reasonable reading of source 5's example given source 1's framing. All citations match their sources.",
+          "unsupported_claims": [],
+          "answers_question": "fully",
+          "bad_citations": []
+        },
+        "outcome": "correct",
+        "notes": []
+      },
+      {
+        "id": "q18",
+        "category": "direct",
+        "question": "How do I use a Pydantic model inside another model?",
+        "model": "claude-sonnet-5-5",
+        "answer": "I couldn't find this in the FastAPI docs I have.",
+        "retrieval_hit": false,
+        "refused": true,
+        "cited": [],
+        "phantom_citations": [],
+        "latency_s": 1.48,
+        "cost_usd": 0.00317,
+        "usage": {
+          "model": "claude-sonnet-5-5",
+          "input_tokens": 1480,
+          "output_tokens": 21
+        },
+        "verdict": null,
+        "outcome": "justified_refusal",
+        "notes": []
+      },
+      {
+        "id": "q19",
+        "category": "direct",
+        "question": "How do I add example data to the request body shown in the docs?",
+        "model": "claude-sonnet-5-5",
+        "answer": "You can add example data in two ways, based on the sources:\n\n**1. Use `openapi_examples` on `Body()`** (also available for `Path()`, `Query()`, `Header()`, `Cookie()`, `Form()` and `File()`) [4]. It takes a `dict` where each key identifies an example and each value is another `dict` that can contain [4]:\n\n- `summary`: a short description of the example\n- `description`: a long description that can contain Markdown\n- `value`: the actual example shown, e.g. a `dict`\n- `externalValue`: an alternative to `value`, a URL pointing to the example (it may not be supported by as many tools as `value`)\n\nWith `openapi_examples` added to `Body()`, the examples show up in the `/docs` UI [1]. The sources' code sample for this is not included in the excerpts, so I can't show it.\n\n**2. Use `json_schema_extra` in a Pydantic model.** Set the `model_config` attribute to a `dict` with `\"json_schema_extra\"`, containing any additional data you want in the generated JSON Schema, including `examples` [5].\n\nYou can also declare a group of `examples` with `Path()`, `Query()`, `Header()`, `Cookie()`, `Body()`, `Form()` or `File()`, and they will be added to their JSON Schemas inside OpenAPI [3].\n\nOpenAPI 3.1.0 supports `examples` as part of the JSON Schema standard. The older single-example keyword `example` is deprecated, so you are encouraged to migrate to `examples` [5].",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [
+          4,
+          1,
+          5,
+          3
+        ],
+        "phantom_citations": [],
+        "latency_s": 3.46,
+        "cost_usd": 0.008428,
+        "usage": {
+          "model": "claude-sonnet-5-5",
+          "input_tokens": 1674,
+          "output_tokens": 508
+        },
+        "verdict": {
+          "reasoning": "The answer accurately summarizes openapi_examples from [4] and [1], json_schema_extra via model_config from [5], examples declaration from [3], and the deprecation note from [5]. Every claim is grounded and each citation supports the sentence it follows. It also correctly says the code sample is missing from the excerpts. It says 'two ways' but then mentions a third (examples in Body()), which is a minor structural inconsistency, not an unsupported claim.",
+          "unsupported_claims": [],
+          "answers_question": "fully",
+          "bad_citations": []
+        },
+        "outcome": "correct",
+        "notes": []
+      },
+      {
+        "id": "q20",
+        "category": "direct",
+        "question": "How do I read a cookie in a path operation?",
+        "model": "claude-sonnet-5-5",
+        "answer": "Declare the cookie as a parameter using `Cookie`, the same way you would with `Path` and `Query` [2][4]:\n\n```python\nfrom typing import Annotated\n\nfrom fastapi import Cookie, FastAPI\n\napp = FastAPI()\n\n\n@app.get(\"/items/\")\nasync def read_items(ads_id: Annotated[str | None, Cookie()] = None):\n    return {\"ads_id\": ads_id}\n```\n\nKey points:\n- You can set a default value as well as extra validation or annotation parameters [2].\n- You must use `Cookie`. Otherwise the parameter would be interpreted as a query parameter [2].\n- In the `/docs` UI, cookies are documented for your path operations, but clicking \"Execute\" won't send them, because the UI works with JavaScript and browsers don't easily allow JavaScript to touch cookies. You'll see an error as if you had not provided any values [1][2].",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [
+          2,
+          4,
+          1
+        ],
+        "phantom_citations": [],
+        "latency_s": 2.67,
+        "cost_usd": 0.005956,
+        "usage": {
+          "model": "claude-sonnet-5-5",
+          "input_tokens": 1503,
+          "output_tokens": 295
+        },
+        "verdict": {
+          "reasoning": "The answer correctly explains declaring cookies with Cookie, reproduces the source code example, and notes the default value, the requirement to use Cookie, and the docs UI limitation. All of these points are supported by sources 1, 2 and 4. Each citation matches the sentence it follows.",
+          "unsupported_claims": [],
+          "answers_question": "fully",
+          "bad_citations": []
+        },
+        "outcome": "correct",
+        "notes": []
+      },
+      {
+        "id": "q21",
+        "category": "code-name",
+        "question": "Why is my header parameter user_agent read from the User-Agent header, and how do I turn that off?",
+        "model": "claude-sonnet-5-5",
+        "answer": "`Header` automatically converts underscores in parameter names to hyphens. Most standard headers are hyphen-separated, but a name like `user-agent` is invalid in Python, so `user_agent` is mapped to `User-Agent` to extract and document the header [2]. HTTP headers are case-insensitive, so you can use normal Python snake_case [2].\n\nTo turn this off, set `convert_underscores=False` on `Header`:\n\n```python\nfrom typing import Annotated\n\nfrom fastapi import FastAPI, Header\n\napp = FastAPI()\n\n\n@app.get(\"/items/\")\nasync def read_items(\n    strange_header: Annotated[str | None, Header(convert_underscores=False)] = None,\n):\n    return {\"strange_header\": strange_header}\n```\n[2]\n\nBefore disabling it, keep in mind that some HTTP proxies and servers disallow headers with underscores [4].",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [
+          2,
+          4
+        ],
+        "phantom_citations": [],
+        "latency_s": 2.38,
+        "cost_usd": 0.006494,
+        "usage": {
+          "model": "claude-sonnet-5-5",
+          "input_tokens": 1817,
+          "output_tokens": 286
+        },
+        "verdict": {
+          "reasoning": "The answer explains the underscore-to-hyphen conversion, the case-insensitivity, and how to disable it with convert_underscores=False. It also includes the proxy warning. All of this matches sources 2 and 4, and the citations are accurate.",
+          "unsupported_claims": [],
+          "answers_question": "fully",
+          "bad_citations": []
+        },
+        "outcome": "correct",
+        "notes": []
+      },
+      {
+        "id": "q22",
+        "category": "paraphrase",
+        "question": "How do I make sure the password field is never returned to the client?",
+        "model": "claude-sonnet-5-5",
+        "answer": "I couldn't find this in the FastAPI docs I have.",
+        "retrieval_hit": false,
+        "refused": true,
+        "cited": [],
+        "phantom_citations": [],
+        "latency_s": 1.35,
+        "cost_usd": 0.00459,
+        "usage": {
+          "model": "claude-sonnet-5-5",
+          "input_tokens": 2190,
+          "output_tokens": 21
+        },
+        "verdict": null,
+        "outcome": "justified_refusal",
+        "notes": []
+      },
+      {
+        "id": "q23",
+        "category": "code-name",
+        "question": "What does response_model_exclude_unset do?",
+        "model": "claude-sonnet-5-5",
+        "answer": "`response_model_exclude_unset=True` is a *path operation decorator* parameter. It makes the response include only the values that were actually set, so default values are left out [1][4].\n\n```python\n@app.get(\"/items/{item_id}\", response_model=Item, response_model_exclude_unset=True)\nasync def read_item(item_id: str):\n    return items[item_id]\n```\n\nFor the item `foo`, which only sets `name` and `price`, the response omits the defaults [4]:\n\n```JSON\n{\n    \"name\": \"Foo\",\n    \"price\": 50.2\n}\n```\n\n- **Values set for fields with defaults:** If your data has values for fields that have defaults, as with item `bar`, those values are included in the response [2].\n- **Values equal to the defaults:** If the data was set explicitly to the same value as the default, as with item `baz`, Pydantic recognizes it was set explicitly, so it is still included in the JSON response [5]. Defaults can be anything, not just `None`, for example `[]` or `10.5` [5].\n\nRelated parameters are `response_model_exclude_defaults=True` and `response_model_exclude_none=True` [3].",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [
+          1,
+          4,
+          2,
+          5,
+          3
+        ],
+        "phantom_citations": [],
+        "latency_s": 3.24,
+        "cost_usd": 0.007386,
+        "usage": {
+          "model": "claude-sonnet-5-5",
+          "input_tokens": 1853,
+          "output_tokens": 368
+        },
+        "verdict": {
+          "reasoning": "The answer accurately describes response_model_exclude_unset per sources 1 and 4, gives the code and foo example from source 4, covers bar (source 2) and baz (source 5) cases, and mentions related parameters from source 3. All claims are grounded and citations match.",
+          "unsupported_claims": [],
+          "answers_question": "fully",
+          "bad_citations": []
+        },
+        "outcome": "correct",
+        "notes": []
+      },
+      {
+        "id": "q24",
+        "category": "direct",
+        "question": "How do I return status code 201 when an item is created?",
+        "model": "claude-sonnet-5-5",
+        "answer": "Pass the `status_code` parameter to the path operation decorator (`@app.post()`, `@app.get()`, etc.), not to your function [3]:\n\n```python\nfrom fastapi import FastAPI\n\napp = FastAPI()\n\n\n@app.post(\"/items/\", status_code=201)\nasync def create_item(name: str):\n    return {\"name\": name}\n```\n\n`201` is the \"Created\" status code, commonly used after creating a new record in the database [4]. FastAPI will return that code in the response and document it in the OpenAPI schema [3].\n\nIf you don't want to memorize the numbers, use the constants from `fastapi.status`. They hold the same number and work with editor autocomplete [1]:\n\n```python\nfrom fastapi import FastAPI, status\n\napp = FastAPI()\n\n\n@app.post(\"/items/\", status_code=status.HTTP_201_CREATED)\nasync def create_item(name: str):\n    return {\"name\": name}\n```\n\n`status_code` can also receive an `IntEnum`, such as Python's `http.HTTPStatus` [3]. You can also import `status` from `starlette` instead, since `fastapi.status` is the same thing [1].",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [
+          3,
+          4,
+          1
+        ],
+        "phantom_citations": [],
+        "latency_s": 2.61,
+        "cost_usd": 0.00798,
+        "usage": {
+          "model": "claude-sonnet-5-5",
+          "input_tokens": 2150,
+          "output_tokens": 368
+        },
+        "verdict": {
+          "reasoning": "Every claim in the answer traces to the sources. Source 3 supports the decorator parameter, the code example, returning and documenting the code in OpenAPI, and IntEnum/HTTPStatus. Source 4 supports the meaning of 201. Source 1 supports the status constants, autocomplete, and the starlette import. All citations match the sentences they follow.",
+          "unsupported_claims": [],
+          "answers_question": "fully",
+          "bad_citations": []
+        },
+        "outcome": "correct",
+        "notes": []
+      },
+      {
+        "id": "q25",
+        "category": "direct",
+        "question": "How do I receive HTML form fields instead of JSON?",
+        "model": "claude-sonnet-5-5",
+        "answer": "Use `Form` to receive form fields instead of JSON [3]. Install `python-multipart` first [3]:\n\n```console\n$ uv add python-multipart\n```\n\nHTML forms normally send data using a special encoding that differs from JSON, and FastAPI reads the data from the right place instead of JSON [1]. This is typically `application/x-www-form-urlencoded`, or `multipart/form-data` when the form includes files [1].\n\nYou declare form fields the same way as `Body` or `Query` parameters, using `Annotated` with `Form()`. This example combines a form field with files [4]:\n\n```python\nfrom typing import Annotated\n\nfrom fastapi import FastAPI, File, Form, UploadFile\n\napp = FastAPI()\n\n\n@app.post(\"/files/\")\nasync def create_file(\n    file: Annotated[bytes, File()],\n    fileb: Annotated[UploadFile, File()],\n    token: Annotated[str, Form()],\n):\n    return {\n        \"file_size\": len(file),\n        \"token\": token,\n        \"fileb_content_type\": fileb.content_type,\n    }\n```\n\n**Warning:** You can declare multiple `Form` parameters in a path operation, but you can't also declare `Body` fields that you expect to receive as JSON, because the request body will be encoded as form data instead of `application/json` [1].",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [
+          3,
+          1,
+          4
+        ],
+        "phantom_citations": [],
+        "latency_s": 3.83,
+        "cost_usd": 0.008156,
+        "usage": {
+          "model": "claude-sonnet-5-5",
+          "input_tokens": 1943,
+          "output_tokens": 427
+        },
+        "verdict": {
+          "reasoning": "The answer's claims map onto the sources. [3] supports using Form and installing python-multipart, [1] supports the encoding details and the warning, and [4] supports the code and the 'same way as Body or Query' statement. The example combines files with form fields rather than showing a pure form example, but it comes from the sources, and the answer addresses the question.",
+          "unsupported_claims": [],
+          "answers_question": "fully",
+          "bad_citations": []
+        },
+        "outcome": "correct",
+        "notes": []
+      },
+      {
+        "id": "q26",
+        "category": "paraphrase",
+        "question": "Should I use bytes or UploadFile for file uploads, and what's the difference?",
+        "model": "claude-sonnet-5-5",
+        "answer": "The sources describe both options, but they only partly spell out when to prefer one.\n\n**`bytes`**\n- If you declare a parameter as `bytes` (with `File()`), FastAPI reads the file for you and you receive the contents as `bytes` [5].\n- The whole contents are stored in memory, so this works well for small files [5].\n\n**`UploadFile`**\n- The sources say `UploadFile` \"has several advantages over `bytes`\" [3], but the excerpt cuts off before listing them, so I can't say exactly what they are.\n- It gives you metadata attributes: `filename` (the original file name), `content_type` (the MIME type), and `file`, a `SpooledTemporaryFile` you can pass directly to anything that expects a file-like object [4].\n- It has async methods: `write(data)`, `read(size)`, `seek(offset)`, and `close()` [4]. For example, `await myfile.seek(0)` goes back to the start of the file, which is useful if you've called `await myfile.read()` and need to read the contents again [4].\n\n**Practical takeaway:** `bytes` is simple and fine for small files, since it loads everything into memory [5]. `UploadFile` is documented as having advantages over `bytes` [3] and gives you the file name, content type, and file-like access [4].\n\n```python\nfrom typing import Annotated\nfrom fastapi import FastAPI, File, UploadFile\n\napp = FastAPI()\n\n@app.post(\"/files/\")\nasync def create_file(file: Annotated[bytes, File()]):\n    return {\"file_size\": len(file)}\n\n@app.post(\"/uploadfile/\")\nasync def create_upload_file(file: UploadFile):\n    return {\"filename\": file.filename}\n```\n[5]\n\nBoth are sent as form data [1][5]. You can also wrap either type in `File()` to add metadata such as a description [2].",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [
+          5,
+          3,
+          4,
+          1,
+          2
+        ],
+        "phantom_citations": [],
+        "latency_s": 4.44,
+        "cost_usd": 0.009792,
+        "usage": {
+          "model": "claude-sonnet-5-5",
+          "input_tokens": 1896,
+          "output_tokens": 600
+        },
+        "verdict": {
+          "reasoning": "The answer closely follows the sources: the bytes behavior and memory caveat come from [5], the 'several advantages' line comes from [3], and the attributes and methods come from [4]. The code matches [5], form data is stated in [1] and [5], and [2] shows File() with a description used on both types. The answer honestly notes that the list of advantages is cut off and does not invent it. It gives the difference and some guidance on when to use each, as far as the sources allow.",
+          "unsupported_claims": [],
+          "answers_question": "fully",
+          "bad_citations": []
+        },
+        "outcome": "correct",
+        "notes": []
+      },
+      {
+        "id": "q27",
+        "category": "direct",
+        "question": "How do I return a 404 error when an item is not found?",
+        "model": "claude-sonnet-5-5",
+        "answer": "Raise an `HTTPException` with `status_code=404`. It's a normal Python exception, so you `raise` it rather than `return` it [3].\n\n```python\nfrom fastapi import FastAPI, HTTPException\n\napp = FastAPI()\n\nitems = {\"foo\": \"The Foo Wrestlers\"}\n\n\n@app.get(\"/items/{item_id}\")\nasync def read_item(item_id: str):\n    if item_id not in items:\n        raise HTTPException(status_code=404, detail=\"Item not found\")\n    return {\"item\": items[item_id]}\n```\n[1][3]\n\nIf the client requests an existing item like `foo`, they get a 200 and the item. For a non-existent item like `bar`, they get a 404 and this JSON [2]:\n\n```json\n{\n  \"detail\": \"Item not found\"\n}\n```\n\nSome additional notes:\n- Raising the exception from a utility function called inside your path operation function also works. It stops the request right away and sends the HTTP error to the client without running the rest of the path operation code [3].\n- `detail` can be any value convertible to JSON, such as a `dict` or `list`, not only a `str` [2].",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [
+          3,
+          1,
+          2
+        ],
+        "phantom_citations": [],
+        "latency_s": 3.23,
+        "cost_usd": 0.007956,
+        "usage": {
+          "model": "claude-sonnet-5-5",
+          "input_tokens": 2163,
+          "output_tokens": 363
+        },
+        "verdict": {
+          "reasoning": "The answer recommends raising HTTPException with status_code=404 and reproduces the example code from sources 1 and 3. It also describes the 200 and 404 responses (source 2), the utility function behavior (source 3), and the detail tip (source 2). Every claim matches the sources, and each citation supports the sentence it follows.",
+          "unsupported_claims": [],
+          "answers_question": "fully",
+          "bad_citations": []
+        },
+        "outcome": "correct",
+        "notes": []
+      },
+      {
+        "id": "q28",
+        "category": "code-name",
+        "question": "How do I customize the response FastAPI sends for a RequestValidationError?",
+        "model": "claude-sonnet-5-5",
+        "answer": "When a request contains invalid data, FastAPI internally raises a `RequestValidationError` and has a default exception handler for it. To customize the response, import `RequestValidationError` and decorate your own handler with `@app.exception_handler(RequestValidationError)`. The handler receives a `Request` and the exception [4].\n\nExample that returns a plain text response with a 400 status code:\n\n```python\nfrom fastapi import FastAPI\nfrom fastapi.exceptions import RequestValidationError\nfrom fastapi.responses import PlainTextResponse\n\napp = FastAPI()\n\n\n@app.exception_handler(RequestValidationError)\nasync def validation_exception_handler(request, exc: RequestValidationError):\n    message = \"Validation errors:\"\n    for error in exc.errors():\n        message += f\"\\nField: {error['loc']}, Error: {error['msg']}\"\n    return PlainTextResponse(message, status_code=400)\n```\n[2][5]\n\nYou can also include the invalid body the request sent, since `RequestValidationError` contains it as `exc.body`. This is useful for logging and debugging, or for returning it to the user [1]:\n\n```python\n@app.exception_handler(RequestValidationError)\nasync def validation_exception_handler(request: Request, exc: RequestValidationError):\n    return JSONResponse(\n        status_code=422,\n        content=jsonable_encoder({\"detail\": exc.errors(), \"body\": exc.body}),\n    )\n```\n[1]\n\n**Warning:** `RequestValidationError` contains the file name and line where the validation error happened. If you convert it to a string and return it directly, you could leak information about your system. That's why the plain text example extracts and shows each error independently [3].",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [
+          4,
+          2,
+          5,
+          1,
+          3
+        ],
+        "phantom_citations": [],
+        "latency_s": 4.21,
+        "cost_usd": 0.010084,
+        "usage": {
+          "model": "claude-sonnet-5-5",
+          "input_tokens": 2287,
+          "output_tokens": 551
+        },
+        "verdict": {
+          "reasoning": "The answer correctly describes overriding the RequestValidationError handler per source 4. It gives the plain text example from sources 2/5 and the body example from source 1, and the warning from source 3. All claims and citations are supported by the sources. The second snippet omits its imports, but every name it uses appears in source 1.",
+          "unsupported_claims": [],
+          "answers_question": "fully",
+          "bad_citations": []
+        },
+        "outcome": "correct",
+        "notes": []
+      },
+      {
+        "id": "q29",
+        "category": "paraphrase",
+        "question": "How do I update only the fields the client actually sent?",
+        "model": "claude-sonnet-5-5",
+        "answer": "Use `exclude_unset=True` when dumping the Pydantic model. Calling `item.model_dump(exclude_unset=True)` produces a `dict` with only the data that was set when the model was created, excluding default values [4]. That way you update only the values the user actually sent, instead of overriding stored values with defaults from your model [2].\n\nThe overall recipe for partial updates, usually with `PATCH` instead of `PUT` (optional, since FastAPI doesn't impose restrictions) [2][3]:\n\n1. Retrieve the stored data.\n2. Put that data in a Pydantic model.\n3. Generate a `dict` without defaults from the input model using `exclude_unset` [2].\n4. Create a copy of the stored model, updating its attributes with the partial updates via the `update` parameter [2].\n5. Convert the copy to something storable in your DB, for example with `jsonable_encoder` [2].\n6. Save the data and return the updated model [2].\n\nIf you use SQLModel, the same trick applies: get a `dict` of only the client-sent data with `exclude_unset=True`, then call `hero_db.sqlmodel_update(hero_data)` to update the database object [1].",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [
+          4,
+          2,
+          3,
+          1
+        ],
+        "phantom_citations": [],
+        "latency_s": 3.21,
+        "cost_usd": 0.007442,
+        "usage": {
+          "model": "claude-sonnet-5-5",
+          "input_tokens": 1786,
+          "output_tokens": 387
+        },
+        "verdict": {
+          "reasoning": "The answer accurately reflects sources 2, 3, 4 and 1: it covers exclude_unset, the partial-update recipe from source 2, the optional use of PATCH and the absence of restrictions from sources 2 and 3, and the SQLModel approach from source 1. Every claim is supported by the sources, and each citation fits the sentence it follows.",
+          "unsupported_claims": [],
+          "answers_question": "fully",
+          "bad_citations": []
+        },
+        "outcome": "correct",
+        "notes": []
+      },
+      {
+        "id": "q30",
+        "category": "direct",
+        "question": "What is dependency injection in FastAPI and how do I create a dependency?",
+        "model": "claude-sonnet-5-5",
+        "answer": "**What it is:** \"Dependency Injection\" means your code (your *path operation functions*) can declare the things it needs to work, called \"dependencies\". FastAPI then does whatever is needed to provide those dependencies to your code (\"injects\" them) [1]. It's useful for shared logic, sharing database connections, enforcing security/authentication/role requirements, and more, while minimizing code repetition [1]. Dependencies can also have their own dependencies, forming a \"graph\" of dependencies, all handled automatically by the framework [3].\n\n**How to create one:** A dependency is just a function that can take the same parameters that a *path operation function* can take [5]. You can think of it as a path operation function without the decorator [5]. It can return anything you want [5]. To use it, declare a parameter with `Annotated[..., Depends(your_function)]` in your path operation function [5].\n\n```python\nfrom typing import Annotated\n\nfrom fastapi import Depends, FastAPI\n\napp = FastAPI()\n\n\nasync def common_parameters(q: str | None = None, skip: int = 0, limit: int = 100):\n    return {\"q\": q, \"skip\": skip, \"limit\": limit}\n\n\n@app.get(\"/items/\")\nasync def read_items(commons: Annotated[dict, Depends(common_parameters)]):\n    return commons\n\n\n@app.get(\"/users/\")\nasync def read_users(commons: Annotated[dict, Depends(common_parameters)]):\n    return commons\n```\n\nHere the dependency expects an optional query parameter `q` (a `str`), an optional `skip` (an `int`, default `0`), and an optional `limit` (an `int`, default `100`) [5]. It returns a `dict` with those values [4][5].\n\n**Note:** FastAPI added support for `Annotated` (and started recommending it) in version 0.95.0. If you have an older version, you'll get errors using `Annotated`, so upgrade to at least 0.95.1 first [4].",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [
+          1,
+          3,
+          5,
+          4
+        ],
+        "phantom_citations": [],
+        "latency_s": 3.99,
+        "cost_usd": 0.00993,
+        "usage": {
+          "model": "claude-sonnet-5-5",
+          "input_tokens": 1850,
+          "output_tokens": 623
+        },
+        "verdict": {
+          "reasoning": "The answer's definition of dependency injection, its uses, the dependency graph, how to create a dependency, the code, the parameter details, and the Annotated version note all match sources 1, 3, 4, and 5. The statement on using Annotated with Depends is supported by the code in source 5. Citation [5] on the returns-dict sentence is acceptable because the code shows the function returning a dict, and [4] states it directly. Nothing in the answer goes beyond the sources, and every citation supports its sentence.",
+          "unsupported_claims": [],
+          "answers_question": "fully",
+          "bad_citations": []
+        },
+        "outcome": "correct",
+        "notes": []
+      },
+      {
+        "id": "q31",
+        "category": "code-name",
+        "question": "If two dependencies both depend on the same sub-dependency, is it called twice per request?",
+        "model": "claude-sonnet-5-5",
+        "answer": "No. If a dependency is declared multiple times for the same *path operation*, for example when several dependencies share a common sub-dependency, FastAPI calls that sub-dependency only once per request. It caches the returned value and passes it to all the dependants that need it in that request. [1]\n\nIf you need the dependency to be called at every step in the same request instead of using the cached value, set `use_cache=False` in `Depends`: [1]\n\n```python\nasync def needy_dependency(\n    fresh_value: Annotated[str, Depends(get_value, use_cache=False)],\n):\n    return {\"fresh_value\": fresh_value}\n```",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [
+          1
+        ],
+        "phantom_citations": [],
+        "latency_s": 1.97,
+        "cost_usd": 0.005608,
+        "usage": {
+          "model": "claude-sonnet-5-5",
+          "input_tokens": 1804,
+          "output_tokens": 200
+        },
+        "verdict": {
+          "reasoning": "The answer correctly states that a shared sub-dependency is called only once per request, with its value cached and passed to all dependants. It also correctly describes use_cache=False and reproduces the code from source 1. Every claim is supported and both citations are accurate.",
+          "unsupported_claims": [],
+          "answers_question": "fully",
+          "bad_citations": []
+        },
+        "outcome": "correct",
+        "notes": []
+      },
+      {
+        "id": "q32",
+        "category": "paraphrase",
+        "question": "How do I run a dependency for a path operation when I don't need its return value?",
+        "model": "claude-sonnet-5-5",
+        "answer": "Add a `list` of `dependencies` to the *path operation decorator* instead of declaring a function parameter with `Depends`. This works when you don't need the dependency's return value, or when it doesn't return one, but you still need it to be executed [1].\n\nThe dependencies can return values or not, but the values won't be used. You can reuse a normal dependency that returns a value, and it will still be executed [2].\n\n```python\nfrom typing import Annotated\n\nfrom fastapi import Depends, FastAPI, Header, HTTPException\n\napp = FastAPI()\n\n\nasync def verify_token(x_token: Annotated[str, Header()]):\n    if x_token != \"fake-super-secret-token\":\n        raise HTTPException(status_code=400, detail=\"X-Token header invalid\")\n\n\nasync def verify_key(x_key: Annotated[str, Header()]):\n    if x_key != \"fake-super-secret-key\":\n        raise HTTPException(status_code=400, detail=\"X-Key header invalid\")\n    return x_key\n\n\n@app.get(\"/items/\", dependencies=[Depends(verify_token), Depends(verify_key)])\nasync def read_items():\n    return [{\"item\": \"Foo\"}, {\"item\": \"Bar\"}]\n```\n[2]\n\nYou can use the same dependency functions you use normally [3].",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [
+          1,
+          2,
+          3
+        ],
+        "phantom_citations": [],
+        "latency_s": 3.72,
+        "cost_usd": 0.007716,
+        "usage": {
+          "model": "claude-sonnet-5-5",
+          "input_tokens": 1803,
+          "output_tokens": 411
+        },
+        "verdict": {
+          "reasoning": "The answer explains adding a list of dependencies to the path operation decorator, which matches source 1. It says return values are ignored but the dependency still runs, which matches source 2, and its code example is taken verbatim from source 2. Its note that normal dependency functions can be reused matches source 3. Every claim is grounded and each citation supports the sentence it follows.",
+          "unsupported_claims": [],
+          "answers_question": "fully",
+          "bad_citations": []
+        },
+        "outcome": "correct",
+        "notes": []
+      },
+      {
+        "id": "q33",
+        "category": "paraphrase",
+        "question": "How do I open a database session for each request and make sure it is closed afterwards?",
+        "model": "claude-sonnet-5-5",
+        "answer": "The sources say to create a FastAPI dependency with `yield` that provides a new `Session` for each request, which ensures a single session per request [1]. Then you create an `Annotated` dependency, `SessionDep`, to simplify the code that uses it [1]. Endpoints receive the session by declaring a parameter of that type:\n\n```python\n@app.get(\"/heroes/{hero_id}\")\ndef read_hero(hero_id: int, session: SessionDep) -> Hero:\n    hero = session.get(Hero, hero_id)\n    if not hero:\n        raise HTTPException(status_code=404, detail=\"Hero not found\")\n    return hero\n```\n[2]\n\nThe sources don't show the dependency function itself, and they don't explicitly say how or when the session is closed after the request. I can only confirm that the dependency uses `yield` and provides one session per request [1].",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [
+          1,
+          2
+        ],
+        "phantom_citations": [],
+        "latency_s": 2.36,
+        "cost_usd": 0.00733,
+        "usage": {
+          "model": "claude-sonnet-5-5",
+          "input_tokens": 2270,
+          "output_tokens": 279
+        },
+        "verdict": {
+          "reasoning": "The answer accurately restates source 1 (yield dependency, new Session per request, SessionDep Annotated alias) and shows endpoint code that appears verbatim in source 2. It correctly notes that the sources do not show the dependency function or explicitly describe closing. Every claim is grounded, and the answer gives everything the sources contain on this question.",
+          "unsupported_claims": [],
+          "answers_question": "fully",
+          "bad_citations": []
+        },
+        "outcome": "correct",
+        "notes": []
+      },
+      {
+        "id": "q34",
+        "category": "code-name",
+        "question": "How do I read the username and password sent to my /token endpoint?",
+        "model": "claude-sonnet-5-5",
+        "answer": "Use `OAuth2PasswordRequestForm` as a class dependency in your `/token` endpoint. It declares a form body with the `username` and `password`, plus optional fields: `scope` (a big string of space-separated strings), `grant_type`, `client_id`, and `client_secret` [5].\n\nThe sources show the endpoint body reading the values from `form_data`, for example `form_data.password` [4]:\n\n```python\nhashed_password = fake_hash_password(form_data.password)\nif not hashed_password == user.hashed_password:\n    raise HTTPException(status_code=400, detail=\"Incorrect username or password\")\n\nreturn {\"access_token\": user.username, \"token_type\": \"bearer\"}\n```\n\nThe response must be a JSON object with an `access_token` and a `token_type` (here `\"bearer\"`) [2][3].\n\nNote that the OAuth2 spec requires a `grant_type` field with the fixed value `password`, but `OAuth2PasswordRequestForm` doesn't enforce it. If you need that, use `OAuth2PasswordRequestFormStrict` instead [5].\n\nThe excerpts don't show the exact `token` endpoint signature (how `form_data` is declared with `Depends`), so I can't give that line from the sources.",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [
+          5,
+          4,
+          2,
+          3
+        ],
+        "phantom_citations": [],
+        "latency_s": 3.03,
+        "cost_usd": 0.008282,
+        "usage": {
+          "model": "claude-sonnet-5-5",
+          "input_tokens": 2111,
+          "output_tokens": 406
+        },
+        "verdict": {
+          "reasoning": "The answer accurately describes OAuth2PasswordRequestForm fields and the strict variant per [5], quotes the code from [4] verbatim, and correctly states the response format per [2][3]. It honestly notes that the endpoint signature declaring form_data with Depends is not in the excerpts. All claims are grounded and the citations match. The question is answered reasonably, though the missing declaration line limits completeness. That line is genuinely absent from the sources, so the answer covers what the sources contain.",
+          "unsupported_claims": [],
+          "answers_question": "fully",
+          "bad_citations": []
+        },
+        "outcome": "correct",
+        "notes": []
+      },
+      {
+        "id": "q35",
+        "category": "multi",
+        "question": "How do I hash passwords and issue JWT access tokens?",
+        "model": "claude-sonnet-5-5",
+        "answer": "The sources only partly cover this. They show the surrounding code, but not the functions that do the hashing and token creation.\n\n**Password hashing**\n\n- Hashing converts a password into a gibberish-looking sequence of bytes. The same password always gives the same output, and you can't convert it back to the password [3].\n- The example imports `PasswordHash` from `pwdlib`, and the stored user has a `hashed_password` (an argon2id hash) rather than a plaintext password [4].\n- You store only the hash. The plaintext `\"secret\"` appears nowhere in the code [2].\n\n**Issuing JWT tokens**\n\n- The example sets up these settings and models [4]:\n\n```python\nSECRET_KEY = \"09d25e094f...\"   # generate with: openssl rand -hex 32\nALGORITHM = \"HS256\"\nACCESS_TOKEN_EXPIRE_MINUTES = 30\n\nclass Token(BaseModel):\n    access_token: str\n    token_type: str\n```\n\n- The login endpoint checks the credentials with `authenticate_user`. If they are wrong, it raises a 401. Otherwise it builds a token with `create_access_token`, using the username as `\"sub\"` and an expiry, and returns it as a bearer token [5]:\n\n```python\nuser = authenticate_user(fake_users_db, form_data.username, form_data.password)\nif not user:\n    raise HTTPException(\n        status_code=status.HTTP_401_UNAUTHORIZED,\n        detail=\"Incorrect username or password\",\n        headers={\"WWW-Authenticate\": \"Bearer\"},\n    )\naccess_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)\naccess_token = create_access_token(\n    data={\"sub\": user.username}, expires_delta=access_token_expires\n)\nreturn Token(access_token=access_token, token_type=\"bearer\")\n```\n\n- The client then sends the token in an `Authorization` header that starts with `Bearer `. The password is sent only in the first request that gets the token [2].\n\nThe sources I have don't include the bodies of `authenticate_user`, `create_access_token`, or the functions that actually hash and verify passwords, so I can't show those parts.",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [
+          3,
+          4,
+          2,
+          5
+        ],
+        "phantom_citations": [],
+        "latency_s": 6.02,
+        "cost_usd": 0.012012,
+        "usage": {
+          "model": "claude-sonnet-5-5",
+          "input_tokens": 2366,
+          "output_tokens": 728
+        },
+        "verdict": {
+          "reasoning": "The answer accurately summarizes the sources: hashing concept [3], the pwdlib import and argon2id hash [4], the plaintext not appearing in code [2], settings/Token model [4], the login endpoint code [5], and the Bearer header [2]. It correctly notes that the bodies of the hashing and token-creation functions are missing from the sources. All claims and citations are grounded. It answers only partially, but that reflects the limits of the sources rather than any omission by the answer.",
+          "unsupported_claims": [],
+          "answers_question": "fully",
+          "bad_citations": []
+        },
+        "outcome": "correct",
+        "notes": []
+      },
+      {
+        "id": "q36",
+        "category": "direct",
+        "question": "How do I allow my frontend on another domain to call my API from the browser?",
+        "model": "claude-sonnet-5-5",
+        "answer": "You need to enable CORS with `CORSMiddleware`. CORS applies when a browser frontend's JavaScript talks to a backend in a different \"origin\" [3].\n\nSteps:\n\n- Import `CORSMiddleware`, create a list of allowed origins (as strings), and add it as middleware to your FastAPI app [4].\n- The list must include your frontend's origin. For example, a frontend at `http://localhost:8080` calling a backend at `http://localhost` requires `http://localhost:8080` in the allowed origins [2]. The browser sends an `OPTIONS` request, and the backend must reply with headers authorizing that origin [2].\n\nYou can also configure whether the backend allows:\n\n- Credentials (Authorization headers, cookies, etc.) [4].\n- Specific HTTP methods, or all with `\"*\"` [4].\n- Specific HTTP headers, or all with `\"*\"` [4].\n\nCaveats from the docs:\n\n- If `allow_credentials` is `True`, then `allow_origins`, `allow_methods` and `allow_headers` cannot be `['*']`. They must be explicitly specified [5].\n- `expose_headers` (default `[]`) controls which response headers the browser can access, and `max_age` (default `600`) sets how many seconds browsers cache CORS responses [5].\n\nThe provided excerpts don't include a complete code example, so I can't show the exact `add_middleware` call from the sources.",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [
+          3,
+          4,
+          2,
+          5
+        ],
+        "phantom_citations": [],
+        "latency_s": 3.37,
+        "cost_usd": 0.007936,
+        "usage": {
+          "model": "claude-sonnet-5-5",
+          "input_tokens": 1633,
+          "output_tokens": 467
+        },
+        "verdict": {
+          "reasoning": "The answer accurately summarizes sources 2-5: CORS definition, CORSMiddleware steps, allowed origins example, configurable options, and the credentials/wildcard caveat with expose_headers and max_age defaults. All citations match their sources. Mentioning `add_middleware` is only in the disclaimer about missing code, not presented as a claim. The answer addresses the question fully given the sources.",
+          "unsupported_claims": [],
+          "answers_question": "fully",
+          "bad_citations": []
+        },
+        "outcome": "correct",
+        "notes": []
+      },
+      {
+        "id": "q37",
+        "category": "direct",
+        "question": "How do I split my application into multiple files?",
+        "model": "claude-sonnet-5-5",
+        "answer": "FastAPI provides a convenience tool for structuring an application across multiple files while keeping all the flexibility [2]. If you come from Flask, it's equivalent to Flask's Blueprints [2].\n\n**1. Organize files into a package.** An example structure:\n\n```\n.\n\u251c\u2500\u2500 app\n\u2502   \u251c\u2500\u2500 __init__.py\n\u2502   \u251c\u2500\u2500 main.py\n\u2502   \u251c\u2500\u2500 dependencies.py\n\u2502   \u2514\u2500\u2500 routers\n\u2502   \u2502   \u251c\u2500\u2500 __init__.py\n\u2502   \u2502   \u251c\u2500\u2500 items.py\n\u2502   \u2502   \u2514\u2500\u2500 users.py\n\u2502   \u2514\u2500\u2500 internal\n\u2502       \u251c\u2500\u2500 __init__.py\n\u2502       \u2514\u2500\u2500 admin.py\n```\n[4]\n\nEach directory or subdirectory has an `__init__.py`, which is what allows importing code from one file into another [4]. For example, in `app/main.py` you could write:\n\n```python\nfrom app.routers import items\n```\n[4]\n\n**2. Use `APIRouter` for each module.** For example, for a module handling users at `/app/routers/users.py`, you create the *path operations* with `APIRouter`. This keeps them separate from the rest of the code while still being part of the same FastAPI application [1].\n\n**3. Tie everything together in `app/main.py`.** This is where you import and use the `FastAPI` class. It's the main file that ties everything together, and since most logic lives in its own modules, it stays quite simple [3].",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [
+          2,
+          4,
+          1,
+          3
+        ],
+        "phantom_citations": [],
+        "latency_s": 3.2,
+        "cost_usd": 0.007544,
+        "usage": {
+          "model": "claude-sonnet-5-5",
+          "input_tokens": 1632,
+          "output_tokens": 428
+        },
+        "verdict": {
+          "reasoning": "The answer closely paraphrases sources 1-4: the convenience tool, the Flask Blueprints note, the example file structure, the __init__.py tip and import line, the APIRouter usage for users.py, and the main.py role. All claims are grounded and the citations match. Source 5 is irrelevant and is not used. The sources do not show how to include routers in main, so the answer covers what the sources contain.",
+          "unsupported_claims": [],
+          "answers_question": "fully",
+          "bad_citations": []
+        },
+        "outcome": "correct",
+        "notes": []
+      },
+      {
+        "id": "q38",
+        "category": "code-name",
+        "question": "How do I test my FastAPI app with pytest?",
+        "model": "claude-sonnet-5-5",
+        "answer": "Testing a FastAPI app with pytest uses `TestClient`, which is based on HTTPX, so you can use pytest directly with FastAPI [2].\n\n**Steps**\n\n1. Install `httpx` (required for `TestClient`) [1]:\n   ```console\n   $ uv add httpx\n   ```\n2. Install `pytest` [3]:\n   ```console\n   $ uv add pytest\n   ```\n3. Import `TestClient` and create one by passing your FastAPI app to it. Write functions whose names start with `test_` (a pytest convention), and use plain `assert` statements [1]:\n\n```python\nfrom fastapi import FastAPI\nfrom fastapi.testclient import TestClient\n\napp = FastAPI()\n\n\n@app.get(\"/\")\nasync def read_main():\n    return {\"msg\": \"Hello World\"}\n\n\nclient = TestClient(app)\n\n\ndef test_read_main():\n    response = client.get(\"/\")\n    assert response.status_code == 200\n    assert response.json() == {\"msg\": \"Hello World\"}\n```\n\n4. Run the tests. pytest detects the test files and tests automatically, executes them, and reports the results [3]:\n   ```console\n   $ uv run pytest\n   ```\n\n**Note:** The test functions are normal `def`, not `async def`, and the client calls are normal calls without `await`. This lets you use `pytest` without complications [1].",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [
+          2,
+          1,
+          3
+        ],
+        "phantom_citations": [],
+        "latency_s": 3.49,
+        "cost_usd": 0.0084,
+        "usage": {
+          "model": "claude-sonnet-5-5",
+          "input_tokens": 2005,
+          "output_tokens": 439
+        },
+        "verdict": {
+          "reasoning": "The answer accurately reflects the sources: TestClient based on HTTPX [2], installing httpx [1], installing pytest [3], the code example and conventions [1], running the tests with auto-detection [3], and the def/await tip [1]. Every claim and citation is supported, and the answer covers the core workflow.",
+          "unsupported_claims": [],
+          "answers_question": "fully",
+          "bad_citations": []
+        },
+        "outcome": "correct",
+        "notes": []
+      },
+      {
+        "id": "q39",
+        "category": "paraphrase",
+        "question": "How do I serve images and CSS files from a folder?",
+        "model": "claude-sonnet-5-5",
+        "answer": "The sources say you can serve static files automatically from a directory using `StaticFiles` [1]. That's the tool for serving images and CSS from a folder, but the excerpt doesn't include a code example showing how to mount it or configure the directory, so I can't give those details from the sources.\n\nIf you're hosting a frontend, the docs suggest using `app.frontend()` instead. It uses `StaticFiles` underneath and adds advantages for frontends, such as handling client-side routing [1].",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [
+          1
+        ],
+        "phantom_citations": [],
+        "latency_s": 2.18,
+        "cost_usd": 0.004714,
+        "usage": {
+          "model": "claude-sonnet-5-5",
+          "input_tokens": 1572,
+          "output_tokens": 157
+        },
+        "verdict": {
+          "reasoning": "The answer states StaticFiles serves static files from a directory and mentions the app.frontend() tip, both directly supported by source 1. It honestly notes no code example is available. Applying StaticFiles to images and CSS is a reasonable rephrasing. The sources contain nothing more on how to set it up, so the answer gives what is available, but it can't tell the user how to actually do it.",
+          "unsupported_claims": [],
+          "answers_question": "partially",
+          "bad_citations": []
+        },
+        "outcome": "partial",
+        "notes": []
+      },
+      {
+        "id": "q40",
+        "category": "paraphrase",
+        "question": "How do I change or disable the /docs URL?",
+        "model": "claude-sonnet-5-5",
+        "answer": "Swagger UI is served at `/docs` by default. Use the `docs_url` parameter to change its URL, or set `docs_url=None` to disable it [1].\n\nFor example, this serves Swagger UI at `/documentation` and disables ReDoc:\n\n```python\nfrom fastapi import FastAPI\n\napp = FastAPI(docs_url=\"/documentation\", redoc_url=None)\n\n\n@app.get(\"/items/\")\nasync def read_items():\n    return [{\"name\": \"Foo\"}]\n```\n[1]\n\nIf you set `openapi_url=None`, the OpenAPI schema is disabled completely, and that also disables the documentation user interfaces that use it [2].",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [
+          1,
+          2
+        ],
+        "phantom_citations": [],
+        "latency_s": 2.06,
+        "cost_usd": 0.00563,
+        "usage": {
+          "model": "claude-sonnet-5-5",
+          "input_tokens": 1750,
+          "output_tokens": 213
+        },
+        "verdict": {
+          "reasoning": "The answer correctly states that Swagger UI is at /docs, that docs_url changes it, and that docs_url=None disables it, all per source 1. The code example is copied from source 1. The openapi_url=None statement matches source 2. All citations are accurate.",
+          "unsupported_claims": [],
+          "answers_question": "fully",
+          "bad_citations": []
+        },
+        "outcome": "correct",
+        "notes": []
+      },
+      {
+        "id": "q41",
+        "category": "multi",
+        "question": "How do I protect an endpoint so only logged-in users can call it, and get the current user inside it?",
+        "model": "claude-sonnet-5-5",
+        "answer": "Make the endpoint depend on a \"current user\" dependency. That dependency returns the user, or raises an HTTP error if the user isn't authenticated.\n\n**1. Get the user from the token.** `get_current_user` depends on `oauth2_scheme` to receive the token, decodes it, and raises a 401 if no user is found [3]:\n\n```python\nasync def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):\n    user = fake_decode_token(token)\n    if not user:\n        raise HTTPException(\n            status_code=status.HTTP_401_UNAUTHORIZED,\n            detail=\"Not authenticated\",\n            headers={\"WWW-Authenticate\": \"Bearer\"},\n        )\n    return user\n```\n\n**2. (Optional) Require an active user.** `get_current_active_user` uses `get_current_user` as a dependency and raises a 400 error if the user is disabled [1][3]:\n\n```python\nasync def get_current_active_user(\n    current_user: Annotated[User, Depends(get_current_user)],\n):\n    if current_user.disabled:\n        raise HTTPException(status_code=400, detail=\"Inactive user\")\n    return current_user\n```\n\n**3. Use the dependency in your path operation function.** Both dependencies return an HTTP error if the user doesn't exist or is inactive, so the endpoint only gets a user who exists, was correctly authenticated, and is active [1]. This gives you the current user directly in your path operation function [2].\n\nThe sources don't show the final endpoint code itself, but it would declare a parameter like `current_user: Annotated[User, Depends(get_current_active_user)]`, following the same `Depends` pattern used above.\n\nNote that the `fake_decode_token` in these examples provides no real security and is only a placeholder for a later version [3].",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [
+          3,
+          1,
+          2
+        ],
+        "phantom_citations": [],
+        "latency_s": 4.26,
+        "cost_usd": 0.010272,
+        "usage": {
+          "model": "claude-sonnet-5-5",
+          "input_tokens": 2181,
+          "output_tokens": 591
+        },
+        "verdict": {
+          "reasoning": "The answer's explanation of `get_current_user` and `get_current_active_user`, including the 401 and 400 errors and the code, matches sources 3 and 1. Its statements about the endpoint only receiving an authenticated, active user and getting the current user in the path operation are supported by [1] and [2]. The only ungrounded part is the endpoint parameter snippet: the answer admits the sources don't show it and extrapolates it from the dependency pattern. The answer otherwise covers what the sources contain for the question.",
+          "unsupported_claims": [
+            "The final endpoint would declare a parameter like `current_user: Annotated[User, Depends(get_current_active_user)]`. The sources do not show this endpoint code."
+          ],
+          "answers_question": "fully",
+          "bad_citations": []
+        },
+        "outcome": "unfaithful",
+        "notes": []
+      },
+      {
+        "id": "q42",
+        "category": "multi",
+        "question": "How do I add a header with the processing time to every response?",
+        "model": "claude-sonnet-5-5",
+        "answer": "Use a middleware. Decorate a function with `@app.middleware(\"http\")`. It receives the `request` and a `call_next` function, which passes the request to the matching *path operation* and returns the generated `response` [2]. You can then modify the response before returning it [2].\n\nTo add the processing time, record the start time, await `call_next`, compute the difference, and set a custom header on the response [1]:\n\n```python\nimport time\n\nfrom fastapi import FastAPI, Request\n\napp = FastAPI()\n\n\n@app.middleware(\"http\")\nasync def add_process_time_header(request: Request, call_next):\n    start_time = time.perf_counter()\n    response = await call_next(request)\n    process_time = time.perf_counter() - start_time\n    response.headers[\"X-Process-Time\"] = str(process_time)\n    return response\n```\n\nNotes:\n- The code before `call_next` runs before any *path operation* receives the request, and the code after runs once the response is generated, before it is returned [1].\n- The docs use `time.perf_counter()` instead of `time.time()` because it can be more precise for this purpose [1].\n- Custom proprietary headers can be added using the `X-` prefix [2].",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [
+          2,
+          1
+        ],
+        "phantom_citations": [],
+        "latency_s": 2.92,
+        "cost_usd": 0.00736,
+        "usage": {
+          "model": "claude-sonnet-5-5",
+          "input_tokens": 1820,
+          "output_tokens": 372
+        },
+        "verdict": {
+          "reasoning": "The answer recommends an HTTP middleware and reproduces the example code exactly as it appears in sources 1 and 2. Each note maps to a source: the before/after behavior to [1], the perf_counter tip to [1], and the X- prefix tip to [2]. Every citation supports the sentence it follows, and the answer gives the user what they asked for.",
+          "unsupported_claims": [],
+          "answers_question": "fully",
+          "bad_citations": []
+        },
+        "outcome": "correct",
+        "notes": []
+      },
+      {
+        "id": "q43",
+        "category": "overview",
+        "question": "what is FastAPI ?",
+        "model": "claude-sonnet-5-5",
+        "answer": "FastAPI is a modern, fast (high-performance) web framework for building APIs with Python, based on standard Python type hints [1].\n\nSome other details from the docs:\n- `FastAPI` is also the Python class that provides all the functionality for your API. It inherits directly from `Starlette`, so you can use all Starlette functionality with it [2].\n- It generates a \"schema\" of your whole API using the OpenAPI standard [5].\n- The `fastapi dev` command finds the FastAPI app in your `main.py` file and starts a server using Uvicorn, with auto-reload enabled by default for local development [4].\n\nA minimal example:\n\n```python\nfrom fastapi import FastAPI\n\napp = FastAPI()\n\n\n@app.get(\"/\")\nasync def root():\n    return {\"message\": \"Hello World\"}\n```\n[2]",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [
+          1,
+          2,
+          5,
+          4
+        ],
+        "phantom_citations": [],
+        "latency_s": 2.56,
+        "cost_usd": 0.00503,
+        "usage": {
+          "model": "claude-sonnet-5-5",
+          "input_tokens": 1200,
+          "output_tokens": 263
+        },
+        "verdict": {
+          "reasoning": "Every statement in the answer matches its cited source: the definition comes from [1], the class and Starlette details from [2], OpenAPI schema generation from [5], and the fastapi dev behavior from [4]. The code example is copied exactly from [2]. The answer fully addresses the question.",
+          "unsupported_claims": [],
+          "answers_question": "fully",
+          "bad_citations": []
+        },
+        "outcome": "correct",
+        "notes": []
+      },
+      {
+        "id": "q44",
+        "category": "overview",
+        "question": "what are the benefits of using FastAPI ?",
+        "model": "claude-sonnet-5-5",
+        "answer": "Based on the excerpts, these are the benefits of using FastAPI:\n\n- **Chosen over alternatives and widely relied on:** It is being chosen over previous alternatives because it suits many use cases better, and many developers and teams already depend on it. [1]\n- **Strong developer experience:** It was designed to reduce code duplication, provide completion everywhere, and offer type and error checks. [2]\n- **Broad editor support:** It was tested with PyCharm, VS Code, and Jedi-based editors, covering the editors used by about 80% of Python developers. Its benefits should work in virtually all editors. [2]\n- **Powerful dependency injection:** The system is easy to use and handled automatically by the framework. [3]\n  - Dependencies can have their own dependencies, forming a \"graph\" of dependencies. [3]\n  - Dependencies can require data from requests, and they augment path operation constraints and automatic documentation. [3]\n  - Parameters defined in dependencies get automatic validation. [3]\n  - It supports complex authentication systems, database connections, and more. [3]\n- **Easy integration:** There is no compromise with databases, frontends, etc., and integration with them is easy. [3] Integrations are simple enough that you can create a \"plug-in\" in 2 lines of code using the same structure and syntax as path operations. [4]\n- **Easy testing:** Thanks to Starlette, testing is easy and enjoyable. It is based on HTTPX, which is familiar and intuitive since it follows Requests, and you can use pytest directly. [5]\n- **Future improvements:** More improvements and features are expected to come. [1]",
+        "retrieval_hit": false,
+        "refused": false,
+        "cited": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "phantom_citations": [],
+        "latency_s": 3.76,
+        "cost_usd": 0.008184,
+        "usage": {
+          "model": "claude-sonnet-5-5",
+          "input_tokens": 1412,
+          "output_tokens": 536
+        },
+        "verdict": {
+          "reasoning": "Each bullet maps closely to the content of the cited source: adoption and future from [1], design and editor support from [2], dependency injection from [3], plug-ins from [4], and testing from [5]. The claims are paraphrased accurately, with no outside knowledge added. The answer covers the benefits contained in the sources.",
+          "unsupported_claims": [],
+          "answers_question": "fully",
+          "bad_citations": []
+        },
+        "outcome": "correct",
+        "notes": []
+      },
+      {
+        "id": "q45",
+        "category": "overview",
+        "question": "what do i need to install to use FastAPI ?",
+        "model": "claude-sonnet-5-5",
+        "answer": "Install `fastapi[standard]`. The docs recommend first installing `uv`, then adding FastAPI to your project [1]:\n\n```console\n$ uv add \"fastapi[standard]\"\n```\n\nPut `\"fastapi[standard]\"` in quotes so it works in all terminals [1].\n\nIf you prefer `pip`, install `fastapi[standard]` inside a virtual environment [1].",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [
+          1
+        ],
+        "phantom_citations": [],
+        "latency_s": 2.0,
+        "cost_usd": 0.004238,
+        "usage": {
+          "model": "claude-sonnet-5-5",
+          "input_tokens": 1479,
+          "output_tokens": 128
+        },
+        "verdict": {
+          "reasoning": "The answer accurately restates source 1: install uv, run uv add \"fastapi[standard]\", use quotes, and the pip alternative inside a virtual environment. All claims are supported, and every [1] citation is correct.",
+          "unsupported_claims": [],
+          "answers_question": "fully",
+          "bad_citations": []
+        },
+        "outcome": "correct",
+        "notes": []
+      },
+      {
+        "id": "q46",
+        "category": "overview",
+        "question": "How to install FastAPI?",
+        "model": "claude-sonnet-5-5",
+        "answer": "Install `uv`, then add FastAPI to your project with:\n\n```console\n$ uv add \"fastapi[standard]\"\n```\n\nPut `\"fastapi[standard]\"` in quotes so it works in all terminals. [1]\n\nIf you prefer `pip`, install `fastapi[standard]` inside a virtual environment. The installation guide has the alternative steps. [1]",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [
+          1
+        ],
+        "phantom_citations": [],
+        "latency_s": 1.82,
+        "cost_usd": 0.004014,
+        "usage": {
+          "model": "claude-sonnet-5-5",
+          "input_tokens": 1407,
+          "output_tokens": 120
+        },
+        "verdict": {
+          "reasoning": "The answer accurately restates source 1: install uv, run uv add \"fastapi[standard]\", use quotes so it works in all terminals, and the pip alternative inside a virtual environment, with a pointer to the installation guide. Every claim is grounded in source 1, and both [1] citations support the sentences they follow.",
+          "unsupported_claims": [],
+          "answers_question": "fully",
+          "bad_citations": []
+        },
+        "outcome": "correct",
+        "notes": []
+      },
+      {
+        "id": "q47",
+        "category": "overview",
+        "question": "Does it cost money to use FastAPI?",
+        "model": "claude-sonnet-5-5",
+        "answer": "I couldn't find this in the FastAPI docs I have.",
+        "retrieval_hit": false,
+        "refused": true,
+        "cited": [],
+        "phantom_citations": [],
+        "latency_s": 1.46,
+        "cost_usd": 0.0036,
+        "usage": {
+          "model": "claude-sonnet-5-5",
+          "input_tokens": 1695,
+          "output_tokens": 21
+        },
+        "verdict": null,
+        "outcome": "justified_refusal",
+        "notes": []
+      },
+      {
+        "id": "u01",
+        "category": "unanswerable",
+        "question": "How do I deploy FastAPI to Kubernetes?",
+        "model": "claude-sonnet-5-5",
+        "answer": "I couldn't find this in the FastAPI docs I have.",
+        "retrieval_hit": false,
+        "refused": true,
+        "cited": [],
+        "phantom_citations": [],
+        "latency_s": 1.03,
+        "cost_usd": 0.002918,
+        "usage": {
+          "model": "claude-sonnet-5-5",
+          "input_tokens": 1354,
+          "output_tokens": 21
+        },
+        "verdict": null,
+        "outcome": "correct_refusal",
+        "notes": []
+      },
+      {
+        "id": "u02",
+        "category": "unanswerable",
+        "question": "How do I use WebSockets in FastAPI?",
+        "model": "claude-sonnet-5-5",
+        "answer": "The sources only say that FastAPI supports WebSockets; they don't show how to use them.\n\n- FastAPI gets all of Starlette's features, including **WebSocket** support [1].\n- `FastAPI` is a subclass of `Starlette`, so you can use Starlette's functionality with it [1][5].\n\nThey contain no WebSocket endpoint example or API details (such as how to declare a WebSocket route or send and receive messages), so I can't give you code for it from these excerpts.",
+        "retrieval_hit": false,
+        "refused": false,
+        "cited": [
+          1,
+          5
+        ],
+        "phantom_citations": [],
+        "latency_s": 1.68,
+        "cost_usd": 0.00524,
+        "usage": {
+          "model": "claude-sonnet-5-5",
+          "input_tokens": 1835,
+          "output_tokens": 157
+        },
+        "verdict": {
+          "reasoning": "The answer accurately states that the sources only mention WebSocket support via Starlette [1] and that FastAPI subclasses Starlette [1][5]. It correctly declines to provide usage details that are not present in the sources. The question about how to use WebSockets is not answered, though this is because the sources lack that information.",
+          "unsupported_claims": [],
+          "answers_question": "no",
+          "bad_citations": []
+        },
+        "outcome": "hallucinated",
+        "notes": []
+      },
+      {
+        "id": "u03",
+        "category": "unanswerable",
+        "question": "How do I add rate limiting to my endpoints?",
+        "model": "claude-sonnet-5-5",
+        "answer": "I couldn't find this in the FastAPI docs I have.",
+        "retrieval_hit": false,
+        "refused": true,
+        "cited": [],
+        "phantom_citations": [],
+        "latency_s": 0.82,
+        "cost_usd": 0.005052,
+        "usage": {
+          "model": "claude-sonnet-5-5",
+          "input_tokens": 2421,
+          "output_tokens": 21
+        },
+        "verdict": null,
+        "outcome": "correct_refusal",
+        "notes": []
+      },
+      {
+        "id": "u04",
+        "category": "unanswerable",
+        "question": "How do I stream a large file to the client with StreamingResponse?",
+        "model": "claude-sonnet-5-5",
+        "answer": "I couldn't find this in the FastAPI docs I have.",
+        "retrieval_hit": false,
+        "refused": true,
+        "cited": [],
+        "phantom_citations": [],
+        "latency_s": 2.21,
+        "cost_usd": 0.003804,
+        "usage": {
+          "model": "claude-sonnet-5-5",
+          "input_tokens": 1797,
+          "output_tokens": 21
+        },
+        "verdict": null,
+        "outcome": "correct_refusal",
+        "notes": []
+      },
+      {
+        "id": "u05",
+        "category": "unanswerable",
+        "question": "What is the capital of France?",
+        "model": "claude-sonnet-5-5",
+        "answer": "I couldn't find this in the FastAPI docs I have.",
+        "retrieval_hit": false,
+        "refused": true,
+        "cited": [],
+        "phantom_citations": [],
+        "latency_s": 1.34,
+        "cost_usd": 0.00342,
+        "usage": {
+          "model": "claude-sonnet-5-5",
+          "input_tokens": 1605,
+          "output_tokens": 21
+        },
+        "verdict": null,
+        "outcome": "correct_refusal",
+        "notes": []
+      },
+      {
+        "id": "u06",
+        "category": "unanswerable",
+        "question": "Does FestAPI works with all LLM models?",
+        "model": "claude-sonnet-5-5",
+        "answer": "I couldn't find this in the FastAPI docs I have.",
+        "retrieval_hit": false,
+        "refused": true,
+        "cited": [],
+        "phantom_citations": [],
+        "latency_s": 1.37,
+        "cost_usd": 0.003514,
+        "usage": {
+          "model": "claude-sonnet-5-5",
+          "input_tokens": 1652,
+          "output_tokens": 21
+        },
+        "verdict": null,
+        "outcome": "correct_refusal",
+        "notes": []
+      }
+    ]
+  }
+}

@@ -1,0 +1,194 @@
+{
+  "config": {
+    "retrieval_mode": "rerank",
+    "top_k": 5,
+    "candidate_k": 10,
+    "llm_effort": "medium",
+    "judge": "claude-opus-5-5",
+    "prices_per_mtok": {
+      "claude-haiku-5-5": [
+        0.1,
+        0.5
+      ],
+      "claude-sonnet-5-5": [
+        2.0,
+        10.0
+      ],
+      "claude-opus-5-5": [
+        4.0,
+        20.0
+      ]
+    }
+  },
+  "summary": {
+    "claude-haiku-5-5": {
+      "questions": 5,
+      "correct": 1.0,
+      "partial": 0.0,
+      "unfaithful": 0.0,
+      "bad_citations": 0.0,
+      "uncited": 0.0,
+      "phantom_citations": 0,
+      "false_refusals": 0,
+      "justified_refusals": 0,
+      "correct_refusals": "0/0",
+      "latency_p50_s": 2.43,
+      "cost_per_question_usd": 0.00037,
+      "cost_total_usd": 0.0018
+    }
+  },
+  "judge_cost_usd": 0.0761,
+  "results": {
+    "claude-haiku-5-5": [
+      {
+        "id": "q01",
+        "category": "direct",
+        "question": "How do I make a query parameter optional?",
+        "model": "claude-haiku-5-5",
+        "answer": "To make a query parameter optional, give it a default value, typically `None`:\n\n```python\nfrom fastapi import FastAPI\n\napp = FastAPI()\n\n\n@app.get(\"/items/{item_id}\")\nasync def read_item(item_id: str, q: str | None = None):\n    if q:\n        return {\"item_id\": item_id, \"q\": q}\n    return {\"item_id\": item_id}\n```\n\nThe function parameter `q` is optional and defaults to `None` [1]. Any non-path parameter with a default value is not required [2]. You can also use a non-`None` default, such as `skip: int = 0` [4][5].\n\nThe type `str | None` alone does not make a parameter optional. Without a default, it is still required [3]. With `Annotated`, add `= None` after the annotation: `q: Annotated[str | None, Query(min_length=3)] = None` [3].",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [
+          1,
+          2,
+          4,
+          5,
+          3
+        ],
+        "phantom_citations": [],
+        "latency_s": 2.16,
+        "cost_usd": 0.0003753,
+        "usage": {
+          "model": "claude-haiku-5-5",
+          "input_tokens": 2103,
+          "output_tokens": 330
+        },
+        "verdict": {
+          "reasoning": "The answer explains setting a default of None to make a query parameter optional, with code matching source 1. It also notes that any default makes a non-path parameter not required (source 2) and that non-None defaults like skip=0 work (sources 4 and 5). It correctly adds that `str | None` without a default is still required and shows the Annotated form with = None (source 3). Every claim and citation is supported.",
+          "unsupported_claims": [],
+          "answers_question": "fully",
+          "bad_citations": []
+        },
+        "outcome": "correct",
+        "notes": []
+      },
+      {
+        "id": "q02",
+        "category": "code-name",
+        "question": "What does jsonable_encoder do?",
+        "model": "claude-haiku-5-5",
+        "answer": "`jsonable_encoder()` converts data, such as a Pydantic model, into a JSON-compatible form like a `dict` or `list` [3]. It returns a Python data structure, not a JSON string, and the result can be passed to the standard `json.dumps()` [1].\n\nFor example, it converts a `datetime` to a `str` in ISO format [5]. It is useful when storing data in a database that only accepts JSON-compatible values [2][5]. **FastAPI** also uses it internally to convert data [1].\n\n```python\njson_compatible_item_data = jsonable_encoder(item)\nfake_db[id] = json_compatible_item_data\n```\n\nIn this example, the Pydantic model `item` becomes a `dict`, and its `datetime` field becomes a `str` [5].",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [
+          3,
+          1,
+          5,
+          2
+        ],
+        "phantom_citations": [],
+        "latency_s": 3.75,
+        "cost_usd": 0.00042770000000000004,
+        "usage": {
+          "model": "claude-haiku-5-5",
+          "input_tokens": 1922,
+          "output_tokens": 471
+        },
+        "verdict": {
+          "reasoning": "Every claim in the answer maps to the sources: conversion of a Pydantic model to a dict or list [3], returning a Python structure rather than a JSON string that json.dumps() can encode [1], datetime becoming an ISO str [5], storage in JSON-only databases [2][5], and internal use by FastAPI [1]. The code snippet is taken from source 5. All citations support the sentences they follow.",
+          "unsupported_claims": [],
+          "answers_question": "fully",
+          "bad_citations": []
+        },
+        "outcome": "correct",
+        "notes": []
+      },
+      {
+        "id": "q03",
+        "category": "paraphrase",
+        "question": "How do I run code after returning a response?",
+        "model": "claude-haiku-5-5",
+        "answer": "You can define **background tasks** to run *after* the response is returned. This suits work the client doesn't need to wait for, such as sending an email or processing an uploaded file. You can return a response right away, such as HTTP 202 \"Accepted\", and process the file in the background [1].\n\nThe sources don't include code for background tasks, so I can't show the exact syntax.\n\nMiddleware is a different mechanism. It runs code after the response is generated but before it's returned, which is useful for things like adding a header [2]:\n\n```python\n@app.middleware(\"http\")\nasync def add_process_time_header(request: Request, call_next):\n    start_time = time.perf_counter()\n    response = await call_next(request)\n    process_time = time.perf_counter() - start_time\n    response.headers[\"X-Process-Time\"] = str(process_time)\n    return response\n```\n\n[1][2]",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [
+          1,
+          2
+        ],
+        "phantom_citations": [],
+        "latency_s": 2.76,
+        "cost_usd": 0.0004209,
+        "usage": {
+          "model": "claude-haiku-5-5",
+          "input_tokens": 2069,
+          "output_tokens": 428
+        },
+        "verdict": {
+          "reasoning": "The answer correctly states, per source 1, that background tasks run after returning a response, with email and file-processing examples and HTTP 202. It also correctly notes that the sources lack background-task code. Its description of middleware and the code match source 2. Every claim is grounded, and the citations support the sentences they follow.",
+          "unsupported_claims": [],
+          "answers_question": "fully",
+          "bad_citations": []
+        },
+        "outcome": "correct",
+        "notes": []
+      },
+      {
+        "id": "q04",
+        "category": "direct",
+        "question": "How do I declare a path parameter with a type?",
+        "model": "claude-haiku-5-5",
+        "answer": "You declare the type of a path parameter in the function using standard Python type annotations. For example, this declares `item_id` as an `int`:\n\n```python\nfrom fastapi import FastAPI\n\napp = FastAPI()\n\n\n@app.get(\"/items/{item_id}\")\nasync def read_item(item_id: int):\n    return {\"item_id\": item_id}\n```\n\n[1]\n\nPath parameters are declared with the same syntax as Python format strings, using `{item_id}` in the path [4]. Editor support, error checks, and completion inside the function come from the type declaration [1].",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [
+          1,
+          4
+        ],
+        "phantom_citations": [],
+        "latency_s": 2.43,
+        "cost_usd": 0.0002683,
+        "usage": {
+          "model": "claude-haiku-5-5",
+          "input_tokens": 1798,
+          "output_tokens": 177
+        },
+        "verdict": {
+          "reasoning": "The answer states that path parameter types are declared with standard Python type annotations, and its code example matches source 1 exactly. The note on format-string syntax is supported by source 4. The claim about editor support, error checks and completion comes from the tip in source 1. All claims and citations are grounded in the sources.",
+          "unsupported_claims": [],
+          "answers_question": "fully",
+          "bad_citations": []
+        },
+        "outcome": "correct",
+        "notes": []
+      },
+      {
+        "id": "q05",
+        "category": "paraphrase",
+        "question": "My route /users/me is being matched by /users/{user_id}. Why?",
+        "model": "claude-haiku-5-5",
+        "answer": "This happens because FastAPI evaluates path operations in the order they are declared. If `/users/{user_id}` is declared before `/users/me`, it matches `/users/me` first, treating `\"me\"` as the value of `user_id` [1].\n\nDeclare the fixed path first:\n\n```python\nfrom fastapi import FastAPI\n\napp = FastAPI()\n\n\n@app.get(\"/users/me\")\nasync def read_user_me():\n    return {\"user_id\": \"the current user\"}\n\n\n@app.get(\"/users/{user_id}\")\nasync def read_user(user_id: str):\n    return {\"user_id\": user_id}\n```\n\n[1]",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [
+          1
+        ],
+        "phantom_citations": [],
+        "latency_s": 1.89,
+        "cost_usd": 0.0003445,
+        "usage": {
+          "model": "claude-haiku-5-5",
+          "input_tokens": 2005,
+          "output_tokens": 288
+        },
+        "verdict": {
+          "reasoning": "The answer explains that path operations are evaluated in declaration order, so /users/{user_id} declared first would match /users/me with user_id=\"me\", and that the fix is to declare /users/me first. The code is copied verbatim from source 1, which supports every claim, and the citations to [1] are appropriate.",
+          "unsupported_claims": [],
+          "answers_question": "fully",
+          "bad_citations": []
+        },
+        "outcome": "correct",
+        "notes": []
+      }
+    ]
+  }
+}

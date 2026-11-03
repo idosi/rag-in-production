@@ -31,17 +31,30 @@ HINTS (open one at a time, only when stuck)
     - Do NOT use time.time() / time.monotonic() directly; call self.clock().
 """
 
+import threading
 import time
+import deque
 from collections.abc import Callable
+
 
 
 class RateLimiter:
     def __init__(
         self, limit: int, window: float = 60.0, clock: Callable[[], float] = time.monotonic
     ):
-        # TODO: store what you need
-        pass
+        self.limit = limit
+        self.window = window
+        self.clock = clock
+        self.hits = {}  # Dictionary to store caller -> list of request times
+        self._lock = threading.Lock()  # FastAPI runs sync endpoints in several threads
+
 
     def allow(self, caller: str) -> float:
-        # TODO: implement the 3 steps from THE IDEA
-        raise NotImplementedError
+        now = self.clock()
+        hits = self.hits.setdefault(caller, deque())
+        while hits and now - hits[0] >= self.window:
+            hits.popleft()
+        if len(hits) >= self.limit:
+            return self.window - (now - hits[0])
+        hits.append(self.clock()) 
+        return 0.0
