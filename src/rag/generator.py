@@ -63,9 +63,10 @@ NOT_FOUND = "I couldn't find this in the FastAPI docs I have."
 
 def format_sources(sources: list[RetrievedChunk]) -> str:
     """Render the chunks as numbered <source> tags (numbering starts at 1)."""
+    
     parts = [
-        f'<source id="{i}" title="{s.chunk.heading}" url="{s.chunk.url}">\n'
-        f"{s.chunk.text}\n</source>"
+        f'<source id="{i}" title="{escape_attr(s.chunk.heading)}" url="{escape_attr(s.chunk.url)}">\n'
+        f"{sanitize(s.chunk.text)}\n</source>"
         for i, s in enumerate(sources, start=1)
     ]
     return "<sources>\n" + "\n".join(parts) + "\n</sources>"
@@ -222,3 +223,17 @@ def build_generator(spec: str, settings) -> Generator:
         return OllamaGenerator(spec.removeprefix("ollama:"), settings.ollama_url)
     api_key = settings.anthropic_api_key.get_secret_value() if settings.anthropic_api_key else None
     return ClaudeGenerator(spec, settings.llm_effort, settings.llm_max_tokens, api_key=api_key)
+
+
+def sanitize(text: str) -> str:
+    text = re.sub(r"<(?=\s*/?\s*sources?\b)", "&lt;", text, flags=re.IGNORECASE)
+    return text
+
+def escape_attr(value: str) -> str:
+    """Escape a string for use inside an HTML attribute value.
+
+    Replaces " with &quot; and < with &lt; so the value cannot break out of the
+    attribute. We don't need to escape > because it cannot break out of an
+    attribute, and we don't need to escape ' because we always use double quotes.
+    """
+    return value.replace('"', "&quot;").replace("<", "&lt;")
