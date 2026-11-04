@@ -61,11 +61,33 @@ CITATION_RE = re.compile(r"\[(\d+)\]")
 NOT_FOUND = "I couldn't find this in the FastAPI docs I have."
 
 
+def sanitize(text: str) -> str:
+    """Neutralise our own <source>/<sources> tags inside document text.
+
+    A poisoned document could contain "</source>" to close the block early, so that
+    whatever follows looks to the model like instructions instead of data. We turn
+    only the "<" into "&lt;": the text stays readable, but it is no longer a tag.
+    """
+    return re.sub(r"<(?=\s*/?\s*sources?\b)", "&lt;", text, flags=re.IGNORECASE)
+
+
+def escape_attr(value: str) -> str:
+    """Escape a value placed inside a double-quoted attribute (title, url).
+
+    " becomes &quot; and < becomes &lt;, so the value cannot close the attribute.
+    """
+    return value.replace('"', "&quot;").replace("<", "&lt;")
+
+
 def format_sources(sources: list[RetrievedChunk]) -> str:
-    """Render the chunks as numbered <source> tags (numbering starts at 1)."""
+    """Render the chunks as numbered <source> tags (numbering starts at 1).
+
+    Everything here comes from external documents, so it is cleaned first.
+    """
     parts = [
-        f'<source id="{i}" title="{s.chunk.heading}" url="{s.chunk.url}">\n'
-        f"{s.chunk.text}\n</source>"
+        f'<source id="{i}" title="{escape_attr(s.chunk.heading)}" '
+        f'url="{escape_attr(s.chunk.url)}">\n'
+        f"{sanitize(s.chunk.text)}\n</source>"
         for i, s in enumerate(sources, start=1)
     ]
     return "<sources>\n" + "\n".join(parts) + "\n</sources>"
