@@ -44,5 +44,4 @@ import re
 
 def sanitize(text: str) -> str:
     text = re.sub(r"<(?=\s*/?\s*sources?\b)", "&lt;", text, flags=re.IGNORECASE)
-    #text = re.sub(r"<(?=\s*/?\s*sources\b)", "&lt;", text, flags=re.IGNORECASE)
     return text
