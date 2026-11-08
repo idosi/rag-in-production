@@ -39,7 +39,12 @@ HINTS (open one at a time, only when stuck)
        needs "input_tokens" and "output_tokens", so guard with `if usage`.
 """
 
+import dataclasses
+
+from exercises.cache.my_cache import make_key
+from rag.generator import NOT_FOUND
 from rag.models import Answer
+from rag.evals.answers import PRICES, cost_usd
 
 
 class BudgetExceeded(Exception):
@@ -47,12 +52,32 @@ class BudgetExceeded(Exception):
 
 
 def cost_of(usage: dict) -> float:
-    raise NotImplementedError
+    if not usage:
+        return 0.0
+    return cost_usd(usage)
 
 
 class GuardedPipeline:
     def __init__(self, inner, cache, spend, version: str, cost_fn=cost_of):
-        raise NotImplementedError
+        self.inner = inner
+        self.cache = cache
+        self.spend = spend
+        self.version = version
+        self.cost_fn = cost_fn
 
     def ask(self, question: str) -> Answer:
-        raise NotImplementedError
+        key = make_key(question, self.version)
+        cached_answer = self.cache.get(key)
+        if cached_answer is not None:
+            # Return a copy of the cached answer with updated usage
+            return dataclasses.replace(cached_answer, usage={**cached_answer.usage, "cache_hit": True, "cost_usd": 0.0})
+        if not self.spend.allow():
+            raise BudgetExceeded("Daily spend limit exceeded.")
+        answer = self.inner.ask(question)
+        cost = self.cost_fn(answer.usage)
+        self.spend.record(cost)
+        result = dataclasses.replace(answer, usage={**answer.usage, "cache_hit": False, "cost_usd": cost})
+        if answer.text != NOT_FOUND and answer.sources:
+            # Cache the answer with updated usage
+            self.cache.put(key, answer)
+        return result
