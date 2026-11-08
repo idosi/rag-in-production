@@ -21,6 +21,7 @@ def test_format_sources_numbers_from_one():
     assert '<source id="1" title="Heading 0"' in out
     assert '<source id="2" title="Heading 1"' in out
 
+
 def evil(text="Body", heading="Heading", url="https://x/#h"):
     """One chunk whose fields we control, as if a document had been poisoned."""
     return RetrievedChunk(chunk=Chunk("doc", 0, heading, url, text), score=0.9)

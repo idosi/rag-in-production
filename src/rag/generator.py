@@ -63,7 +63,7 @@ NOT_FOUND = "I couldn't find this in the FastAPI docs I have."
 
 def format_sources(sources: list[RetrievedChunk]) -> str:
     """Render the chunks as numbered <source> tags (numbering starts at 1)."""
-    
+
     parts = [
         f'<source id="{i}" title="{escape_attr(s.chunk.heading)}" url="{escape_attr(s.chunk.url)}">\n'
         f"{sanitize(s.chunk.text)}\n</source>"
@@ -228,6 +228,7 @@ def build_generator(spec: str, settings) -> Generator:
 def sanitize(text: str) -> str:
     text = re.sub(r"<(?=\s*/?\s*sources?\b)", "&lt;", text, flags=re.IGNORECASE)
     return text
+
 
 def escape_attr(value: str) -> str:
     """Escape a string for use inside an HTML attribute value.
