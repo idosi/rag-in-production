@@ -42,12 +42,17 @@ THINK ABOUT (we discuss after the tests are green, no code needed)
       does that do to the hit rate, and what would you use instead?
 """
 
+import collections
+import threading
 import time
 from collections.abc import Callable
+from typing import Any
 
 
 def make_key(question: str, version: str) -> str:
-    raise NotImplementedError
+    """Normalise the question and join it with the version to make a key."""
+    normalised = " ".join(question.lower().split()).rstrip("?.!").strip()
+    return f"{normalised} | {version}"
 
 
 class AnswerCache:
@@ -57,13 +62,30 @@ class AnswerCache:
         self.clock = clock
         self.hits = 0
         self.misses = 0
-        # TODO: where do the entries live?
+        self.cache = collections.OrderedDict()
+        self._lock = threading.Lock()
 
-    def get(self, key: str):
-        raise NotImplementedError
+    def get(self, key: str) -> Any:
+        with self._lock:
+            entry = self.cache.get(key, None)
+            if entry is not None and self.clock() - entry[1] >= self.ttl:
+                entry = None
+                del self.cache[key]  # remove expired entry
+            if entry is None:
+                self.misses += 1
+                return None
+            else:
+                self.cache.move_to_end(key)  # mark as recently used
+                self.hits += 1
+        return  entry[0]
 
     def put(self, key: str, value) -> None:
-        raise NotImplementedError
+        with self._lock:
+            self.cache[key] = (value, self.clock())
+            self.cache.move_to_end(key)
+            while len(self.cache) > self.max_items:
+                self.cache.popitem(last=False)  # remove least recently used   
+
 
     def __len__(self) -> int:
-        raise NotImplementedError
+        return len(self.cache)
