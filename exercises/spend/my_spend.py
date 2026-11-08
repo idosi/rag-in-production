@@ -41,13 +41,30 @@ class SpendTracker:
     def __init__(self, daily_budget: float, clock: Callable[[], float] = time.time):
         self.daily_budget = daily_budget
         self.clock = clock
-        # TODO: what state do you need?
+        self.current_spend = 0.0
+        self.current_day = int(self.clock() // 86400)  # seconds in a
+
+    def _roll(self) -> None:
+        """Check if the day changed, and reset current_spend if so."""
+        now_day = int(self.clock() // 86400)
+        if now_day != self.current_day:
+            self.current_day = now_day
+            self.current_spend = 0.0
 
     def record(self, cost: float) -> None:
-        raise NotImplementedError
+        self._roll()
+        if cost < 0:
+            raise ValueError("cost must be non-negative")
+        
+        self.current_spend += cost
 
     def spent_today(self) -> float:
-        raise NotImplementedError
+        self._roll()
+        return self.current_spend
 
     def allow(self) -> bool:
-        raise NotImplementedError
+        self._roll()
+        if self.spent_today() < self.daily_budget:
+            return True
+        else:
+            return False
