@@ -72,9 +72,17 @@ def test_ask_on_empty_retrieval_returns_not_found(monkeypatch):
 class FakeSettings:
     """Only the fields the lifespan reads."""
 
-    def __init__(self, keys=None, rate=20):
+    llm_model = "m"
+    docs_version = "0"
+    top_k = 5
+    retrieval_mode = "vector"
+    answer_cache_max_items = 10
+    answer_cache_ttl_seconds = 60.0
+
+    def __init__(self, keys=None, rate=20, budget=5.0):
         from pydantic import SecretStr
 
+        self.daily_budget_usd = budget
         self.api_keys = SecretStr(keys) if keys else None
         self.rate_limit_per_minute = rate
 
@@ -145,3 +153,102 @@ def test_parse_keys_and_guard_without_keys_uses_the_ip():
         g.check(None, "1.2.3.4")
     assert e.value.status_code == 429
     g.check(None, "5.6.7.8")  # a different IP is a different caller
+
+
+# ---------------------------------------------------------------- cost control (step 3c)
+
+
+class OneAnswerGenerator:
+    """A generator that answers (and reports tokens) so the money path is exercised."""
+
+    def __init__(self):
+        self.calls = 0
+
+    def generate(self, question, sources):
+        from rag.models import Answer
+
+        self.calls += 1
+        usage = {"model": "claude-haiku-5-5", "input_tokens": 1_000_000, "output_tokens": 0}
+        return Answer(text="an answer [1]", sources=sources, cited=[1], usage=usage)
+
+
+class OneChunkRetriever(FakeRetriever):
+    def retrieve(self, question, k):
+        from rag.models import Chunk, RetrievedChunk
+
+        return [RetrievedChunk(Chunk("doc", 0, "Heading", "http://u", "text"), 0.9)]
+
+
+def paid_pipeline(generator):
+    return RAGPipeline(OneChunkRetriever(), generator, top_k=5)
+
+
+def test_response_reports_cost_and_the_second_identical_question_is_a_free_cache_hit(monkeypatch):
+    gen = OneAnswerGenerator()
+    monkeypatch.setattr(api, "build_pipeline", lambda: paid_pipeline(gen))
+    monkeypatch.setattr(api, "get_settings", lambda: FakeSettings())
+    with TestClient(api.app) as c:
+        first = c.post("/ask", json=ASK).json()
+        second = c.post("/ask", json={"question": "  how do i do x "}).json()
+    assert first["usage"]["cache_hit"] is False
+    assert first["usage"]["cost_usd"] == pytest.approx(0.10)  # 1M haiku input tokens
+    assert second["usage"]["cache_hit"] is True
+    assert second["usage"]["cost_usd"] == 0.0
+    assert gen.calls == 1
+
+
+def test_over_the_daily_budget_is_503_but_cached_questions_still_work(monkeypatch):
+    gen = OneAnswerGenerator()
+    monkeypatch.setattr(api, "build_pipeline", lambda: paid_pipeline(gen))
+    monkeypatch.setattr(api, "get_settings", lambda: FakeSettings(budget=0.10))
+    with TestClient(api.app) as c:
+        assert c.post("/ask", json=ASK).status_code == 200  # spends the whole 0.10
+        assert c.post("/ask", json={"question": "A new question"}).status_code == 503
+        assert c.post("/ask", json=ASK).status_code == 200  # cached: free, so still served
+    assert gen.calls == 1
+
+
+# ---------------------------------------------------------------- tracing (step 3c)
+
+
+def test_every_answer_has_a_request_id_header_and_one_json_trace_line(monkeypatch):
+    import json
+    import logging
+
+    lines = []
+
+    class Grab(logging.Handler):
+        def emit(self, record):
+            lines.append(record.getMessage())
+
+    handler = Grab()
+    logging.getLogger("rag.trace").addHandler(handler)
+    gen = OneAnswerGenerator()
+    monkeypatch.setattr(api, "build_pipeline", lambda: paid_pipeline(gen))
+    monkeypatch.setattr(api, "get_settings", lambda: FakeSettings())
+    try:
+        with TestClient(api.app) as c:
+            r = c.post("/ask", json=ASK, headers={"X-Request-ID": "req-42"})
+    finally:
+        logging.getLogger("rag.trace").removeHandler(handler)
+
+    assert r.headers["x-request-id"] == "req-42"  # the caller's id is kept
+    assert len(lines) == 1
+    data = json.loads(lines[0])
+    assert data["request_id"] == "req-42"
+    assert set(data["spans_ms"]) == {"retrieve", "generate"}  # the pipeline's two steps
+    assert data["cache_hit"] is False
+    assert data["cost_usd"] == pytest.approx(0.10)
+    assert data["status"] == 200
+    assert "How do I do X" not in lines[0]  # the question text is never logged
+
+
+def test_a_503_is_traced_too_and_a_generated_id_is_returned(monkeypatch):
+    gen = OneAnswerGenerator()
+    monkeypatch.setattr(api, "build_pipeline", lambda: paid_pipeline(gen))
+    monkeypatch.setattr(api, "get_settings", lambda: FakeSettings(budget=0.10))
+    with TestClient(api.app) as c:
+        c.post("/ask", json=ASK)
+        r = c.post("/ask", json={"question": "A new question"})
+    assert r.status_code == 503
+    assert len(r.headers["x-request-id"]) >= 8

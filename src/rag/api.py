@@ -16,15 +16,28 @@ LIFECYCLE
 import logging
 from contextlib import asynccontextmanager
 
-from fastapi import Depends, FastAPI, Request
+from fastapi import Depends, FastAPI, HTTPException, Request, Response
 from fastapi.security import APIKeyHeader
 from pydantic import BaseModel, Field
 
+from rag.cache import AnswerCache
 from rag.config import get_settings
-from rag.pipeline import RAGPipeline, build_pipeline
+from rag.guarded import BudgetExceeded, GuardedPipeline
+from rag.pipeline import build_pipeline
 from rag.security import Guard, RateLimiter, parse_keys
+from rag.spend import SpendTracker
+from rag.trace import Trace, tracing
 
 log = logging.getLogger("rag.api")
+# The trace lines go to their own logger: bare JSON, one per line, so they can be piped to
+# a log tool. (uvicorn only configures its own loggers, so without this INFO is dropped.)
+trace_log = logging.getLogger("rag.trace")
+if not trace_log.handlers:
+    _handler = logging.StreamHandler()
+    _handler.setFormatter(logging.Formatter("%(message)s"))
+    trace_log.addHandler(_handler)
+    trace_log.setLevel(logging.INFO)
+    trace_log.propagate = False
 
 
 @asynccontextmanager
@@ -34,6 +47,16 @@ async def lifespan(app: FastAPI):
     # every question that much slower. app.state is a place to keep shared objects.
     app.state.pipeline = build_pipeline()
     s = get_settings()
+    # /ask goes through the wrapper (cache + daily budget + cost); /health and shutdown
+    # use the raw pipeline, which owns the DB connection.
+    budget = s.daily_budget_usd if s.daily_budget_usd > 0 else float("inf")
+    app.state.asker = GuardedPipeline(
+        inner=app.state.pipeline,
+        cache=AnswerCache(s.answer_cache_max_items, s.answer_cache_ttl_seconds),
+        spend=SpendTracker(budget),
+        # Everything the answer depends on: change any of it and old answers are not reused.
+        version=f"{s.llm_model}|docs-{s.docs_version}|k{s.top_k}|{s.retrieval_mode}",
+    )
     keys = parse_keys(s.api_keys.get_secret_value() if s.api_keys else None)
     limiter = RateLimiter(s.rate_limit_per_minute) if s.rate_limit_per_minute > 0 else None
     app.state.guard = Guard(keys, limiter)
@@ -88,14 +111,42 @@ def check_access(request: Request, x_api_key: str | None = Depends(api_key_heade
 
 
 @app.post("/ask", response_model=AskResponse, dependencies=[Depends(check_access)])
-def ask(body: AskRequest, request: Request) -> AskResponse:
+def ask(body: AskRequest, request: Request, response: Response) -> AskResponse:
     # By the time we get here, FastAPI has already parsed and validated the JSON
     # into `body`. An invalid request never reaches this line.
     #
     # A sync endpoint: FastAPI runs it in a thread pool, so the blocking DB and
     # LLM calls do not freeze the event loop.
-    pipeline: RAGPipeline = request.app.state.pipeline
-    answer = pipeline.ask(body.question)
+    #
+    # One Trace per request. An id sent by a load balancer / the caller (X-Request-ID)
+    # is kept, so their logs and ours can be joined. The question text is NOT logged
+    # (it may contain private data); only its length.
+    trace = Trace(request_id=request.headers.get("x-request-id"))
+    trace.set(question_chars=len(body.question), status=200)
+    response.headers["X-Request-ID"] = trace.request_id
+    asker: GuardedPipeline = request.app.state.asker
+    try:
+        with tracing(trace):
+            answer = asker.ask(body.question)
+        usage = answer.usage or {}
+        trace.set(
+            cache_hit=usage.get("cache_hit"),
+            cost_usd=usage.get("cost_usd"),
+            model=usage.get("model"),
+            cited=len(answer.cited),
+        )
+    except BudgetExceeded as e:
+        trace.set(status=503)
+        # 503 = "the service can't answer right now", and a cached question still works.
+        raise HTTPException(
+            status_code=503, detail=str(e), headers={"X-Request-ID": trace.request_id}
+        ) from e
+    except Exception:
+        trace.set(status=500)
+        raise
+    finally:
+        # One JSON line per question, success or failure: grep it by request_id.
+        trace_log.info(trace.to_json())
     # Convert our internal Answer into the public response shape. Keeping the two
     # separate means we can change internals without breaking API clients.
     return AskResponse(

@@ -75,6 +75,11 @@ class Settings(BaseSettings):
     llm_max_tokens: int = 16000  # cap on reply length; you pay for what's used
     ollama_url: str = "http://localhost:11434"  # local models, used when a model is "ollama:<name>"
 
+    # --- Cost control ---  (cache.py, spend.py, guarded.py)
+    answer_cache_max_items: int = 500  # 0 turns the answer cache off
+    answer_cache_ttl_seconds: float = 3600.0  # how long a saved answer is served
+    daily_budget_usd: float = 5.0  # new (uncached) questions get 503 after this; 0 = no limit
+
     # --- API protection ---  (security.py)
     rate_limit_per_minute: int = 20  # per caller; 0 turns the limit off
 

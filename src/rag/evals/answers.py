@@ -49,26 +49,13 @@ from typing import Literal, Protocol
 
 from pydantic import BaseModel, Field
 
+from rag.cost import PRICES, cost_usd
 from rag.evals.retrieval import GOLDEN_SET, RESULTS_DIR, section_key
 from rag.generator import CITATION_RE, NOT_FOUND, Generator, format_sources
 from rag.models import Answer, RetrievedChunk
 
-# $ per 1M tokens (input, output), first-party API prices as of 2026-10.
-# Thinking tokens are billed as output tokens and are included in output_tokens.
-# Check https://www.anthropic.com/pricing before trusting these for a real budget.
-PRICES: dict[str, tuple[float, float]] = {
-    "claude-haiku-5-5": (0.10, 0.50),
-    "claude-sonnet-5-5": (2.00, 10.00),
-    "claude-opus-5-5": (4.00, 20.00),
-}
 DEFAULT_MODELS = ("claude-haiku-5-5", "claude-sonnet-5-5", "claude-opus-5-5")
 DEFAULT_JUDGE = "claude-opus-5-5"
-
-
-def cost_usd(usage: dict) -> float:
-    """Dollar cost of one call from its usage. 0.0 for a model not in PRICES."""
-    price_in, price_out = PRICES.get(usage.get("model", ""), (0.0, 0.0))
-    return (usage["input_tokens"] * price_in + usage["output_tokens"] * price_out) / 1_000_000
 
 
 # --------------------------------------------------------------------------
