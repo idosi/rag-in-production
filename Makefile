@@ -1,4 +1,4 @@
-.PHONY: install up down ingest ask api test lint eval-retrieval eval-answers docker-build docker-up docker-ingest
+.PHONY: install up down ingest ask api test lint eval-retrieval eval-answers docker-build docker-up docker-ingest eval-redteam
 
 install:            ## Install dependencies into .venv
 	uv sync
@@ -26,6 +26,9 @@ ANSWER_MODELS ?= claude-haiku-5-5,claude-sonnet-5-5,claude-opus-5-5
 LIMIT ?= 0
 eval-answers:       ## Grade answers per model with an LLM judge (COSTS MONEY, asks first): make eval-answers ANSWER_MODELS=claude-haiku-5-5 LIMIT=5
 	uv run python -m rag.evals.answers --models $(ANSWER_MODELS) --limit $(LIMIT)
+
+eval-redteam:       ## Try prompt-injection attacks on the real model (costs a few cents)
+	uv run python -m rag.evals.red_team
 
 test:               ## Run the test suite
 	uv run pytest -q
