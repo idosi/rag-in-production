@@ -19,6 +19,7 @@ money per question.
 from rag.generator import NOT_FOUND, Generator
 from rag.models import Answer
 from rag.retrieval import Retriever
+from rag.trace import span
 
 
 class RAGPipeline:
@@ -38,7 +39,8 @@ class RAGPipeline:
         # 1+2. Retrieval: the k chunks most likely to answer the question. In
         #      "vector" mode: embed the question, take the k nearest chunks.
         #      The other modes add keyword search and/or reranking (retrieval.py).
-        sources = self.retriever.retrieve(question, self.top_k)
+        with span("retrieve"):
+            sources = self.retriever.retrieve(question, self.top_k)
 
         # 3. Empty index (ingest never ran): an LLM call could only fail, and
         #    it would cost money. Answer "not found" right away.
@@ -46,7 +48,8 @@ class RAGPipeline:
             return Answer(text=NOT_FOUND, sources=[])
 
         # 4. Generation: Claude reads the chunks and answers only from them.
-        return self.generator.generate(question, sources)
+        with span("generate"):
+            return self.generator.generate(question, sources)
 
 
 def build_pipeline() -> RAGPipeline:
