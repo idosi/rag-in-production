@@ -12,6 +12,7 @@ from exercises.spend.my_spend import SpendTracker
 from rag.generator import NOT_FOUND
 from rag.models import Answer, Chunk, RetrievedChunk
 
+
 def _source():
     return RetrievedChunk(Chunk("doc", 0, "Heading", "http://u", "text"), 0.9)
 
