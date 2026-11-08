@@ -16,13 +16,16 @@ LIFECYCLE
 import logging
 from contextlib import asynccontextmanager
 
-from fastapi import Depends, FastAPI, Request
+from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.security import APIKeyHeader
 from pydantic import BaseModel, Field
 
+from rag.cache import AnswerCache
 from rag.config import get_settings
-from rag.pipeline import RAGPipeline, build_pipeline
+from rag.guarded import BudgetExceeded, GuardedPipeline
+from rag.pipeline import build_pipeline
 from rag.security import Guard, RateLimiter, parse_keys
+from rag.spend import SpendTracker
 
 log = logging.getLogger("rag.api")
 
@@ -34,6 +37,16 @@ async def lifespan(app: FastAPI):
     # every question that much slower. app.state is a place to keep shared objects.
     app.state.pipeline = build_pipeline()
     s = get_settings()
+    # /ask goes through the wrapper (cache + daily budget + cost); /health and shutdown
+    # use the raw pipeline, which owns the DB connection.
+    budget = s.daily_budget_usd if s.daily_budget_usd > 0 else float("inf")
+    app.state.asker = GuardedPipeline(
+        inner=app.state.pipeline,
+        cache=AnswerCache(s.answer_cache_max_items, s.answer_cache_ttl_seconds),
+        spend=SpendTracker(budget),
+        # Everything the answer depends on: change any of it and old answers are not reused.
+        version=f"{s.llm_model}|docs-{s.docs_version}|k{s.top_k}|{s.retrieval_mode}",
+    )
     keys = parse_keys(s.api_keys.get_secret_value() if s.api_keys else None)
     limiter = RateLimiter(s.rate_limit_per_minute) if s.rate_limit_per_minute > 0 else None
     app.state.guard = Guard(keys, limiter)
@@ -94,8 +107,12 @@ def ask(body: AskRequest, request: Request) -> AskResponse:
     #
     # A sync endpoint: FastAPI runs it in a thread pool, so the blocking DB and
     # LLM calls do not freeze the event loop.
-    pipeline: RAGPipeline = request.app.state.pipeline
-    answer = pipeline.ask(body.question)
+    asker: GuardedPipeline = request.app.state.asker
+    try:
+        answer = asker.ask(body.question)
+    except BudgetExceeded as e:
+        # 503 = "the service can't answer right now", and a cached question still works.
+        raise HTTPException(status_code=503, detail=str(e)) from e
     # Convert our internal Answer into the public response shape. Keeping the two
     # separate means we can change internals without breaking API clients.
     return AskResponse(
