@@ -16,7 +16,7 @@ LIFECYCLE
 import logging
 from contextlib import asynccontextmanager
 
-from fastapi import Depends, FastAPI, HTTPException, Request
+from fastapi import Depends, FastAPI, HTTPException, Request, Response
 from fastapi.security import APIKeyHeader
 from pydantic import BaseModel, Field
 
@@ -26,8 +26,18 @@ from rag.guarded import BudgetExceeded, GuardedPipeline
 from rag.pipeline import build_pipeline
 from rag.security import Guard, RateLimiter, parse_keys
 from rag.spend import SpendTracker
+from rag.trace import Trace, tracing
 
 log = logging.getLogger("rag.api")
+# The trace lines go to their own logger: bare JSON, one per line, so they can be piped to
+# a log tool. (uvicorn only configures its own loggers, so without this INFO is dropped.)
+trace_log = logging.getLogger("rag.trace")
+if not trace_log.handlers:
+    _handler = logging.StreamHandler()
+    _handler.setFormatter(logging.Formatter("%(message)s"))
+    trace_log.addHandler(_handler)
+    trace_log.setLevel(logging.INFO)
+    trace_log.propagate = False
 
 
 @asynccontextmanager
@@ -101,18 +111,42 @@ def check_access(request: Request, x_api_key: str | None = Depends(api_key_heade
 
 
 @app.post("/ask", response_model=AskResponse, dependencies=[Depends(check_access)])
-def ask(body: AskRequest, request: Request) -> AskResponse:
+def ask(body: AskRequest, request: Request, response: Response) -> AskResponse:
     # By the time we get here, FastAPI has already parsed and validated the JSON
     # into `body`. An invalid request never reaches this line.
     #
     # A sync endpoint: FastAPI runs it in a thread pool, so the blocking DB and
     # LLM calls do not freeze the event loop.
+    #
+    # One Trace per request. An id sent by a load balancer / the caller (X-Request-ID)
+    # is kept, so their logs and ours can be joined. The question text is NOT logged
+    # (it may contain private data); only its length.
+    trace = Trace(request_id=request.headers.get("x-request-id"))
+    trace.set(question_chars=len(body.question), status=200)
+    response.headers["X-Request-ID"] = trace.request_id
     asker: GuardedPipeline = request.app.state.asker
     try:
-        answer = asker.ask(body.question)
+        with tracing(trace):
+            answer = asker.ask(body.question)
+        usage = answer.usage or {}
+        trace.set(
+            cache_hit=usage.get("cache_hit"),
+            cost_usd=usage.get("cost_usd"),
+            model=usage.get("model"),
+            cited=len(answer.cited),
+        )
     except BudgetExceeded as e:
+        trace.set(status=503)
         # 503 = "the service can't answer right now", and a cached question still works.
-        raise HTTPException(status_code=503, detail=str(e)) from e
+        raise HTTPException(
+            status_code=503, detail=str(e), headers={"X-Request-ID": trace.request_id}
+        ) from e
+    except Exception:
+        trace.set(status=500)
+        raise
+    finally:
+        # One JSON line per question, success or failure: grep it by request_id.
+        trace_log.info(trace.to_json())
     # Convert our internal Answer into the public response shape. Keeping the two
     # separate means we can change internals without breaking API clients.
     return AskResponse(
