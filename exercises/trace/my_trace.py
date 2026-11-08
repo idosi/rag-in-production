@@ -48,24 +48,45 @@ THINK ABOUT (we discuss after the tests are green)
       retriever all write to the SAME trace?
 """
 
+from contextlib import contextmanager
 import time
 from collections.abc import Callable
+from typing import Any
+import uuid
+import json
 
 
 class Trace:
     def __init__(
         self, request_id: str | None = None, clock: Callable[[], float] = time.perf_counter
     ):
-        raise NotImplementedError
+        self.request_id = request_id or uuid.uuid4().hex[:12]
+        self.clock = clock
+        self.start_time = clock()
+        self.spans: dict[str, float] = {}
+        self.fields: dict[str, Any] = {}
 
+    @contextmanager
     def span(self, name: str):
-        raise NotImplementedError
+        start = self.clock()
+        try:
+            yield
+        finally:
+            elapsed = (self.clock() - start) * 1000  # convert to milliseconds
+            self.spans[name] = self.spans.get(name, 0.0) + elapsed 
 
     def set(self, **fields) -> None:
-        raise NotImplementedError
+        self.fields.update(fields)
 
     def total_ms(self) -> float:
-        raise NotImplementedError
+        return (self.clock() - self.start_time) * 1000
 
     def to_json(self) -> str:
-        raise NotImplementedError
+
+        data = {
+            "request_id": self.request_id,
+            "spans_ms": {name: round(ms, 1) for name, ms in self.spans.items()},
+            "total_ms": round(self.total_ms(), 1),
+            **self.fields,
+        }
+        return json.dumps(data)
