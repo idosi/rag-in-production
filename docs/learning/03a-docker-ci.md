@@ -75,59 +75,36 @@ docker history rag-in-production-api    # which layer is the heaviest?
 <details><summary><b>‏למה multi-stage build?</b></summary>
 
 ‏כדי שהתמונה הסופית תכיל רק את מה שצריך כדי להריץ: בלי כלי בנייה, בלי caches. תמונה קטנה יותר נפרסת מהר יותר ומכילה פחות קוד שעלול להכיל פגיעויות.
-
 </details>
 
 <details><summary><b>‏למה מעתיקים את קובץ התלויות לפני הקוד?</b></summary>
 
-‏בגלל מטמון השכבות של Docker. שכבה נבנית מחדש רק אם משהו לפניה השתנה.
-
-‏תלויות משתנות לעתים רחוקות וקוד משתנה כל הזמן, אז מפרידים ביניהם כדי שכל עריכה של קוד לא תפעיל התקנה מחדש.
-
+‏בגלל מטמון השכבות של Docker. שכבה נבנית מחדש רק אם משהו לפניה השתנה. תלויות משתנות לעתים רחוקות וקוד משתנה כל הזמן, אז מפרידים ביניהם כדי שכל עריכה של קוד לא תפעיל התקנה מחדש.
 </details>
 
 <details><summary><b>‏מה לא שמים ב-CI של מערכת עם LLM?</b></summary>
 
-‏קריאות אמיתיות ל-API (איטי, יקר, ולא דטרמיניסטי). ב-CI בודקים עם fakes, ומריצים מול Postgres אמיתי (תמונת `pgvector/pgvector`) את מה שדורש מסד נתונים.
-
-‏את ה-evals מריצים בנפרד, לפני שינוי של מודל, פרומפט או חיפוש, ושומרים את התוצאות.
-
+‏קריאות אמיתיות ל-API (איטי, יקר, ולא דטרמיניסטי). ב-CI בודקים עם fakes, ומריצים מול Postgres אמיתי (תמונת `pgvector/pgvector`) את מה שדורש מסד נתונים. את ה-evals מריצים בנפרד, לפני שינוי של מודל, פרומפט או חיפוש, ושומרים את התוצאות.
 </details>
 
 <details><summary><b>‏איך אתה מוודא שמפתח API לא נכנס לתמונה?</b></summary>
 
-‏`.dockerignore` שמוציא את `.env`, מפתח שמוזרק בזמן ריצה בלבד (משתנה סביבה או secret manager), ובדיקה אוטומטית (`tests/test_infra_files.py`) שמוודאת ש-`.env` ב-`.dockerignore` ושאין `COPY .env` ב-Dockerfile.
-
-‏מפתח שנכנס לשכבה של תמונה לא ניתן למחיקה, כי השכבה נשארת בהיסטוריה.
-
+‏`.dockerignore` שמוציא את `.env`, מפתח שמוזרק בזמן ריצה בלבד (משתנה סביבה או secret manager), ובדיקה אוטומטית (`tests/test_infra_files.py`) שמוודאת ש-`.env` ב-`.dockerignore` ושאין `COPY .env` ב-Dockerfile. מפתח שנכנס לשכבה של תמונה לא ניתן למחיקה, כי השכבה נשארת בהיסטוריה.
 </details>
 
 <details><summary><b>‏איזה באג ה-healthcheck של Docker תפס, ולמה זה מלמד על בדיקות?</b></summary>
 
-‏`/health` קרא `pipeline.store`, אבל אחרי שהוספנו retriever ה-store יושב ב-`pipeline.retriever.store`, ולכן ה-endpoint קרס עם `AttributeError`.
-
-‏אף בדיקה לא כיסתה את `api.py`, והבאג התגלה רק כש-Docker דיווח "unhealthy". התיקון כלל קובץ `tests/test_api.py` עם רכיבים מזויפים.
-
-‏הלקח: שכבת ה-API צריכה בדיקות משלה, ו-healthcheck הוא בדיקה שרצה כל הזמן.
-
+‏`/health` קרא `pipeline.store`, אבל אחרי שהוספנו retriever ה-store יושב ב-`pipeline.retriever.store`, ולכן ה-endpoint קרס עם `AttributeError`. אף בדיקה לא כיסתה את `api.py`, והבאג התגלה רק כש-Docker דיווח "unhealthy". התיקון כלל קובץ `tests/test_api.py` עם רכיבים מזויפים. הלקח: שכבת ה-API צריכה בדיקות משלה, ו-healthcheck הוא בדיקה שרצה כל הזמן.
 </details>
 
 <details><summary><b>‏למה הקונטיינר רץ כמשתמש לא-root, ו-CI עם הרשאות מינימליות?</b></summary>
 
-‏כדי להקטין נזק אם מישהו מנצל פגיעות: תהליך שאינו root לא יכול לשנות את מערכת הקבצים או להתקין דברים.
-
-‏אותו עיקרון ב-CI: `permissions: contents: read` נותן ל-workflow רק קריאה, כך שגם אם תלות או פעולה נפרצת, היא לא יכולה לכתוב לריפו.
-
-‏שני העקרונות נבדקים בטסטים של קבצי התשתית.
-
+‏כדי להקטין נזק אם מישהו מנצל פגיעות: תהליך שאינו root לא יכול לשנות את מערכת הקבצים או להתקין דברים. אותו עיקרון ב-CI: `permissions: contents: read` נותן ל-workflow רק קריאה, כך שגם אם תלות או פעולה נפרצת, היא לא יכולה לכתוב לריפו. שני העקרונות נבדקים בטסטים של קבצי התשתית.
 </details>
 
 <details><summary><b>‏למה בקובץ ה-compose כתובת ה-DB היא `db:5432` ולא `localhost`?</b></summary>
 
-‏בתוך קונטיינר, `localhost` הוא הקונטיינר עצמו. Docker Compose נותן לכל שירות שם DNS לפי שמו, ולכן ה-API מגיע ל-Postgres בשם `db`.
-
-‏בנוסף, ה-API מוגדר `depends_on` עם `condition: service_healthy`, כך שהוא מחכה שה-DB באמת מוכן ולא רק שהקונטיינר התחיל.
-
+‏בתוך קונטיינר, `localhost` הוא הקונטיינר עצמו. Docker Compose נותן לכל שירות שם DNS לפי שמו, ולכן ה-API מגיע ל-Postgres בשם `db`. בנוסף, ה-API מוגדר `depends_on` עם `condition: service_healthy`, כך שהוא מחכה שה-DB באמת מוכן ולא רק שהקונטיינר התחיל.
 </details>
 
 
