@@ -6,6 +6,7 @@ from rag.evals.answers import (
     answer_one,
     classify,
     cost_usd,
+    generation_workers,
     judge_one,
     summarize_answers,
 )
@@ -157,3 +158,9 @@ def test_summary_counts_a_grounded_non_answer_as_a_correct_unanswerable():
     ]
     s = summarize_answers(rs)
     assert s["correct_refusals"] == "2/2" and s["grounded_non_answers"] == 1
+
+
+def test_local_models_answer_one_question_at_a_time():
+    # Ollama queues parallel requests: 4 threads would add queue wait to every latency.
+    assert generation_workers("ollama:llama3.1:8b", 4) == 1
+    assert generation_workers("claude-sonnet-5-5", 4) == 4

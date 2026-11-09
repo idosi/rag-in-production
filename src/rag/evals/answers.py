@@ -4,6 +4,8 @@ HOW TO RUN
     make eval-answers                         Haiku, Sonnet and Opus on all 47 questions
     make eval-answers ANSWER_MODELS=claude-haiku-5-5 LIMIT=5   quick, cheap smoke test
     (same as: uv run python -m rag.evals.answers --models ... --limit 5)
+    make eval-answers ANSWER_MODELS=claude-sonnet-5-5,ollama:llama3.1:8b   vs a free local
+                                              model (docs/learning/02g, needs `ollama serve`)
 Prerequisites: `make up`, `make ingest`, ANTHROPIC_API_KEY in .env.
 THIS COSTS MONEY: every answer is a Claude call, and so is every judgement.
 The script prints an estimate and asks before it starts (skip with --yes).
@@ -291,6 +293,19 @@ def judge_one(r: AnswerResult, q: dict, sources, judge: Judge) -> float:
     return judge_cost
 
 
+def generation_workers(model: str, requested: int) -> int:
+    """How many questions to send to `model` at the same time.
+
+    Claude is a remote API that serves many requests in parallel, so 4 threads make
+    the run ~4x faster and each latency is still one real request.
+    A local Ollama server answers ONE request at a time by default and queues the
+    rest. With 4 threads, each answer's timer would also count the time it waited
+    in the queue behind 3 others, so latency_s would come out ~4x too slow, and
+    the run would not be any faster. One at a time = honest numbers.
+    """
+    return 1 if model.startswith("ollama:") else requested
+
+
 def estimate_usd(n_questions: int, models: list[str], judge_model: str) -> float:
     """Rough upper estimate: ~2,500 tokens in / ~500 out per answer and per judgement."""
     per_call = {
@@ -306,6 +321,7 @@ def print_report(summaries: dict[str, dict], results: dict[str, list[AnswerResul
         ("partial", "partial"),
         ("unfaithful", "unfaith"),
         ("bad_citations", "bad cite"),
+        ("uncited", "uncited"),
         ("false_refusals", "false ref"),
         ("correct_refusals", "unans ok"),
         ("latency_p50_s", "p50 s"),
@@ -374,10 +390,16 @@ def main() -> None:
     judge_total = 0.0
     for model in models:
         generator = build_generator(model, s)
-        print(f"\n{model}: answering {len(golden)} questions...")
+        workers = generation_workers(model, args.workers)
+        if model.startswith("ollama:"):
+            # Warm-up: the first call loads the model into memory (5-20 s). Without
+            # this, question 1 would carry that load time and look like a slow answer.
+            print(f"{model}: loading the model (warm-up call, not measured)...")
+            generator.generate("warm-up", [])
+        print(f"\n{model}: answering {len(golden)} questions, {workers} at a time...")
         # 2-3. Answer. Calls are I/O-bound (waiting on the API), so threads give a
         # real speed-up. 4 workers keeps us well under typical rate limits.
-        with ThreadPoolExecutor(args.workers) as pool:
+        with ThreadPoolExecutor(workers) as pool:
             results = list(
                 pool.map(
                     lambda q, g=generator, m=model: answer_one(q, sources[q["id"]], g, m), golden
