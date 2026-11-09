@@ -3,7 +3,8 @@
 HOW TO RUN
     make eval-answers                         Haiku, Sonnet and Opus on all 47 questions
     make eval-answers ANSWER_MODELS=claude-haiku-5-5 LIMIT=5   quick, cheap smoke test
-    (same as: uv run python -m rag.evals.answers --models ... --limit 5)
+    make eval-answers ANSWER_MODELS=... ONLY=unanswerable     only the refusal questions
+    (same as: uv run python -m rag.evals.answers --models ... --limit 5 --only unanswerable)
     make eval-answers ANSWER_MODELS=claude-sonnet-5-5,ollama:llama3.1:8b   vs a free local
                                               model (docs/learning/02g, needs `ollama serve`)
 Prerequisites: `make up`, `make ingest`, ANTHROPIC_API_KEY in .env.
@@ -293,6 +294,19 @@ def judge_one(r: AnswerResult, q: dict, sources, judge: Judge) -> float:
     return judge_cost
 
 
+def select_questions(golden: list[dict], only: list[str], limit: int) -> list[dict]:
+    """Pick which golden questions to run.
+
+    only   category names to keep (empty = all), e.g. ["unanswerable"]
+    limit  then keep the first N (0 = no limit)
+
+    LIMIT alone always takes the START of the file, and the unanswerable questions
+    are at the END. `only` lets a cheap, short run test refusals (6 questions).
+    """
+    chosen = [q for q in golden if not only or q["category"] in only]
+    return chosen[:limit] if limit else chosen
+
+
 def generation_workers(model: str, requested: int) -> int:
     """How many questions to send to `model` at the same time.
 
@@ -357,6 +371,11 @@ def main() -> None:
     )
     parser.add_argument("--judge", default=DEFAULT_JUDGE)
     parser.add_argument("--limit", type=int, default=0, help="only the first N questions")
+    parser.add_argument(
+        "--only",
+        default="",
+        help="comma-separated categories to run, e.g. unanswerable (applied before --limit)",
+    )
     parser.add_argument("--workers", type=int, default=4, help="parallel API calls")
     parser.add_argument("--yes", action="store_true", help="don't ask before spending money")
     args = parser.parse_args()
@@ -365,8 +384,12 @@ def main() -> None:
     s = get_settings()
     api_key = s.anthropic_api_key.get_secret_value() if s.anthropic_api_key else None
     golden = json.loads(GOLDEN_SET.read_text())
-    if args.limit:
-        golden = golden[: args.limit]
+    only = [c.strip() for c in args.only.split(",") if c.strip()]
+    known = {q["category"] for q in golden}
+    if set(only) - known:
+        bad = sorted(set(only) - known)
+        raise SystemExit(f"Unknown category {bad}. Choose from {sorted(known)}")
+    golden = select_questions(golden, only, args.limit)
 
     estimate = estimate_usd(len(golden), models, args.judge)
     print(f"{len(golden)} questions x {len(models)} models, judge {args.judge}.")
