@@ -1,0 +1,370 @@
+{
+  "config": {
+    "retrieval_mode": "rerank",
+    "top_k": 5,
+    "candidate_k": 10,
+    "llm_effort": "medium",
+    "judge": "claude-opus-5-5",
+    "prices_per_mtok": {
+      "claude-haiku-5-5": [
+        0.1,
+        0.5
+      ],
+      "claude-sonnet-5-5": [
+        2.0,
+        10.0
+      ],
+      "claude-opus-5-5": [
+        4.0,
+        20.0
+      ]
+    }
+  },
+  "summary": {
+    "ollama:qwen2.5:3b": {
+      "questions": 6,
+      "correct": null,
+      "partial": null,
+      "unfaithful": null,
+      "bad_citations": null,
+      "uncited": null,
+      "phantom_citations": 0,
+      "false_refusals": 0,
+      "justified_refusals": 0,
+      "correct_refusals": "5/6",
+      "grounded_non_answers": 0,
+      "latency_p50_s": 2.85,
+      "cost_per_question_usd": 0.0,
+      "cost_total_usd": 0.0
+    },
+    "ollama:qwen2.5:1.5b": {
+      "questions": 6,
+      "correct": null,
+      "partial": null,
+      "unfaithful": null,
+      "bad_citations": null,
+      "uncited": null,
+      "phantom_citations": 0,
+      "false_refusals": 0,
+      "justified_refusals": 0,
+      "correct_refusals": "2/6",
+      "grounded_non_answers": 0,
+      "latency_p50_s": 2.68,
+      "cost_per_question_usd": 0.0,
+      "cost_total_usd": 0.0
+    }
+  },
+  "judge_cost_usd": 0.0885,
+  "results": {
+    "ollama:qwen2.5:3b": [
+      {
+        "id": "u01",
+        "category": "unanswerable",
+        "question": "How do I deploy FastAPI to Kubernetes?",
+        "model": "ollama:qwen2.5:3b",
+        "answer": "I couldn't find this in the FastAPI docs I have. [3] [4]",
+        "retrieval_hit": false,
+        "refused": true,
+        "cited": [
+          3,
+          4
+        ],
+        "phantom_citations": [],
+        "latency_s": 2.28,
+        "cost_usd": 0.0,
+        "usage": {
+          "model": "ollama:qwen2.5:3b",
+          "input_tokens": 853,
+          "output_tokens": 20
+        },
+        "verdict": null,
+        "outcome": "correct_refusal",
+        "notes": []
+      },
+      {
+        "id": "u02",
+        "category": "unanswerable",
+        "question": "How do I use WebSockets in FastAPI?",
+        "model": "ollama:qwen2.5:3b",
+        "answer": "[1] WebSocket support is available in FastAPI, as it is based on Starlette. To use WebSockets in your FastAPI application, you would need to leverage the capabilities provided by Starlette for handling WebSocket connections. However, specific implementation details are not detailed in the given sources. For a comprehensive guide, you might refer to the official documentation or tutorials that cover how to integrate and handle WebSocket connections with FastAPI.",
+        "retrieval_hit": false,
+        "refused": false,
+        "cited": [
+          1
+        ],
+        "phantom_citations": [],
+        "latency_s": 4.47,
+        "cost_usd": 0.0,
+        "usage": {
+          "model": "ollama:qwen2.5:3b",
+          "input_tokens": 1133,
+          "output_tokens": 87
+        },
+        "verdict": {
+          "reasoning": "The answer states that FastAPI supports WebSockets via Starlette, which source 1 supports. It correctly notes that the sources contain no implementation details. The citation [1] sits at the start, before the claims it covers, and source 1 supports those claims. Saying you would 'leverage Starlette capabilities' is a reasonable inference from sources 1 and 5. The answer does not explain how to use WebSockets, but the sources don't either, so it gives only partial help.",
+          "unsupported_claims": [],
+          "answers_question": "partially",
+          "bad_citations": []
+        },
+        "outcome": "hallucinated",
+        "notes": []
+      },
+      {
+        "id": "u03",
+        "category": "unanswerable",
+        "question": "How do I add rate limiting to my endpoints?",
+        "model": "ollama:qwen2.5:3b",
+        "answer": "I couldn't find this in the FastAPI docs I have.",
+        "retrieval_hit": false,
+        "refused": true,
+        "cited": [],
+        "phantom_citations": [],
+        "latency_s": 3.96,
+        "cost_usd": 0.0,
+        "usage": {
+          "model": "ollama:qwen2.5:3b",
+          "input_tokens": 1610,
+          "output_tokens": 14
+        },
+        "verdict": null,
+        "outcome": "correct_refusal",
+        "notes": []
+      },
+      {
+        "id": "u04",
+        "category": "unanswerable",
+        "question": "How do I stream a large file to the client with StreamingResponse?",
+        "model": "ollama:qwen2.5:3b",
+        "answer": "I couldn't find this in the FastAPI docs I have.",
+        "retrieval_hit": false,
+        "refused": true,
+        "cited": [],
+        "phantom_citations": [],
+        "latency_s": 2.86,
+        "cost_usd": 0.0,
+        "usage": {
+          "model": "ollama:qwen2.5:3b",
+          "input_tokens": 1151,
+          "output_tokens": 14
+        },
+        "verdict": null,
+        "outcome": "correct_refusal",
+        "notes": []
+      },
+      {
+        "id": "u05",
+        "category": "unanswerable",
+        "question": "What is the capital of France?",
+        "model": "ollama:qwen2.5:3b",
+        "answer": "I couldn't find this in the FastAPI docs I have.",
+        "retrieval_hit": false,
+        "refused": true,
+        "cited": [],
+        "phantom_citations": [],
+        "latency_s": 2.84,
+        "cost_usd": 0.0,
+        "usage": {
+          "model": "ollama:qwen2.5:3b",
+          "input_tokens": 1116,
+          "output_tokens": 14
+        },
+        "verdict": null,
+        "outcome": "correct_refusal",
+        "notes": []
+      },
+      {
+        "id": "u06",
+        "category": "unanswerable",
+        "question": "Does FestAPI works with all LLM models?",
+        "model": "ollama:qwen2.5:3b",
+        "answer": "I couldn't find this in the FastAPI docs I have.",
+        "retrieval_hit": false,
+        "refused": true,
+        "cited": [],
+        "phantom_citations": [],
+        "latency_s": 2.69,
+        "cost_usd": 0.0,
+        "usage": {
+          "model": "ollama:qwen2.5:3b",
+          "input_tokens": 1105,
+          "output_tokens": 14
+        },
+        "verdict": null,
+        "outcome": "correct_refusal",
+        "notes": []
+      }
+    ],
+    "ollama:qwen2.5:1.5b": [
+      {
+        "id": "u01",
+        "category": "unanswerable",
+        "question": "How do I deploy FastAPI to Kubernetes?",
+        "model": "ollama:qwen2.5:1.5b",
+        "answer": "I couldn't find this in the FastAPI docs I have.",
+        "retrieval_hit": false,
+        "refused": true,
+        "cited": [],
+        "phantom_citations": [],
+        "latency_s": 1.11,
+        "cost_usd": 0.0,
+        "usage": {
+          "model": "ollama:qwen2.5:1.5b",
+          "input_tokens": 853,
+          "output_tokens": 14
+        },
+        "verdict": null,
+        "outcome": "correct_refusal",
+        "notes": []
+      },
+      {
+        "id": "u02",
+        "category": "unanswerable",
+        "question": "How do I use WebSockets in FastAPI?",
+        "model": "ollama:qwen2.5:1.5b",
+        "answer": "To enable WebSocket support in your FastAPI application, you need to install the `websockets` package. Then, import it and add a middleware for WebSocket connections:\n\n```python\nfrom fastapi import FastAPI\nimport websockets\n\napp = FastAPI()\n\n# Middleware for WebSocket connections\n@app.middleware(\"http\")\nasync def websocket_middleware(request, call_next):\n    async with request.state.websocket:\n        await call_next(request)\n\n# Example route using WebSocket\n@app.get(\"/ws\")\nasync def websocket_endpoint():\n    async with websockets.connect(\"ws://localhost:8000/ws\") as ws:\n        while True:\n            data = await ws.recv()\n            print(f\"Received: {data}\")\n```\n\nIn this example, the `websocket_middleware` function is added to handle WebSocket connections. The `websockets.connect()` method establishes a connection with the specified WebSocket endpoint.",
+        "retrieval_hit": false,
+        "refused": false,
+        "cited": [],
+        "phantom_citations": [],
+        "latency_s": 3.66,
+        "cost_usd": 0.0,
+        "usage": {
+          "model": "ollama:qwen2.5:1.5b",
+          "input_tokens": 1133,
+          "output_tokens": 179
+        },
+        "verdict": {
+          "reasoning": "The sources only say FastAPI inherits WebSocket support from Starlette; they contain no instructions or code for using WebSockets. The answer invents installing the `websockets` package, a middleware approach, `request.state.websocket`, and a `websockets.connect` client call inside a GET route, none of which appear in the sources. It does not properly answer the question from the sources. No citations are used.",
+          "unsupported_claims": [
+            "To enable WebSocket support you need to install the `websockets` package",
+            "Import `websockets` and add a middleware for WebSocket connections",
+            "Code using `@app.middleware(\"http\")` with `request.state.websocket` to handle WebSocket connections",
+            "Code defining a WebSocket endpoint via `@app.get(\"/ws\")` using `websockets.connect(\"ws://localhost:8000/ws\")` and `ws.recv()`",
+            "The `websocket_middleware` function is added to handle WebSocket connections",
+            "The `websockets.connect()` method establishes a connection with the specified WebSocket endpoint"
+          ],
+          "answers_question": "no",
+          "bad_citations": []
+        },
+        "outcome": "hallucinated",
+        "notes": []
+      },
+      {
+        "id": "u03",
+        "category": "unanswerable",
+        "question": "How do I add rate limiting to my endpoints?",
+        "model": "ollama:qwen2.5:1.5b",
+        "answer": "To add rate limiting to your endpoints, you can use FastAPI's built-in `Depends` and `RateLimiter` classes. Here\u2019s how you can implement it:\n\n```python\nfrom fastapi import Depends, HTTPException, status\nfrom fastapi.security import OAuth2PasswordBearer\nfrom sqlalchemy.orm import Session\n\n# Assuming you have a dependency to get the session from your database\nsession = Depends(get_db_session)\n\noauth2_scheme = OAuth2PasswordBearer(tokenUrl=\"token\")\n\n@app.get(\"/items/{item_id}\", response_model=Item, dependencies=[Depends(ratelimit)])\nasync def read_item(item_id: str):\n    return items[item_id]\n```\n\nIn this example, the `ratelimit` dependency is added to the `read_item` endpoint. This will automatically apply rate limiting based on the configuration provided in your `rate_limiting.yaml` file or directly within the code.\n\nMake sure you have a valid `rate_limiting.yaml` file configured for your application:\n\n```yaml\n# rate_limiting.yaml\n\nlimit: Annotated[int, Query(le=100)] = 100,\n) -> list[Hero]:\n    heroes = session.exec(select(Hero).offset(offset).limit(limit)).all()\n    return heroes\n\n\n@app.get(\"/heroes/{hero_id}\")\ndef read_hero(hero_id: int, session: SessionDep) -> Hero:\n    hero = session.get(Hero, hero_id)\n    if not hero:\n        raise HTTPException(status_code=404, detail=\"Hero not found\")\n    return hero\n\n\n@app.delete(\"/heroes/{hero_id}\")\ndef delete_hero(hero_id: int, session: SessionDep):\n    hero = session.get(Hero, hero_id)\n    if not hero:\n        raise HTTPException(status_code=404, detail=\"Hero not found\")\n    session.delete(hero)\n    session.commit()\n    return {\"ok\": True}\n```\n\nThis setup ensures that the `read_item` endpoint is rate-limited to 100 requests per hour by default. You can adjust this limit as needed in your configuration file or directly within the code.\n\nRemember, you need to configure your database connection and set up the necessary dependencies correctly for FastAPI to work properly with SQLAlchemy ORM.",
+        "retrieval_hit": false,
+        "refused": false,
+        "cited": [],
+        "phantom_citations": [],
+        "latency_s": 8.81,
+        "cost_usd": 0.0,
+        "usage": {
+          "model": "ollama:qwen2.5:1.5b",
+          "input_tokens": 1610,
+          "output_tokens": 460
+        },
+        "verdict": {
+          "reasoning": "The sources contain nothing about rate limiting; they cover SQL pagination (where a `limit` query parameter caps page size, not request rate), custom middleware, and response model options. The answer invents a built-in `RateLimiter` class, a `ratelimit` dependency, a `rate_limiting.yaml` config file and a default of 100 requests per hour, and it pastes Python SQL code as if it were YAML. None of this is supported, and it gives the user no grounded way to rate-limit. The answer has no citations.",
+          "unsupported_claims": [
+            "FastAPI has built-in `Depends` and `RateLimiter` classes for rate limiting",
+            "Code using OAuth2PasswordBearer, sqlalchemy Session, get_db_session and Depends(ratelimit)",
+            "The `ratelimit` dependency automatically applies rate limiting based on configuration in a `rate_limiting.yaml` file",
+            "A valid `rate_limiting.yaml` file must be configured (and it contains the hero SQL code)",
+            "The endpoint is rate-limited to 100 requests per hour by default",
+            "You can adjust the limit in your configuration file",
+            "You need to configure the database connection for FastAPI to work with SQLAlchemy ORM"
+          ],
+          "answers_question": "no",
+          "bad_citations": []
+        },
+        "outcome": "hallucinated",
+        "notes": []
+      },
+      {
+        "id": "u04",
+        "category": "unanswerable",
+        "question": "How do I stream a large file to the client with StreamingResponse?",
+        "model": "ollama:qwen2.5:1.5b",
+        "answer": "To stream a large file to the client, you can use `StreamingResponse` along with `File`. Here's an example:\n\n```python\nfrom fastapi import FastAPI, File, UploadFile\n\napp = FastAPI()\n\n@app.post(\"/streamfile/\")\nasync def stream_file(file: UploadFile):\n    return StreamingResponse(\n        [await file.read() for _ in range(10)],\n        media_type=\"application/octet-stream\",\n    )\n```\n\nIn this example, the `UploadFile` is read 10 times and streamed to the client. This can be useful when dealing with large files that don't fit into memory.",
+        "retrieval_hit": false,
+        "refused": false,
+        "cited": [],
+        "phantom_citations": [],
+        "latency_s": 3.24,
+        "cost_usd": 0.0,
+        "usage": {
+          "model": "ollama:qwen2.5:1.5b",
+          "input_tokens": 1151,
+          "output_tokens": 130
+        },
+        "verdict": {
+          "reasoning": "The sources cover only file uploads (File, UploadFile, spooled files) and never mention StreamingResponse or streaming responses to clients. The answer invents a StreamingResponse example (not even imported), with a media_type parameter, and claims streaming helps with files that don't fit in memory; none of this is in the sources, and the code is also incorrect. It does not genuinely answer the question from the sources.",
+          "unsupported_claims": [
+            "You can use `StreamingResponse` along with `File` to stream a large file to the client.",
+            "`StreamingResponse([...], media_type=\"application/octet-stream\")` usage in the code example",
+            "In this example, the `UploadFile` is read 10 times and streamed to the client.",
+            "This can be useful when dealing with large files that don't fit into memory."
+          ],
+          "answers_question": "no",
+          "bad_citations": []
+        },
+        "outcome": "hallucinated",
+        "notes": []
+      },
+      {
+        "id": "u05",
+        "category": "unanswerable",
+        "question": "What is the capital of France?",
+        "model": "ollama:qwen2.5:1.5b",
+        "answer": "I couldn't find this in the FastAPI docs I have.",
+        "retrieval_hit": false,
+        "refused": true,
+        "cited": [],
+        "phantom_citations": [],
+        "latency_s": 1.51,
+        "cost_usd": 0.0,
+        "usage": {
+          "model": "ollama:qwen2.5:1.5b",
+          "input_tokens": 1116,
+          "output_tokens": 14
+        },
+        "verdict": null,
+        "outcome": "correct_refusal",
+        "notes": []
+      },
+      {
+        "id": "u06",
+        "category": "unanswerable",
+        "question": "Does FestAPI works with all LLM models?",
+        "model": "ollama:qwen2.5:1.5b",
+        "answer": "Yes, FastAPI supports working with various language models like GPT-3. It can be integrated into applications that use these models for natural language processing tasks such as text generation or summarization. However, the specific implementation details and compatibility may vary depending on how FastAPI is configured and interfaced with the LLM model.",
+        "retrieval_hit": false,
+        "refused": false,
+        "cited": [],
+        "phantom_citations": [],
+        "latency_s": 2.12,
+        "cost_usd": 0.0,
+        "usage": {
+          "model": "ollama:qwen2.5:1.5b",
+          "input_tokens": 1105,
+          "output_tokens": 66
+        },
+        "verdict": {
+          "reasoning": "The sources cover response models, nested Pydantic models, installation and Union types; none mention LLMs, GPT-3, or NLP tasks. The answer's claims come entirely from outside knowledge, and it never notes that the sources don't address the question. It provides no grounded answer.",
+          "unsupported_claims": [
+            "FastAPI supports working with various language models like GPT-3.",
+            "It can be integrated into applications that use these models for natural language processing tasks such as text generation or summarization.",
+            "The specific implementation details and compatibility may vary depending on how FastAPI is configured and interfaced with the LLM model."
+          ],
+          "answers_question": "no",
+          "bad_citations": []
+        },
+        "outcome": "hallucinated",
+        "notes": []
+      }
+    ]
+  }
+}

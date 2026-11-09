@@ -1,0 +1,206 @@
+{
+  "config": {
+    "retrieval_mode": "rerank",
+    "top_k": 5,
+    "candidate_k": 10,
+    "llm_effort": "medium",
+    "judge": "claude-opus-5-5",
+    "prices_per_mtok": {
+      "claude-haiku-5-5": [
+        0.1,
+        0.5
+      ],
+      "claude-sonnet-5-5": [
+        2.0,
+        10.0
+      ],
+      "claude-opus-5-5": [
+        4.0,
+        20.0
+      ]
+    }
+  },
+  "summary": {
+    "ollama:llama3.2:3b": {
+      "questions": 6,
+      "correct": null,
+      "partial": null,
+      "unfaithful": null,
+      "bad_citations": null,
+      "uncited": null,
+      "phantom_citations": 0,
+      "false_refusals": 0,
+      "justified_refusals": 0,
+      "correct_refusals": "3/6",
+      "grounded_non_answers": 0,
+      "latency_p50_s": 5.38,
+      "cost_per_question_usd": 0.0,
+      "cost_total_usd": 0.0
+    }
+  },
+  "judge_cost_usd": 0.062,
+  "results": {
+    "ollama:llama3.2:3b": [
+      {
+        "id": "u01",
+        "category": "unanswerable",
+        "question": "How do I deploy FastAPI to Kubernetes?",
+        "model": "ollama:llama3.2:3b",
+        "answer": "I couldn't find this in the FastAPI docs I have.",
+        "retrieval_hit": false,
+        "refused": true,
+        "cited": [],
+        "phantom_citations": [],
+        "latency_s": 2.21,
+        "cost_usd": 0.0,
+        "usage": {
+          "model": "ollama:llama3.2:3b",
+          "input_tokens": 871,
+          "output_tokens": 14
+        },
+        "verdict": null,
+        "outcome": "correct_refusal",
+        "notes": []
+      },
+      {
+        "id": "u02",
+        "category": "unanswerable",
+        "question": "How do I use WebSockets in FastAPI?",
+        "model": "ollama:llama3.2:3b",
+        "answer": "To use WebSockets in FastAPI, you need to import `WebsocketsMiddleware` and add it as a middleware to your application. \n\nHere's an example:\n\n```python\nfrom fastapi import FastAPI, WebSocket\nfrom fastapi.middleware.cors import CORSMiddleware\n\napp = FastAPI()\n\norigins = [\n    \"http://localhost.tiangolo.com\",\n    \"https://localhost.tiangolo.com\",\n    \"http://localhost\",\n    \"http://localhost:8080\",\n]\n\napp.add_middleware(\n    CORSMiddleware,\n    allow_origins=origins,\n    allow_credentials=True,\n    allow_methods=[\"*\"],\n    allow_headers=[\"*\"],\n)\n\n@app.websocket(\"/ws\")\nasync def websocket_endpoint(websocket: WebSocket):\n    await websocket.accept()\n    while True:\n        data = await websocket.receive_text()\n        print(f\"Received message: {data}\")\n        await websocket.send_text(\"Message from server\")\n\n```\n\nThis example sets up a WebSocket endpoint at `/ws` that accepts messages and sends back a response.",
+        "retrieval_hit": false,
+        "refused": false,
+        "cited": [],
+        "phantom_citations": [],
+        "latency_s": 7.92,
+        "cost_usd": 0.0,
+        "usage": {
+          "model": "ollama:llama3.2:3b",
+          "input_tokens": 1139,
+          "output_tokens": 212
+        },
+        "verdict": {
+          "reasoning": "The sources only mention that FastAPI has WebSocket support via Starlette; none of them explain how to use WebSockets. The answer invents a `WebsocketsMiddleware`, which is wrong and appears in no source. It also borrows the CORS code from source 3 and adds WebSocket code (`WebSocket`, `@app.websocket`, accept/receive_text/send_text) that the sources do not contain. The answer has no citations.",
+          "unsupported_claims": [
+            "To use WebSockets in FastAPI, you need to import `WebsocketsMiddleware` and add it as a middleware to your application.",
+            "`from fastapi import FastAPI, WebSocket` (WebSocket class not in sources)",
+            "`@app.websocket(\"/ws\")` decorator usage",
+            "`await websocket.accept()`, `websocket.receive_text()`, `websocket.send_text()` methods",
+            "This example sets up a WebSocket endpoint at `/ws` that accepts messages and sends back a response."
+          ],
+          "answers_question": "no",
+          "bad_citations": []
+        },
+        "outcome": "hallucinated",
+        "notes": []
+      },
+      {
+        "id": "u03",
+        "category": "unanswerable",
+        "question": "How do I add rate limiting to my endpoints?",
+        "model": "ollama:llama3.2:3b",
+        "answer": "To add rate limiting to your endpoints, you need to create a middleware. \n\nHere's an example of how you can implement rate limiting using the `fastapi` library:\n\n```python\nfrom fastapi import FastAPI, Request, Response\nfrom fastapi.responses import JSONResponse\nfrom fastapi.requests import Request\nfrom pydantic import BaseModel\nimport time\n\napp = FastAPI()\n\nclass RateLimit(BaseModel):\n    limit: int\n    period: int\n\nrate_limit = {\n    \"foo\": {\"limit\": 10, \"period\": 60},\n    \"bar\": {\"limit\": 5,  \"period\": 30},\n}\n\n@app.middleware(\"http\")\nasync def rate_limiting(request: Request, call_next):\n    ip_address = request.client.host\n    if ip_address not in rate_limit:\n        return Response(status_code=429)\n\n    current_time = time.time()\n    rate_limit_data = rate_limit[ip_address]\n\n    if current_time - rate_limit_data[\"period\"] < 0:\n        rate_limit_data[\"reset_time\"] = current_time\n\n    if rate_limit_data[\"reset_time\"] + rate_limit_data[\"period\"] > current_time and rate_limit_data[\"requests\"] >= rate_limit_data[\"limit\"]:\n        return Response(status_code=429)\n\n    rate_limit_data[\"requests\"] += 1\n    rate_limit_data[\"reset_time\"] = current_time\n\n    response = await call_next(request)\n    response.headers[\"X-RateLimit-Limit\"] = str(rate_limit[ip_address][\"limit\"])\n    response.headers[\"X-RateLimit-Reset\"] = str(rate_limit[ip_address][\"period\"])\n    return response\n```\n\nThis middleware will add the `X-RateLimit-Limit` and `X-RateLimit-Reset` headers to your responses. The limit is set in the rate limit dictionary, and the period is also set there.\n\nYou can adjust this code according to your needs.",
+        "retrieval_hit": false,
+        "refused": false,
+        "cited": [],
+        "phantom_citations": [],
+        "latency_s": 13.39,
+        "cost_usd": 0.0,
+        "usage": {
+          "model": "ollama:llama3.2:3b",
+          "input_tokens": 1599,
+          "output_tokens": 393
+        },
+        "verdict": {
+          "reasoning": "The sources contain no rate-limiting documentation; they only show generic middleware creation with @app.middleware(\"http\"), call_next, and adding custom headers. The answer presents a rate-limiting middleware built largely on outside knowledge (429 status, request.client.host, X-RateLimit headers, Response, JSONResponse imports) and the code is buggy: it uses missing keys such as 'requests' and 'reset_time', and blocks unknown IPs. It does not acknowledge that the sources lack rate-limiting guidance. The middleware decorator usage is grounded, but the rate-limiting claims are not.",
+          "unsupported_claims": [
+            "To add rate limiting to your endpoints, you need to create a middleware (the sources never mention rate limiting).",
+            "The rate-limiting middleware code using request.client.host, time.time(), and per-IP limit/period tracking is not in the sources.",
+            "Returning Response(status_code=429) for rate-limited requests is not in the sources.",
+            "Imports of Response, JSONResponse from fastapi.responses, and fastapi.requests.Request are not in the sources.",
+            "This middleware will add the X-RateLimit-Limit and X-RateLimit-Reset headers to your responses (these headers are not in the sources).",
+            "The limit and period are set in the rate limit dictionary (this rate-limiting configuration is not in the sources)."
+          ],
+          "answers_question": "partially",
+          "bad_citations": []
+        },
+        "outcome": "hallucinated",
+        "notes": []
+      },
+      {
+        "id": "u04",
+        "category": "unanswerable",
+        "question": "How do I stream a large file to the client with StreamingResponse?",
+        "model": "ollama:llama3.2:3b",
+        "answer": "You can use `StreamingResponse` to stream a large file by using the `UploadFile.file` attribute, which returns an actual Python [`SpooledTemporaryFile`](https://docs.python.org/3/library/tempfile.html#tempfile.SpooledTemporaryFile) object that you can pass directly to other libraries that expect a file-like object.\n\nHere's an example:\n\n```python\nfrom typing import Annotated\nfrom fastapi import FastAPI, File, UploadFile, StreamingResponse\nfrom fastapi.responses import HTMLResponse\n\napp = FastAPI()\n\n@app.get(\"/streamfile/\")\nasync def stream_file(file: UploadFile = File(...)):\n    async with file.file:\n        while True:\n            chunk = await file.file.read(1024)\n            if not chunk:\n                break\n            yield chunk\n```\n\nIn this example, `file.file` is used to get the actual file-like object from the uploaded file. The `async with` statement ensures that the file is properly closed after it's no longer needed.\n\nThe `yield` keyword is used to stream the file contents one chunk at a time, allowing the client to process the data as it arrives without having to load the entire file into memory.",
+        "retrieval_hit": false,
+        "refused": false,
+        "cited": [],
+        "phantom_citations": [],
+        "latency_s": 8.42,
+        "cost_usd": 0.0,
+        "usage": {
+          "model": "ollama:llama3.2:3b",
+          "input_tokens": 1163,
+          "output_tokens": 244
+        },
+        "verdict": {
+          "reasoning": "The sources cover only file uploads (UploadFile, File, SpooledTemporaryFile) and never mention StreamingResponse or streaming files to the client. The answer invents a StreamingResponse approach. Its code imports StreamingResponse from fastapi but never uses it, awaits a synchronous file.file.read, and yields from a path operation. None of this is supported by the sources, so the question is not actually answered from them.",
+          "unsupported_claims": [
+            "You can use `StreamingResponse` to stream a large file by using the `UploadFile.file` attribute",
+            "Importing `StreamingResponse` from `fastapi`",
+            "The example `stream_file` path operation using `async with file.file` and `await file.file.read(1024)` with `yield chunk`",
+            "The `async with` statement ensures that the file is properly closed after it's no longer needed",
+            "The `yield` keyword is used to stream the file contents one chunk at a time, allowing the client to process the data as it arrives without having to load the entire file into memory"
+          ],
+          "answers_question": "no",
+          "bad_citations": []
+        },
+        "outcome": "hallucinated",
+        "notes": []
+      },
+      {
+        "id": "u05",
+        "category": "unanswerable",
+        "question": "What is the capital of France?",
+        "model": "ollama:llama3.2:3b",
+        "answer": "I couldn't find this in the FastAPI docs I have.",
+        "retrieval_hit": false,
+        "refused": true,
+        "cited": [],
+        "phantom_citations": [],
+        "latency_s": 2.68,
+        "cost_usd": 0.0,
+        "usage": {
+          "model": "ollama:llama3.2:3b",
+          "input_tokens": 1078,
+          "output_tokens": 14
+        },
+        "verdict": null,
+        "outcome": "correct_refusal",
+        "notes": []
+      },
+      {
+        "id": "u06",
+        "category": "unanswerable",
+        "question": "Does FestAPI works with all LLM models?",
+        "model": "ollama:llama3.2:3b",
+        "answer": "I couldn't find this in the FastAPI docs I have.",
+        "retrieval_hit": false,
+        "refused": true,
+        "cited": [],
+        "phantom_citations": [],
+        "latency_s": 2.84,
+        "cost_usd": 0.0,
+        "usage": {
+          "model": "ollama:llama3.2:3b",
+          "input_tokens": 1109,
+          "output_tokens": 14
+        },
+        "verdict": null,
+        "outcome": "correct_refusal",
+        "notes": []
+      }
+    ]
+  }
+}
