@@ -50,12 +50,14 @@ from concurrent.futures import ThreadPoolExecutor
 from dataclasses import asdict, dataclass, field
 from typing import Literal, Protocol
 
+import httpx
 from pydantic import BaseModel, Field
 
 from rag.cost import PRICES, cost_usd
 from rag.evals.retrieval import GOLDEN_SET, RESULTS_DIR, section_key
 from rag.generator import CITATION_RE, NOT_FOUND, Generator, format_sources
 from rag.models import Answer, RetrievedChunk
+from rag.ollama_tools import OllamaNotReady, preflight
 
 DEFAULT_MODELS = ("claude-haiku-5-5", "claude-sonnet-5-5", "claude-opus-5-5")
 DEFAULT_JUDGE = "claude-opus-5-5"
@@ -247,6 +249,18 @@ def summarize_answers(results: list[AnswerResult]) -> dict:
         ),
         "grounded_non_answers": outcomes.count("grounded_non_answer"),
         "latency_p50_s": round(statistics.median(r.latency_s for r in results), 2),
+        # Local models only (None for Claude): writing speed, and how many prompts hit the
+        # context window, which means Ollama cut the rules off the start of the prompt.
+        "tokens_per_s_p50": (
+            round(statistics.median(speeds), 1)
+            if (
+                speeds := [
+                    r.usage["ollama"]["tokens_per_s"] for r in results if "ollama" in r.usage
+                ]
+            )
+            else None
+        ),
+        "context_full": sum(1 for r in results if r.usage.get("ollama", {}).get("context_full")),
         "cost_per_question_usd": round(sum(r.cost_usd for r in results) / len(results), 5),
         "cost_total_usd": round(sum(r.cost_usd for r in results), 4),
     }
@@ -339,6 +353,8 @@ def print_report(summaries: dict[str, dict], results: dict[str, list[AnswerResul
         ("false_refusals", "false ref"),
         ("correct_refusals", "unans ok"),
         ("latency_p50_s", "p50 s"),
+        ("tokens_per_s_p50", "tok/s"),
+        ("context_full", "ctx full"),
         ("cost_per_question_usd", "$/question"),
     ]
     print(f"\n{'model':<20}" + "".join(f"{label:>11}" for _, label in cols))
@@ -382,6 +398,14 @@ def main() -> None:
     models = [m.strip() for m in args.models.split(",") if m.strip()]
 
     s = get_settings()
+    # Fail in a second, not after the retrieval and the Claude calls: is Ollama up and
+    # are the local models downloaded?
+    local = [m.removeprefix("ollama:") for m in models if m.startswith("ollama:")]
+    if local:
+        try:
+            preflight(httpx.Client(base_url=s.ollama_url), local)
+        except OllamaNotReady as e:
+            raise SystemExit(str(e)) from e
     api_key = s.anthropic_api_key.get_secret_value() if s.anthropic_api_key else None
     golden = json.loads(GOLDEN_SET.read_text())
     only = [c.strip() for c in args.only.split(",") if c.strip()]
