@@ -1,0 +1,4 @@
+# What `gcloud builds submit` does NOT upload to Cloud Build (step 3d).
+# Same rules as .dockerignore: above all, .env (secrets) never leaves the laptop.
+# Without this file gcloud would fall back to .gitignore, which is a different list.
+#!include:.dockerignore

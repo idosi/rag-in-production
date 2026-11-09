@@ -1,0 +1,24 @@
+# Builds the API image in Google Cloud Build and pushes it to Artifact Registry (step 3d).
+#
+#   make gcp-build        (see the Makefile for the full command)
+#
+# Why build in the cloud and not with `docker build` on the laptop:
+#   - A Mac with Apple Silicon builds linux/arm64 images. Cloud Run runs linux/amd64.
+#     An arm64 image deploys and then fails to start ("exec format error").
+#   - The build downloads ~200MB of models and installs the dependencies. In the cloud that
+#     uses Google's network and CPU, not the laptop's memory.
+#   - Cloud Build pushes straight to Artifact Registry, in the same region as Cloud Run.
+#
+# _IMAGE is passed by `make gcp-build`. It ends with the git commit, so every image says
+# exactly which code it contains, and a rollback is "deploy the previous tag".
+
+steps:
+  - name: gcr.io/cloud-builders/docker
+    # The Dockerfile uses BuildKit features (# syntax=..., RUN --mount=type=cache).
+    env: ["DOCKER_BUILDKIT=1"]
+    args: ["build", "--tag", "${_IMAGE}", "."]
+
+# Listing the image here makes Cloud Build push it, and record it in the build's results.
+images: ["${_IMAGE}"]
+
+timeout: 1800s

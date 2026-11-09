@@ -14,6 +14,7 @@ LIFECYCLE
 """
 
 import logging
+import os
 from contextlib import asynccontextmanager
 
 from fastapi import Depends, FastAPI, HTTPException, Request, Response
@@ -61,6 +62,11 @@ async def lifespan(app: FastAPI):
     limiter = RateLimiter(s.rate_limit_per_minute) if s.rate_limit_per_minute > 0 else None
     app.state.guard = Guard(keys, limiter)
     if not keys:
+        # K_SERVICE is set by Cloud Run in every container (step 3d). There, an open /ask
+        # is a public URL that spends our money: refuse to start instead of only warning.
+        # A failed start is loud (the deploy fails); a warning in a log is easy to miss.
+        if os.environ.get("K_SERVICE"):
+            raise RuntimeError("API_KEYS is empty: refusing to serve an open /ask on Cloud Run")
         log.warning("API_KEYS is empty: /ask is OPEN to anyone who can reach it")
     yield
     app.state.pipeline.retriever.store.conn.close()

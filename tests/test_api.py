@@ -101,6 +101,17 @@ def test_without_keys_configured_ask_is_open(monkeypatch):
         assert c.post("/ask", json=ASK).status_code == 200
 
 
+def test_on_cloud_run_an_open_ask_refuses_to_start(monkeypatch):
+    # Cloud Run sets K_SERVICE in every container (step 3d). Forgetting API_KEYS there
+    # must fail the deploy, not publish a URL that spends money for anyone.
+    monkeypatch.setenv("K_SERVICE", "rag-api")
+    with pytest.raises(RuntimeError, match="API_KEYS"):
+        with client_with(monkeypatch):
+            pass
+    with client_with(monkeypatch, keys="secret") as c:  # with keys it starts normally
+        assert c.get("/health").status_code == 200
+
+
 def test_missing_or_wrong_key_is_401_and_the_right_key_passes(monkeypatch):
     with client_with(monkeypatch, keys="secret-a, secret-b") as c:
         assert c.post("/ask", json=ASK).status_code == 401
