@@ -6,7 +6,9 @@ from rag.evals.answers import (
     answer_one,
     classify,
     cost_usd,
+    generation_workers,
     judge_one,
+    select_questions,
     summarize_answers,
 )
 from rag.generator import NOT_FOUND
@@ -157,3 +159,22 @@ def test_summary_counts_a_grounded_non_answer_as_a_correct_unanswerable():
     ]
     s = summarize_answers(rs)
     assert s["correct_refusals"] == "2/2" and s["grounded_non_answers"] == 1
+
+
+def test_local_models_answer_one_question_at_a_time():
+    # Ollama queues parallel requests: 4 threads would add queue wait to every latency.
+    assert generation_workers("ollama:llama3.1:8b", 4) == 1
+    assert generation_workers("claude-sonnet-5-5", 4) == 4
+
+
+def test_select_questions_by_category_then_limit():
+    golden = [
+        {"id": "q1", "category": "direct"},
+        {"id": "q2", "category": "direct"},
+        {"id": "u1", "category": "unanswerable"},
+        {"id": "u2", "category": "unanswerable"},
+    ]
+    assert [q["id"] for q in select_questions(golden, [], 0)] == ["q1", "q2", "u1", "u2"]
+    assert [q["id"] for q in select_questions(golden, [], 3)] == ["q1", "q2", "u1"]
+    assert [q["id"] for q in select_questions(golden, ["unanswerable"], 0)] == ["u1", "u2"]
+    assert [q["id"] for q in select_questions(golden, ["unanswerable"], 1)] == ["u1"]
