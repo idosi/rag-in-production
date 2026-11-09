@@ -1,3 +1,5 @@
+<div dir="rtl">
+
 # ‏שלב 3ג: עלות, cache ו-tracing
 
 ## ‏1. הבעיה
@@ -156,3 +158,5 @@
 <details><summary><b>‏איך ה-pipeline כותב ל-trace בלי לקבל אותו כפרמטר?</b></summary>
 ‏דרך `ContextVar`: משתנה שיש לו ערך נפרד לכל בקשה. ‏`api.py` קובע את ה-trace כנוכחי, ו-`span("retrieve")` בתוך ה-pipeline מחפש אותו. אין צורך להוסיף פרמטר לכל חתימה (גם בקוד שרץ ב-CLI ובבדיקות בלי trace), ו-20 בקשות במקביל לא מתערבבות.
 </details>
+
+</div>

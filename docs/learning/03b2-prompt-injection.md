@@ -1,3 +1,5 @@
+<div dir="rtl">
+
 # ‏שלב 3ב-2: הגנה מפני prompt injection
 
 ## ‏1. הבעיה
@@ -84,3 +86,5 @@ re.sub(r"<(?=\s*/?\s*sources?\b)", "&lt;", text, flags=re.IGNORECASE)
 ‏כי קוד יכול רק לחפש מחרוזת, והקנרית הופכת התנהגות לבדיקה אוטומטית.
 </details>
 
+
+</div>
