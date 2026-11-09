@@ -6,7 +6,9 @@ from rag.evals.answers import (
     answer_one,
     classify,
     cost_usd,
+    generation_workers,
     judge_one,
+    select_questions,
     summarize_answers,
 )
 from rag.generator import NOT_FOUND
@@ -157,3 +159,65 @@ def test_summary_counts_a_grounded_non_answer_as_a_correct_unanswerable():
     ]
     s = summarize_answers(rs)
     assert s["correct_refusals"] == "2/2" and s["grounded_non_answers"] == 1
+
+
+def test_local_models_answer_one_question_at_a_time():
+    # Ollama queues parallel requests: 4 threads would add queue wait to every latency.
+    assert generation_workers("ollama:llama3.1:8b", 4) == 1
+    assert generation_workers("claude-sonnet-5-5", 4) == 4
+
+
+def test_select_questions_by_category_then_limit():
+    golden = [
+        {"id": "q1", "category": "direct"},
+        {"id": "q2", "category": "direct"},
+        {"id": "u1", "category": "unanswerable"},
+        {"id": "u2", "category": "unanswerable"},
+    ]
+    assert [q["id"] for q in select_questions(golden, [], 0)] == ["q1", "q2", "u1", "u2"]
+    assert [q["id"] for q in select_questions(golden, [], 3)] == ["q1", "q2", "u1"]
+    assert [q["id"] for q in select_questions(golden, ["unanswerable"], 0)] == ["u1", "u2"]
+    assert [q["id"] for q in select_questions(golden, ["unanswerable"], 1)] == ["u1"]
+
+
+def test_summary_reports_local_model_speed_and_context_overflow():
+    def result(tokens_per_s, context_full):
+        r = AnswerResult(
+            id="q",
+            category="direct",
+            question="?",
+            model="ollama:x",
+            answer="a",
+            retrieval_hit=True,
+            refused=False,
+            cited=[1],
+            phantom_citations=[],
+            latency_s=1.0,
+            cost_usd=0.0,
+            usage={"ollama": {"tokens_per_s": tokens_per_s, "context_full": context_full}},
+        )
+        r.outcome = "correct"
+        return r
+
+    s = summarize_answers([result(10.0, False), result(30.0, True), result(20.0, False)])
+    assert s["tokens_per_s_p50"] == 20.0
+    assert s["context_full"] == 1
+
+
+def test_summary_has_no_speed_for_claude():
+    r = AnswerResult(
+        id="q",
+        category="direct",
+        question="?",
+        model="claude",
+        answer="a",
+        retrieval_hit=True,
+        refused=False,
+        cited=[1],
+        phantom_citations=[],
+        latency_s=1.0,
+        cost_usd=0.0,
+        usage={"model": "claude"},
+    )
+    r.outcome = "correct"
+    assert summarize_answers([r])["tokens_per_s_p50"] is None

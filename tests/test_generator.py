@@ -127,11 +127,12 @@ def test_ollama_generator_returns_answer_with_citations_and_usage():
     answer = gen.generate("How?", [src(0), src(1)])
     assert answer.text == "Use None [1]. See [9]."
     assert answer.cited == [1]  # [9] is not one of the 2 sources
-    assert answer.usage == {
-        "model": "ollama:llama3.1:8b",
-        "input_tokens": 2300,
-        "output_tokens": 40,
-    }
+    assert answer.usage["model"] == "ollama:llama3.1:8b"
+    assert answer.usage["input_tokens"] == 2300
+    assert answer.usage["output_tokens"] == 40
+    # step 2g: Ollama's own timing and the silent-failure flags ride along in usage
+    assert answer.usage["ollama"]["context_full"] is False
+    assert answer.usage["ollama"]["cut_off"] is False
     assert seen["path"] == "/api/chat"
     assert seen["body"]["options"]["num_ctx"] == 8192  # not the silently-truncating default
     assert seen["body"]["messages"][0]["role"] == "system"

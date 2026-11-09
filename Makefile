@@ -24,8 +24,9 @@ eval-retrieval:     ## Measure search quality per retrieval mode (free by defaul
 
 ANSWER_MODELS ?= claude-haiku-5-5,claude-sonnet-5-5,claude-opus-5-5
 LIMIT ?= 0
-eval-answers:       ## Grade answers per model with an LLM judge (COSTS MONEY, asks first): make eval-answers ANSWER_MODELS=claude-haiku-5-5 LIMIT=5
-	uv run python -m rag.evals.answers --models $(ANSWER_MODELS) --limit $(LIMIT)
+ONLY ?=
+eval-answers:       ## Grade answers per model with an LLM judge (COSTS MONEY, asks first): make eval-answers ANSWER_MODELS=claude-haiku-5-5 LIMIT=5 (or ONLY=unanswerable)
+	uv run python -m rag.evals.answers --models $(ANSWER_MODELS) --limit $(LIMIT) --only "$(ONLY)"
 
 eval-redteam:       ## Try prompt-injection attacks on the real model (costs a few cents)
 	uv run python -m rag.evals.red_team

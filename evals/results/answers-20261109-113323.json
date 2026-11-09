@@ -1,0 +1,1535 @@
+{
+  "config": {
+    "retrieval_mode": "rerank",
+    "top_k": 5,
+    "candidate_k": 10,
+    "llm_effort": "medium",
+    "judge": "claude-opus-5-5",
+    "prices_per_mtok": {
+      "claude-haiku-5-5": [
+        0.1,
+        0.5
+      ],
+      "claude-sonnet-5-5": [
+        2.0,
+        10.0
+      ],
+      "claude-opus-5-5": [
+        4.0,
+        20.0
+      ]
+    }
+  },
+  "summary": {
+    "ollama:qwen2.5:3b": {
+      "questions": 53,
+      "correct": 0.319,
+      "partial": 0.128,
+      "unfaithful": 0.477,
+      "bad_citations": 0.068,
+      "uncited": 0.705,
+      "phantom_citations": 0,
+      "false_refusals": 1,
+      "justified_refusals": 2,
+      "correct_refusals": "5/6",
+      "grounded_non_answers": 0,
+      "latency_p50_s": 8.4,
+      "cost_per_question_usd": 0.0,
+      "cost_total_usd": 0.0
+    }
+  },
+  "judge_cost_usd": 0.7714,
+  "results": {
+    "ollama:qwen2.5:3b": [
+      {
+        "id": "q01",
+        "category": "direct",
+        "question": "How do I make a query parameter optional?",
+        "model": "ollama:qwen2.5:3b",
+        "answer": "To make a query parameter optional, you can not declare any default value for it. FastAPI will then consider this parameter as required if no value is provided in the URL.\n\nFor example:\n\n```python\nfrom fastapi import FastAPI\n\napp = FastAPI()\n\n\n@app.get(\"/items/{item_id}\")\nasync def read_item(item_id: str, needy: str):\n    item = {\"item_id\": item_id, \"needy\": needy}\n    return item\n```\n\nHere the `needy` parameter is required. If you try to access:\n\n```\nhttp://127.0.0.1:8000/items/foo-item\n```\n\nYou will get an error if you do not provide a value for `needy`.",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [],
+        "phantom_citations": [],
+        "latency_s": 7.0,
+        "cost_usd": 0.0,
+        "usage": {
+          "model": "ollama:qwen2.5:3b",
+          "input_tokens": 1514,
+          "output_tokens": 154
+        },
+        "verdict": {
+          "reasoning": "The answer claims a query parameter is made optional by omitting the default value. That is the opposite of what the sources say: omitting a default makes the parameter required [2], and setting the default to None makes it optional [1]. The answer also contradicts itself, since its own example describes `needy` as required. It therefore fails to answer the question. It contains no citations.",
+          "unsupported_claims": [
+            "To make a query parameter optional, you can not declare any default value for it.",
+            "FastAPI will then consider this parameter as required if no value is provided in the URL (presented as the way to make it optional)"
+          ],
+          "answers_question": "no",
+          "bad_citations": []
+        },
+        "outcome": "unfaithful",
+        "notes": []
+      },
+      {
+        "id": "q02",
+        "category": "code-name",
+        "question": "What does jsonable_encoder do?",
+        "model": "ollama:qwen2.5:3b",
+        "answer": "[1] [3] The `jsonable_encoder` function converts an object into something compatible with JSON. It is used internally by FastAPI, but also useful in other scenarios where you need to convert data types for compatibility with JSON.",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [
+          1,
+          3
+        ],
+        "phantom_citations": [],
+        "latency_s": 3.86,
+        "cost_usd": 0.0,
+        "usage": {
+          "model": "ollama:qwen2.5:3b",
+          "input_tokens": 1249,
+          "output_tokens": 49
+        },
+        "verdict": {
+          "reasoning": "The answer says jsonable_encoder converts objects to JSON-compatible data and is used internally by FastAPI, which sources 1 and 3 support. The citations are placed at the start, but they support the content. However, the answer leaves out important details the sources contain: it returns a Python data structure such as a dict rather than a JSON string, and it converts Pydantic models to dicts and datetime to str.",
+          "unsupported_claims": [],
+          "answers_question": "partially",
+          "bad_citations": []
+        },
+        "outcome": "partial",
+        "notes": []
+      },
+      {
+        "id": "q03",
+        "category": "paraphrase",
+        "question": "How do I run code after returning a response?",
+        "model": "ollama:qwen2.5:3b",
+        "answer": "[1]",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [
+          1
+        ],
+        "phantom_citations": [],
+        "latency_s": 3.33,
+        "cost_usd": 0.0,
+        "usage": {
+          "model": "ollama:qwen2.5:3b",
+          "input_tokens": 1444,
+          "output_tokens": 4
+        },
+        "verdict": {
+          "reasoning": "The answer consists only of the citation marker \"[1]\" and has no actual content. It makes no factual claims, so nothing is unsupported, but it also does not tell the user how to run code after returning a response. Source 1 does say this is done with background tasks, and the answer never explains that. The citation is not attached to any sentence, so it does not support a statement either.",
+          "unsupported_claims": [],
+          "answers_question": "no",
+          "bad_citations": []
+        },
+        "outcome": "wrong",
+        "notes": []
+      },
+      {
+        "id": "q04",
+        "category": "direct",
+        "question": "How do I declare a path parameter with a type?",
+        "model": "ollama:qwen2.5:3b",
+        "answer": "You can declare a path parameter with a specific type by using standard Python type annotations in the function. For example:\n\n```python\nfrom fastapi import FastAPI\n\napp = FastAPI()\n\n\n@app.get(\"/items/{item_id}\")\nasync def read_item(item_id: int):\n    return {\"item_id\": item_id}\n```\n\nIn this case, `item_id` is declared to be an `int`. This provides editor support inside your function with error checks and completion features. [1]",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [
+          1
+        ],
+        "phantom_citations": [],
+        "latency_s": 4.97,
+        "cost_usd": 0.0,
+        "usage": {
+          "model": "ollama:qwen2.5:3b",
+          "input_tokens": 1218,
+          "output_tokens": 100
+        },
+        "verdict": {
+          "reasoning": "The answer reproduces source 1's explanation and code: use standard Python type annotations, item_id declared as int, and the tip about editor support with error checks and completion. Every claim is grounded in source 1, and citation [1] supports it. This fully answers the question.",
+          "unsupported_claims": [],
+          "answers_question": "fully",
+          "bad_citations": []
+        },
+        "outcome": "correct",
+        "notes": []
+      },
+      {
+        "id": "q05",
+        "category": "paraphrase",
+        "question": "My route /users/me is being matched by /users/{user_id}. Why?",
+        "model": "ollama:qwen2.5:3b",
+        "answer": "The path `/users/me` is being matched by `/users/{user_id}` because the order of defining path operations in FastAPI matters. According to [1], if you have a fixed path like `/users/me`, it should be declared before any path that uses a variable, such as `/users/{user_id}`. If not ordered correctly, the route with `{user_id}` will match also for `/users/me`.",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [
+          1
+        ],
+        "phantom_citations": [],
+        "latency_s": 4.91,
+        "cost_usd": 0.0,
+        "usage": {
+          "model": "ollama:qwen2.5:3b",
+          "input_tokens": 1321,
+          "output_tokens": 86
+        },
+        "verdict": {
+          "reasoning": "The answer correctly explains, per source 1, that path operations are evaluated in order and that /users/me must be declared before /users/{user_id}; otherwise the parameterized route matches /users/me. Its generalization to 'any path that uses a variable' is a mild rephrasing. It omits the detail that user_id would receive the value \"me\" and gives no code example, but the core question is answered.",
+          "unsupported_claims": [],
+          "answers_question": "fully",
+          "bad_citations": []
+        },
+        "outcome": "correct",
+        "notes": []
+      },
+      {
+        "id": "q06",
+        "category": "direct",
+        "question": "How can I restrict a path parameter to a fixed set of allowed values?",
+        "model": "ollama:qwen2.5:3b",
+        "answer": "You can restrict a path parameter to a fixed set of allowed values by using Python's `Enum` from the standard library. Define an enumeration for your allowed values and use it as the type for your path parameter.\n\nHere is a code example based on [1]:\n\n```python\nfrom enum import Enum\n\nclass ItemID(str, Enum):\n    item1 = \"item1\"\n    item2 = \"item2\"\n\n@app.get(\"/items/{item_id}\")\nasync def read_item(item_id: ItemID):\n    return {\"item_id\": item_id.value}\n```\n\nIn this example, `ItemID` is an enumeration with two members `\"item1\"` and `\"item2\"`. The path parameter `item_id` can only be one of these values. If a different value is provided, the server will raise a validation error.",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [
+          1
+        ],
+        "phantom_citations": [],
+        "latency_s": 5.99,
+        "cost_usd": 0.0,
+        "usage": {
+          "model": "ollama:qwen2.5:3b",
+          "input_tokens": 1007,
+          "output_tokens": 169
+        },
+        "verdict": {
+          "reasoning": "The sources say a standard Python Enum can be used to predefine valid path parameter values, and that the value will be an enumeration member. The answer's code and details go beyond the sources: they contain no example code, nothing about subclassing str, nothing about using `.value`, and nothing about validation errors. Citation [1] supports the general Enum idea, but the code is not in [1]. The answer omits the docs display mentioned in source 2, which is minor.",
+          "unsupported_claims": [
+            "Define the enum by subclassing (str, Enum) as in `class ItemID(str, Enum)`",
+            "Using `item_id.value` to get the value of the enumeration member",
+            "If a different value is provided, the server will raise a validation error",
+            "The code example is presented as based on [1], but [1] contains no code"
+          ],
+          "answers_question": "fully",
+          "bad_citations": [
+            1
+          ]
+        },
+        "outcome": "unfaithful",
+        "notes": []
+      },
+      {
+        "id": "q07",
+        "category": "paraphrase",
+        "question": "How do I accept a file path like /files/home/johndoe/myfile.txt in the URL?",
+        "model": "ollama:qwen2.5:3b",
+        "answer": "To accept a file path like `/files/home/johndoe/myfile.txt` in the URL, you can use the following code snippet:\n\n```python\nfrom fastapi import FastAPI\n\napp = FastAPI()\n\n\n@app.get(\"/files/{file_path:path}\")\nasync def read_file(file_path: str):\n    return {\"file_path\": file_path}\n```\n\nThis example uses a path parameter `file_path` with the `{}` syntax, and the trailing `:path` tells FastAPI to match any *path*. This allows you to handle URLs like `/files/home/johndoe/myfile.txt`.",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [],
+        "phantom_citations": [],
+        "latency_s": 5.34,
+        "cost_usd": 0.0,
+        "usage": {
+          "model": "ollama:qwen2.5:3b",
+          "input_tokens": 1135,
+          "output_tokens": 124
+        },
+        "verdict": {
+          "reasoning": "The answer reproduces the code from source 2 and explains that the `:path` suffix makes the parameter match any path, which matches source 2. One small inaccuracy: the source says this option comes \"directly from Starlette\", while the answer frames it as telling FastAPI. That is a reasonable simplification. The answer cites no sources, and it leaves out the optional tip about using a leading slash (double slash in the URL), but the core question is fully answered.",
+          "unsupported_claims": [],
+          "answers_question": "fully",
+          "bad_citations": []
+        },
+        "outcome": "correct",
+        "notes": []
+      },
+      {
+        "id": "q08",
+        "category": "direct",
+        "question": "How do I receive a JSON request body?",
+        "model": "ollama:qwen2.5:3b",
+        "answer": "To receive a JSON request body in FastAPI, you can use Pydantic models to declare the structure of your data. Here's a concise example:\n\n```python\nfrom fastapi import FastAPI\nfrom pydantic import BaseModel\n\napp = FastAPI()\n\nclass Item(BaseModel):\n    title: str\n    size: int\n\n@app.post(\"/items/\")\nasync def create_item(item: Item):\n    return {\"received\": item}\n```\n\nIn this example, `Item` is a Pydantic model that defines the structure of the request body. The `create_item` function expects an instance of `Item` as its first parameter (`item`). FastAPI will automatically read and validate the JSON in the request body according to the defined schema of `Item`. If the data is invalid, it will return a clear error message indicating where and what was incorrect.",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [],
+        "phantom_citations": [],
+        "latency_s": 6.62,
+        "cost_usd": 0.0,
+        "usage": {
+          "model": "ollama:qwen2.5:3b",
+          "input_tokens": 1147,
+          "output_tokens": 175
+        },
+        "verdict": {
+          "reasoning": "The answer correctly says to declare the request body with Pydantic models, which matches source 4. Its description of FastAPI reading the JSON, validating it, returning clear errors and giving the data in the `item` parameter matches source 1. However, the sources contain no code showing how to define the model or the endpoint: the `BaseModel` import and subclassing, the `FastAPI()` app creation, and the `@app.post` decorator all come from outside knowledge. The answer has no citations.",
+          "unsupported_claims": [
+            "Code: `from pydantic import BaseModel` and defining the model as `class Item(BaseModel)` (BaseModel is not mentioned in the sources)",
+            "Code: `from fastapi import FastAPI` / `app = FastAPI()` app creation",
+            "Code: using the `@app.post(\"/items/\")` decorator to declare the path operation"
+          ],
+          "answers_question": "fully",
+          "bad_citations": []
+        },
+        "outcome": "unfaithful",
+        "notes": []
+      },
+      {
+        "id": "q09",
+        "category": "direct",
+        "question": "How do I limit the length of a query parameter string?",
+        "model": "ollama:qwen2.5:3b",
+        "answer": "You can limit the length of a query parameter string by using the `Query` function with the `max_length` argument. Here is an example:\n\n```python\nfrom fastapi import FastAPI, Query\n\napp = FastAPI()\n\n\n@app.get(\"/items/\")\nasync def read_items(q: str | None = Query(default=None, max_length=50)):\n    results = {\"items\": [{\"item_id\": \"Foo\"}, {\"item_id\": \"Bar\"}]}\n    if q:\n        results.update({\"q\": q})\n    return results\n```\n\nIn this example, the `max_length` argument is set to 50. This ensures that any string passed as a query parameter will not exceed 50 characters in length. If a value exceeds this limit, FastAPI will raise an error indicating that the input is invalid.",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [],
+        "phantom_citations": [],
+        "latency_s": 7.23,
+        "cost_usd": 0.0,
+        "usage": {
+          "model": "ollama:qwen2.5:3b",
+          "input_tokens": 1377,
+          "output_tokens": 169
+        },
+        "verdict": {
+          "reasoning": "The answer shows Query with max_length=50 using the old default-value style, which matches source 2's code exactly, and the claim that invalid data produces a clear error is supported by source 1. It contains no citations. It omits the recommended Annotated approach (source 3) and min_length (source 5), but it does answer the core question about limiting length. The phrase \"raise an error\" is a reasonable paraphrase of source 1's \"show a clear error when the data is not valid\".",
+          "unsupported_claims": [],
+          "answers_question": "fully",
+          "bad_citations": []
+        },
+        "outcome": "correct",
+        "notes": []
+      },
+      {
+        "id": "q10",
+        "category": "code-name",
+        "question": "How do I validate a query parameter against a regular expression?",
+        "model": "ollama:qwen2.5:3b",
+        "answer": "To validate a query parameter against a regular expression in FastAPI, you can use the `Annotated` type along with the `Query` function. Here is an example:\n\n```python\nfrom typing import Annotated\nfrom fastapi import FastAPI, Query\n\napp = FastAPI()\n\n\n@app.get(\"/items/\")\nasync def read_items(\n    q: Annotated[\n        str | None, \n        Query(min_length=3, max_length=50, pattern=\"^fixedquery$\")\n    ] = None,\n):\n    results = {\"items\": [{\"item_id\": \"Foo\"}, {\"item_id\": \"Bar\"}]}\n    if q:\n        results.update({\"q\": q})\n    return results\n```\n\nIn this example, the `Query` function is used to define a query parameter named `q`. The `Annotated` type is used to specify that `q` should be of type `str | None`, and it's defined as a query parameter with constraints: minimum length of 3 characters, maximum length of 50 characters, and the value must match the regular expression pattern `\"^fixedquery$\"`.\n\nThis ensures that any value passed for `q` will meet these criteria.",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [],
+        "phantom_citations": [],
+        "latency_s": 10.05,
+        "cost_usd": 0.0,
+        "usage": {
+          "model": "ollama:qwen2.5:3b",
+          "input_tokens": 1453,
+          "output_tokens": 245
+        },
+        "verdict": {
+          "reasoning": "The answer reproduces the code from source 1 using Query's pattern parameter and correctly describes the constraints. It has no citations. The claim 'ensures that any value passed for q will meet these criteria' is a reasonable restatement, and source 2 supports that the data is validated. The answer omits an explanation of the pattern parts but still answers the question.",
+          "unsupported_claims": [],
+          "answers_question": "fully",
+          "bad_citations": []
+        },
+        "outcome": "correct",
+        "notes": []
+      },
+      {
+        "id": "q11",
+        "category": "paraphrase",
+        "question": "How do I accept the same query parameter several times, like ?q=foo&q=bar?",
+        "model": "ollama:qwen2.5:3b",
+        "answer": "To accept the same query parameter multiple times in FastAPI, you can use the `Query` function with a list type annotation. Here is an example:\n\n```python\nfrom typing import Annotated\n\nfrom fastapi import FastAPI, Query\n\napp = FastAPI()\n\n\n@app.get(\"/items/\")\nasync def read_items(q: Annotated[list[str], Query()] = [\"foo\", \"bar\"]):\n    query_items = {\"q\": q}\n    return query_items\n```\n\nWith this setup:\n\n- The `read_items` function accepts a list of strings as the `q` parameter.\n- You can pass multiple values for `q` in the URL, like: `http://localhost:8000/items/?q=foo&q=bar`.\n- Inside your function, you will receive these values as a Python list inside the `q` parameter.\n\nThe response to that URL would be:\n\n```JSON\n{\n  \"q\": [\n    \"foo\",\n    \"bar\"\n  ]\n}\n```\n\nThis approach allows for multiple occurrences of the same query parameter in the URL.",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [],
+        "phantom_citations": [],
+        "latency_s": 9.2,
+        "cost_usd": 0.0,
+        "usage": {
+          "model": "ollama:qwen2.5:3b",
+          "input_tokens": 1505,
+          "output_tokens": 220
+        },
+        "verdict": {
+          "reasoning": "The answer uses the code example from source 3 (list with defaults) and the URL/response explanation from source 1. All claims are grounded in the sources, which state that list[str] with Query() receives multiple values as a Python list. The answer omits the important tip from source 1 that Query must be used explicitly or the list would be interpreted as a request body, and it does not mention the optional None default form. The answer contains no citations.",
+          "unsupported_claims": [],
+          "answers_question": "partially",
+          "bad_citations": []
+        },
+        "outcome": "partial",
+        "notes": []
+      },
+      {
+        "id": "q12",
+        "category": "paraphrase",
+        "question": "The query parameter name I need is item-query, which is not a valid Python variable name. What can I do?",
+        "model": "ollama:qwen2.5:3b",
+        "answer": "You can use an alias to make the query parameter named `item-query`, even though it's not a valid Python variable name. Here\u2019s how you can implement this:\n\n```python\nfrom typing import Annotated\n\nfrom fastapi import FastAPI, Query\n\napp = FastAPI()\n\n\n@app.get(\"/items/\")\nasync def read_items(q: Annotated[str | None, Query(alias=\"item-query\")] = None):\n    results = {\"items\": [{\"item_id\": \"Foo\"}, {\"item_id\": \"Bar\"}]}\n    if q:\n        results.update({\"q\": q})\n    return results\n```",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [],
+        "phantom_citations": [],
+        "latency_s": 7.73,
+        "cost_usd": 0.0,
+        "usage": {
+          "model": "ollama:qwen2.5:3b",
+          "input_tokens": 1514,
+          "output_tokens": 122
+        },
+        "verdict": {
+          "reasoning": "The answer recommends declaring an alias via Query(alias=\"item-query\") and reproduces the code from source 1 exactly. All claims are supported by source 1. There are no citations in the answer, so none can be bad.",
+          "unsupported_claims": [],
+          "answers_question": "fully",
+          "bad_citations": []
+        },
+        "outcome": "correct",
+        "notes": []
+      },
+      {
+        "id": "q13",
+        "category": "direct",
+        "question": "How do I mark a query parameter as deprecated?",
+        "model": "ollama:qwen2.5:3b",
+        "answer": "To mark a query parameter as deprecated in FastAPI, you can use the `deprecated=True` argument when defining the parameter with the `Query` function. Here is an example:\n\n```python\nfrom fastapi import FastAPI, Query\n\napp = FastAPI()\n\n\n@app.get(\"/items/\")\nasync def read_items(\n    q: str | None = Query(\n        default=None,\n        alias=\"item-query\",\n        title=\"Query string\",\n        description=\"Query string for the items to search in the database that have a good match\",\n        min_length=3,\n        max_length=50,\n        pattern=\"^fixedquery$\",\n        deprecated=True,\n    ),\n):\n    results = {\"items\": [{\"item_id\": \"Foo\"}, {\"item_id\": \"Bar\"}]}\n    if q:\n        results.update({\"q\": q})\n    return results\n```\n\nIn this example, the `q` parameter is marked as deprecated with `deprecated=True`. The documentation will show it as an obsolete parameter.",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [],
+        "phantom_citations": [],
+        "latency_s": 10.28,
+        "cost_usd": 0.0,
+        "usage": {
+          "model": "ollama:qwen2.5:3b",
+          "input_tokens": 1479,
+          "output_tokens": 203
+        },
+        "verdict": {
+          "reasoning": "The answer correctly says to pass deprecated=True to Query, which source 1 supports. Its code rewrites the source 1 example in the old style, with Query as the default value and default=None, instead of the recommended Annotated form. That combination is not shown in the sources, though sources 3 and 4 document the old style as valid. Saying the docs will show it as obsolete paraphrases source 1. The answer contains no citations, so there are no bad citations.",
+          "unsupported_claims": [],
+          "answers_question": "fully",
+          "bad_citations": []
+        },
+        "outcome": "correct",
+        "notes": []
+      },
+      {
+        "id": "q14",
+        "category": "code-name",
+        "question": "How do I hide a query parameter from the generated OpenAPI schema?",
+        "model": "ollama:qwen2.5:3b",
+        "answer": "To exclude a query parameter from the generated OpenAPI schema, you can set the `include_in_schema` attribute of the `Query` annotation to `False`. Here is an example:\n\n```python\nfrom typing import Annotated\n\nfrom fastapi import FastAPI, Query\n\napp = FastAPI()\n\n\n@app.get(\"/items/\")\nasync def read_items(\n    hidden_query: Annotated[str | None, Query(include_in_schema=False)] = None,\n):\n    if hidden_query:\n        return {\"hidden_query\": hidden_query}\n    else:\n        return {\"hidden_query\": \"Not found\"}\n```\n\nIn this example, `hidden_query` is a query parameter that will not be included in the OpenAPI schema.",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [],
+        "phantom_citations": [],
+        "latency_s": 9.07,
+        "cost_usd": 0.0,
+        "usage": {
+          "model": "ollama:qwen2.5:3b",
+          "input_tokens": 1120,
+          "output_tokens": 143
+        },
+        "verdict": {
+          "reasoning": "The answer matches source 1 exactly: set include_in_schema=False on Query, with the identical code example. It calls include_in_schema an 'attribute' of the Query 'annotation', which is a minor rephrasing of 'parameter of Query' and acceptable. The answer contains no citations, so none can be bad.",
+          "unsupported_claims": [],
+          "answers_question": "fully",
+          "bad_citations": []
+        },
+        "outcome": "correct",
+        "notes": []
+      },
+      {
+        "id": "q15",
+        "category": "direct",
+        "question": "How do I require that a numeric path parameter is greater than or equal to 1?",
+        "model": "ollama:qwen2.5:3b",
+        "answer": "To require that a numeric path parameter is greater than or equal to 1, you can use the `ge` annotation with the `Path` function. Here's an example:\n\n```python\nfrom typing import Annotated\n\nfrom fastapi import FastAPI, Path\n\napp = FastAPI()\n\n\n@app.get(\"/items/{item_id}\")\nasync def read_items(\n    item_id: Annotated[int, Path(title=\"The ID of the item to get\", ge=1)]\n):\n    return {\"item_id\": item_id}\n```\n\nIn this example:\n- `item_id` is a path parameter.\n- The `ge=1` annotation ensures that `item_id` must be an integer greater than or equal to 1.",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [],
+        "phantom_citations": [],
+        "latency_s": 9.58,
+        "cost_usd": 0.0,
+        "usage": {
+          "model": "ollama:qwen2.5:3b",
+          "input_tokens": 1527,
+          "output_tokens": 148
+        },
+        "verdict": {
+          "reasoning": "The answer recommends using Path with ge=1 inside Annotated, which source 2 directly supports. The code is a simplified version of the example in source 2, with the q parameter removed, and that simplification is fine. Calling ge an 'annotation' is loose wording, not a factual error. The answer contains no citations.",
+          "unsupported_claims": [],
+          "answers_question": "fully",
+          "bad_citations": []
+        },
+        "outcome": "correct",
+        "notes": []
+      },
+      {
+        "id": "q16",
+        "category": "code-name",
+        "question": "What does Body(embed=True) do?",
+        "model": "ollama:qwen2.5:3b",
+        "answer": "Body(embed=True) instructs FastAPI to expect the body of a request to be embedded under a key named 'item' when using it with a single body parameter. Without embed, if you have a single body parameter from a Pydantic model, FastAPI will expect its body directly in the request. With embed=True, as shown in the example provided [1], the body is expected to contain an object under the key 'item', which then contains the fields of the Pydantic model.",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [
+          1
+        ],
+        "phantom_citations": [],
+        "latency_s": 7.37,
+        "cost_usd": 0.0,
+        "usage": {
+          "model": "ollama:qwen2.5:3b",
+          "input_tokens": 1344,
+          "output_tokens": 102
+        },
+        "verdict": {
+          "reasoning": "The answer correctly states that without embed FastAPI expects the model body directly, and with embed=True it expects a JSON object with the model contents nested under a key. That matches sources 1\u20133, and citation [1] is supported. However, the first sentence says the key is always named 'item'. The sources only show 'item' because the parameter in the example is named item; source 3 speaks generically of embedding 'in a key', so that generalization is not supported.",
+          "unsupported_claims": [
+            "Body(embed=True) instructs FastAPI to expect the body embedded under a key named 'item' (stated generally rather than as the example's parameter name)"
+          ],
+          "answers_question": "fully",
+          "bad_citations": []
+        },
+        "outcome": "unfaithful",
+        "notes": []
+      },
+      {
+        "id": "q17",
+        "category": "direct",
+        "question": "How do I add validation and metadata to fields inside a Pydantic model?",
+        "model": "ollama:qwen2.5:3b",
+        "answer": "You can add validation and metadata to fields inside a Pydantic model using the `Field` function. Here's how you can use it:\n\n```python\nfrom pydantic import BaseModel, Field\n\nclass Item(BaseModel):\n    name: str = Field(title=\"The name of the item\", max_length=100)\n    description: str | None = None\n    price: float = Field(gt=0, description=\"The price must be greater than zero\")\n    tax: float | None = None\n\nitem = Item(name=\"Foo\", price=35.4, tax=3.2)\n\nprint(item.model_dump_json())  # Output will include validation metadata in JSON Schema\n```\n\nIn this example:\n- `name` is a string field with title and max_length validations.\n- `price` is a float field with a greater than zero (`gt`) validation.\n\nThis approach allows you to specify additional information about the fields, such as titles or constraints.",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [],
+        "phantom_citations": [],
+        "latency_s": 11.3,
+        "cost_usd": 0.0,
+        "usage": {
+          "model": "ollama:qwen2.5:3b",
+          "input_tokens": 1302,
+          "output_tokens": 200
+        },
+        "verdict": {
+          "reasoning": "The answer correctly says to use Pydantic's `Field` to add validation and metadata to model attributes, which matches sources 1, 2 and 5. Its `Field(title=..., max_length=...)` and `Field(gt=0, description=...)` usages mirror source 5. However, it adds code the sources never show: instantiating the model and calling `model_dump_json()`, with a comment claiming the output includes validation metadata in JSON Schema. The answer contains no citations.",
+          "unsupported_claims": [
+            "Calling `item.model_dump_json()` on the model instance (the `model_dump_json` method does not appear in the sources)",
+            "The comment that the output of `model_dump_json()` will include validation metadata in JSON Schema"
+          ],
+          "answers_question": "fully",
+          "bad_citations": []
+        },
+        "outcome": "unfaithful",
+        "notes": []
+      },
+      {
+        "id": "q18",
+        "category": "direct",
+        "question": "How do I use a Pydantic model inside another model?",
+        "model": "ollama:qwen2.5:3b",
+        "answer": "To use a Pydantic model inside another model, you can inherit from one Pydantic model in the other. This allows for flexibility and different states of an entity without needing a single data model per entity.\n\nHere's how it works:\n\n```Python\nfrom fastapi import FastAPI\nfrom pydantic import BaseModel\n\n\nclass BaseUser(BaseModel):\n    username: str\n    email: str\n\n\nclass UserIn(BaseUser):\n    password: str\n\n\nclass UserDB(BaseUser):\n    full_name: str | None = None\n\n\napp = FastAPI()\n\n\n@app.post(\"/users/\")\nasync def create_user(user_in: UserIn):\n    user_db = UserDB(**user_in.model_dump())\n    return user_db\n```\n\nIn this example, `BaseUser` is the base model with common fields like `username` and `email`. `UserIn` extends `BaseUser` to include a password field. `UserDB` also extends `BaseUser` but can have an additional `full_name` field.\n\nWhen creating a new user (`create_user` function), you pass in a `UserIn` object, which is then used to create a `UserDB` object by passing its attributes directly using the `.model_dump()` method.",
+        "retrieval_hit": false,
+        "refused": false,
+        "cited": [],
+        "phantom_citations": [],
+        "latency_s": 12.13,
+        "cost_usd": 0.0,
+        "usage": {
+          "model": "ollama:qwen2.5:3b",
+          "input_tokens": 1005,
+          "output_tokens": 254
+        },
+        "verdict": {
+          "reasoning": "The question asks about nesting one model inside another (a submodel as a field type), which none of the sources cover directly; the answer reinterprets it as inheritance. Source 3 does say 'inherit freely', and sources 1 and 4 describe unpacking model_dump() into another model. However, the specific code (BaseUser, UserDB, the /users/ endpoint) and its inheritance structure are not shown in the sources. The answer has no citations. It also does not address actual nested models, so at best it partially answers the question.",
+          "unsupported_claims": [
+            "The code example defining BaseUser, UserIn(BaseUser), UserDB(BaseUser) with the given fields and the /users/ endpoint",
+            "UserIn extends BaseUser to include a password field; UserDB extends BaseUser with an additional full_name field",
+            "Inheriting from one Pydantic model in the other is how to use a Pydantic model inside another model"
+          ],
+          "answers_question": "partially",
+          "bad_citations": []
+        },
+        "outcome": "unfaithful",
+        "notes": []
+      },
+      {
+        "id": "q19",
+        "category": "direct",
+        "question": "How do I add example data to the request body shown in the docs?",
+        "model": "ollama:qwen2.5:3b",
+        "answer": "To add example data to the request body shown in the docs, you can use the `openapi_examples` parameter for the `Body()` function. Here's a concise code example:\n\n```python\nfrom fastapi import FastAPI, Body\n\napp = FastAPI()\n\n@app.post(\"/items/\")\nasync def create_item(\n    item: dict = Body(..., examples={\n        \"normal\": {\n            \"summary\": \"A normal valid item\",\n            \"description\": \"A sample CRUD item to create.\",\n            \"value\": {\"name\": \"Foo\", \"price\": 35.4},\n        },\n        \"invalid\": {\n            \"summary\": \"Invalid Item\",\n            \"description\": \"Example of invalid input data for the `item` schema.\",\n            \"value\": {\"name\": \"\", \"price\": 10.8, \"count\": 123, \"extra\": 'too much'},\n        }\n    })\n):\n    return item\n```\n\nThis example demonstrates how to add two examples (`normal` and `invalid`) for the request body of a POST `/items/` endpoint. The `examples` parameter is used with the `Body()` function to specify different valid and invalid input data that will be shown in the OpenAPI documentation.",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [],
+        "phantom_citations": [],
+        "latency_s": 12.7,
+        "cost_usd": 0.0,
+        "usage": {
+          "model": "ollama:qwen2.5:3b",
+          "input_tokens": 1060,
+          "output_tokens": 255
+        },
+        "verdict": {
+          "reasoning": "The answer correctly says from source 4 that `openapi_examples` can be used with `Body()`. However, its code uses `examples=` instead, passing a dict of named examples with summary/description/value. Per source 4 that dict structure belongs to `openapi_examples`. Source 3 describes `examples` as a group added to JSON Schemas, so the code and closing explanation contradict the stated approach and the sources. The answer also leaves out the Pydantic `model_config`/`json_schema_extra` approach from source 5, and it has no citations.",
+          "unsupported_claims": [
+            "Code passing named example dicts with summary/description/value to `Body(..., examples={...})`",
+            "The `examples` parameter is used with the `Body()` function to specify different valid and invalid input data that will be shown in the OpenAPI documentation"
+          ],
+          "answers_question": "partially",
+          "bad_citations": []
+        },
+        "outcome": "unfaithful",
+        "notes": []
+      },
+      {
+        "id": "q20",
+        "category": "direct",
+        "question": "How do I read a cookie in a path operation?",
+        "model": "ollama:qwen2.5:3b",
+        "answer": "[source id=\"2\" title=\"Cookie Parameters > Declare `Cookie` parameters\" url=\"https://fastapi.tiangolo.com/tutorial/cookie-params/#declare-cookie-parameters\"]\nYou can define Cookie parameters using the same structure as with Path and Query. Here's an example:\n\n```python\nfrom typing import Annotated\n\nfrom fastapi import FastAPI, Cookie\n\napp = FastAPI()\n\n\n@app.get(\"/items/\")\nasync def read_items(ads_id: Annotated[str | None, Cookie()] = None):\n    return {\"ads_id\": ads_id}\n```\n\nThis code declares a cookie parameter named `ads_id` in the `/items/` path operation.",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [],
+        "phantom_citations": [],
+        "latency_s": 7.62,
+        "cost_usd": 0.0,
+        "usage": {
+          "model": "ollama:qwen2.5:3b",
+          "input_tokens": 952,
+          "output_tokens": 136
+        },
+        "verdict": {
+          "reasoning": "The answer opens with a non-standard source reference rather than numbered citations, so there are no [n] citations to evaluate. Its explanation and code match source 2 almost exactly; the only difference is the import order, which is trivial. The answer addresses the question, though it leaves out the note that `Cookie` must be used or the parameter is treated as a query parameter, and the note about the docs UI not sending cookies. The core how-to is still there.",
+          "unsupported_claims": [],
+          "answers_question": "fully",
+          "bad_citations": []
+        },
+        "outcome": "correct",
+        "notes": []
+      },
+      {
+        "id": "q21",
+        "category": "code-name",
+        "question": "Why is my header parameter user_agent read from the User-Agent header, and how do I turn that off?",
+        "model": "ollama:qwen2.5:3b",
+        "answer": "To ensure that the `user_agent` header parameter reads from the `User-Agent` HTTP header, you need to use the `Header` function with underscores in your parameter name. This conversion happens automatically by default.\n\nIf you want to disable this automatic conversion of underscores to hyphens for the `user_agent` parameter, you can set the `convert_underscores` parameter to `False`. Here is an example:\n\n```python\nfrom typing import Annotated\n\nfrom fastapi import FastAPI, Header\n\napp = FastAPI()\n\n\n@app.get(\"/items/\")\nasync def read_items(\n    strange_header: Annotated[str | None, Header(convert_underscores=False)] = None,\n):\n    return {\"strange_header\": strange_header}\n```\n\nIn this example:\n- The `Header` function is used to declare the `strange_header` parameter.\n- The `convert_underscores` parameter is set to `False`, which disables the automatic conversion of underscores in the parameter name.\n\nBy setting `convert_underscores=False`, you can use a standard Python style (like `user_agent`) for your header parameters, and it will not be automatically converted to `User-Agent`.",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [],
+        "phantom_citations": [],
+        "latency_s": 12.45,
+        "cost_usd": 0.0,
+        "usage": {
+          "model": "ollama:qwen2.5:3b",
+          "input_tokens": 1165,
+          "output_tokens": 240
+        },
+        "verdict": {
+          "reasoning": "The answer correctly states that conversion happens by default and that convert_underscores=False disables it, with code from source 2. However, it barely explains the 'why' (hyphens are invalid in Python identifiers, and headers are case-insensitive). It also says setting False lets you 'use a standard Python style for your header parameters', which inverts the source: snake_case usage is what the default conversion enables. It also omits the warning from source 4 that proxies and servers may disallow headers with underscores. There are no citations.",
+          "unsupported_claims": [
+            "By setting `convert_underscores=False`, you can use a standard Python style (like `user_agent`) for your header parameters"
+          ],
+          "answers_question": "partially",
+          "bad_citations": []
+        },
+        "outcome": "unfaithful",
+        "notes": []
+      },
+      {
+        "id": "q22",
+        "category": "paraphrase",
+        "question": "How do I make sure the password field is never returned to the client?",
+        "model": "ollama:qwen2.5:3b",
+        "answer": "I couldn't find this in the FastAPI docs I have.",
+        "retrieval_hit": false,
+        "refused": true,
+        "cited": [],
+        "phantom_citations": [],
+        "latency_s": 5.42,
+        "cost_usd": 0.0,
+        "usage": {
+          "model": "ollama:qwen2.5:3b",
+          "input_tokens": 1456,
+          "output_tokens": 14
+        },
+        "verdict": null,
+        "outcome": "justified_refusal",
+        "notes": []
+      },
+      {
+        "id": "q23",
+        "category": "code-name",
+        "question": "What does response_model_exclude_unset do?",
+        "model": "ollama:qwen2.5:3b",
+        "answer": "[1] [3] [4] [5] indicate that `response_model_exclude_unset=True` in the path operation decorator excludes default values and unset (not set) fields from the JSON response. It includes only those explicitly set by the user.",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [
+          1,
+          3,
+          4,
+          5
+        ],
+        "phantom_citations": [],
+        "latency_s": 5.4,
+        "cost_usd": 0.0,
+        "usage": {
+          "model": "ollama:qwen2.5:3b",
+          "input_tokens": 1222,
+          "output_tokens": 52
+        },
+        "verdict": {
+          "reasoning": "The answer says `response_model_exclude_unset=True` drops unset fields and returns only explicitly set values, which sources 1 and 4 support. It leaves out the nuance in source 5: values set explicitly are still included even when they equal the defaults. Without that, the phrase \"excludes default values\" is somewhat misleading. Source 3 only covers `exclude_defaults` and `exclude_none`, not `exclude_unset`, so citing it is wrong.",
+          "unsupported_claims": [],
+          "answers_question": "partially",
+          "bad_citations": [
+            3
+          ]
+        },
+        "outcome": "partial",
+        "notes": []
+      },
+      {
+        "id": "q24",
+        "category": "direct",
+        "question": "How do I return status code 201 when an item is created?",
+        "model": "ollama:qwen2.5:3b",
+        "answer": "To return a `status_code` of `201` when creating an item, you can use the following code snippet:\n\n```python\nfrom fastapi import FastAPI\n\napp = FastAPI()\n\n\n@app.post(\"/items/\", status_code=status.HTTP_201_CREATED)\nasync def create_item(name: str):\n    return {\"name\": name}\n```\n\nThis sets the `status_code` for the response to `201`, which is used for \"Created\" HTTP status.",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [],
+        "phantom_citations": [],
+        "latency_s": 8.4,
+        "cost_usd": 0.0,
+        "usage": {
+          "model": "ollama:qwen2.5:3b",
+          "input_tokens": 1521,
+          "output_tokens": 100
+        },
+        "verdict": {
+          "reasoning": "The answer gives a snippet using `status_code=status.HTTP_201_CREATED`, which matches sources 1 and 2, but it imports only `FastAPI` and not `status`. The sources show `from fastapi import FastAPI, status`, so the snippet as written would fail with a NameError and does not match the sources. The statement that 201 means \"Created\" is supported. Because the code is broken and the answer omits the plain `status_code=201` option, it only partially answers the question. There are no citations.",
+          "unsupported_claims": [
+            "The code snippet uses `status.HTTP_201_CREATED` while importing only `from fastapi import FastAPI`, without importing `status`; the sources import `status` via `from fastapi import FastAPI, status`, so this snippet is not supported as working code."
+          ],
+          "answers_question": "partially",
+          "bad_citations": []
+        },
+        "outcome": "unfaithful",
+        "notes": []
+      },
+      {
+        "id": "q25",
+        "category": "direct",
+        "question": "How do I receive HTML form fields instead of JSON?",
+        "model": "ollama:qwen2.5:3b",
+        "answer": "To receive HTML form fields instead of JSON, you can use the `Form` parameter in FastAPI. Here is a code example demonstrating how to define and use it:\n\n```python\nfrom fastapi import FastAPI, Form\n\napp = FastAPI()\n\n\n@app.post(\"/forms/\")\nasync def create_form_data(\n    name: Annotated[str, Form()],\n    age: Annotated[int, Form()]\n):\n    return {\"name\": name, \"age\": age}\n```\n\nIn this example, `Form()` is used to receive form data from the client. The parameters `name` and `age` will be populated with values sent via a HTML `<form>` element's input fields named `name` and `age`, respectively.",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [],
+        "phantom_citations": [],
+        "latency_s": 9.67,
+        "cost_usd": 0.0,
+        "usage": {
+          "model": "ollama:qwen2.5:3b",
+          "input_tokens": 1281,
+          "output_tokens": 148
+        },
+        "verdict": {
+          "reasoning": "The answer correctly says to use `Form`, which source 3 supports. But it has no citations, its code example is invented (a /forms/ endpoint with name and age fields), and the code uses `Annotated` without importing it. The claim about the input fields named name and age is also not in the sources. It leaves out the python-multipart install requirement and the warning about not mixing Form with JSON Body fields, both of which the sources contain.",
+          "unsupported_claims": [
+            "Code example with `/forms/` endpoint `create_form_data` taking `name: Annotated[str, Form()]` and `age: Annotated[int, Form()]`",
+            "The parameters `name` and `age` will be populated with values sent via a HTML `<form>` element's input fields named `name` and `age`"
+          ],
+          "answers_question": "partially",
+          "bad_citations": []
+        },
+        "outcome": "unfaithful",
+        "notes": []
+      },
+      {
+        "id": "q26",
+        "category": "paraphrase",
+        "question": "Should I use bytes or UploadFile for file uploads, and what's the difference?",
+        "model": "ollama:qwen2.5:3b",
+        "answer": "You should use `UploadFile` for file uploads when you need more control over the uploaded file such as its filename and content type. This is because `UploadFile` provides additional metadata like the original filename (`filename`) and MIME type (`content_type`). On the other hand, using `bytes` directly with `File()` allows FastAPI to read the entire file into memory, which works well for smaller files but can be problematic for larger ones due to memory constraints. Using `UploadFile` is recommended for handling larger files or when you need more control over how and where the uploaded file is stored.",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [],
+        "phantom_citations": [],
+        "latency_s": 7.66,
+        "cost_usd": 0.0,
+        "usage": {
+          "model": "ollama:qwen2.5:3b",
+          "input_tokens": 1218,
+          "output_tokens": 122
+        },
+        "verdict": {
+          "reasoning": "The answer correctly states UploadFile exposes filename and content_type (source 4) and that bytes reads whole contents into memory, working well for small files (source 5). However, it claims 'problematic for larger ones due to memory constraints' and that UploadFile is 'recommended for handling larger files' and gives control over 'where the uploaded file is stored' \u2014 the sources say UploadFile has advantages but the listed advantages (spooled file, large file handling) are cut off. No citations used. It omits the async methods and the file-like object attribute.",
+          "unsupported_claims": [
+            "bytes can be problematic for larger files due to memory constraints",
+            "Using UploadFile is recommended for handling larger files",
+            "UploadFile gives more control over how and where the uploaded file is stored"
+          ],
+          "answers_question": "partially",
+          "bad_citations": []
+        },
+        "outcome": "unfaithful",
+        "notes": []
+      },
+      {
+        "id": "q27",
+        "category": "direct",
+        "question": "How do I return a 404 error when an item is not found?",
+        "model": "ollama:qwen2.5:3b",
+        "answer": "To return a 404 error when an item is not found, you can use the `HTTPException` class from FastAPI. Here's how you can implement it in your code:\n\n```python\nfrom fastapi import FastAPI, HTTPException\n\napp = FastAPI()\n\nitems = {\"foo\": \"The Foo Wrestlers\"}\n\n@app.get(\"/items/{item_id}\")\nasync def read_item(item_id: str):\n    if item_id not in items:\n        raise HTTPException(status_code=404, detail=\"Item not found\")\n    return {\"item\": items[item_id]}\n```\n\nIn this example, when the client requests an item by a non-existent `item_id`, it will receive an HTTP status code of 404 (the \"not found\" error), and a JSON response indicating that the requested item was not found.",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [],
+        "phantom_citations": [],
+        "latency_s": 10.36,
+        "cost_usd": 0.0,
+        "usage": {
+          "model": "ollama:qwen2.5:3b",
+          "input_tokens": 1465,
+          "output_tokens": 173
+        },
+        "verdict": {
+          "reasoning": "The answer reproduces the code example from sources 1 and 3 and describes the resulting 404 response with a JSON detail as in source 2. All claims are grounded in the sources. There are no citations in the answer. It does not mention raising rather than returning, but the code shows raise, which is sufficient to answer the question.",
+          "unsupported_claims": [],
+          "answers_question": "fully",
+          "bad_citations": []
+        },
+        "outcome": "correct",
+        "notes": []
+      },
+      {
+        "id": "q28",
+        "category": "code-name",
+        "question": "How do I customize the response FastAPI sends for a RequestValidationError?",
+        "model": "ollama:qwen2.5:3b",
+        "answer": "To customize the response FastAPI sends for a `RequestValidationError`, you can override the default exception handler. Here's how you can do it:\n\n```python\nfrom fastapi import FastAPI, Request\nfrom fastapi.encoders import jsonable_encoder\nfrom fastapi.exceptions import RequestValidationError\nfrom fastapi.responses import JSONResponse\n\napp = FastAPI()\n\n\n@app.exception_handler(RequestValidationError)\nasync def validation_exception_handler(request: Request, exc: RequestValidationError):\n    return JSONResponse(\n        status_code=422,\n        content=jsonable_encoder({\"detail\": exc.errors(), \"body\": exc.body}),\n    )\n```\n\nThis code sets up an exception handler for `RequestValidationError` exceptions. It returns a JSON response with the validation errors and the body of the invalid request data, allowing you to inspect or log this information as needed.",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [],
+        "phantom_citations": [],
+        "latency_s": 9.92,
+        "cost_usd": 0.0,
+        "usage": {
+          "model": "ollama:qwen2.5:3b",
+          "input_tokens": 1401,
+          "output_tokens": 170
+        },
+        "verdict": {
+          "reasoning": "The answer overrides the handler with @app.exception_handler(RequestValidationError) and returns a JSONResponse that includes exc.errors() and exc.body. This matches the code in source 1, and source 4 supports the overriding approach. The answer has no citations. All of its claims are supported by the sources, and it fully answers the question.",
+          "unsupported_claims": [],
+          "answers_question": "fully",
+          "bad_citations": []
+        },
+        "outcome": "correct",
+        "notes": []
+      },
+      {
+        "id": "q29",
+        "category": "paraphrase",
+        "question": "How do I update only the fields the client actually sent?",
+        "model": "ollama:qwen2.5:3b",
+        "answer": "To update only the fields that the client actually sent, you can use the `exclude_unset` parameter in Pydantic's model's `.model_dump()` method. This ensures that only the data provided by the user is included in the dictionary used for updating.\n\nHere\u2019s a concise example based on the sources:\n\n```python\nfrom fastapi import FastAPI, HTTPException\nfrom pydantic import BaseModel\n\napp = FastAPI()\n\nclass Hero(BaseModel):\n    name: str\n    description: str | None = None\n    price: float\n    tax: float | None = None\n\n@app.patch(\"/heroes/{hero_id}\", response_model=Hero)\nasync def update_hero(hero_id: int, hero_data: Hero, exclude_unset=True):\n    # Assuming you have a database model for Heroes and a function to get the current data from it.\n    hero_db = await get_hero_from_db(hero_id)\n\n    # Update only the fields that were set by the client\n    updated_hero = hero_db.model_dump(exclude_unset=exclude_unset)\n    \n    # Use this updated dictionary to update your database model\n    hero_db.update(updated_hero)\n    \n    return hero_db\n```\n\nIn this example, `hero_data` is a Pydantic model representing the data sent by the client. The `.model_dump(exclude_unset=True)` method generates a dictionary that excludes any default values, ensuring only the fields provided in the request are updated.",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [],
+        "phantom_citations": [],
+        "latency_s": 12.93,
+        "cost_usd": 0.0,
+        "usage": {
+          "model": "ollama:qwen2.5:3b",
+          "input_tokens": 1175,
+          "output_tokens": 293
+        },
+        "verdict": {
+          "reasoning": "The prose correctly describes using exclude_unset with .model_dump(), which sources 2 and 4 support. The code, however, is ungrounded and wrong. It passes exclude_unset as an endpoint parameter, calls model_dump on hero_db (the stored data) instead of the client input, and uses hero_db.update and get_hero_from_db, none of which appear in the sources. It also leaves out the sources' approach of copying the stored model with the update parameter (or sqlmodel_update) and saving the result. There are no citations to check.",
+          "unsupported_claims": [
+            "Code passes `exclude_unset=True` as an endpoint function parameter",
+            "Code calls `hero_db.model_dump(exclude_unset=exclude_unset)` on the stored DB object rather than on the client input",
+            "`get_hero_from_db` function is not in sources",
+            "`hero_db.update(updated_hero)` method is not in sources",
+            "Use of `response_model=Hero` with a Hero model having price/tax fields is not supported by sources"
+          ],
+          "answers_question": "partially",
+          "bad_citations": []
+        },
+        "outcome": "unfaithful",
+        "notes": []
+      },
+      {
+        "id": "q30",
+        "category": "direct",
+        "question": "What is dependency injection in FastAPI and how do I create a dependency?",
+        "model": "ollama:qwen2.5:3b",
+        "answer": "[1] [5]\n\nDependency injection in FastAPI allows you to declare what your *path operation functions* require to work, such as shared logic or database connections. This system helps minimize code repetition by providing dependencies automatically.\n\nTo create a dependency in FastAPI, you define a function that can take the same parameters as a path operation function. Here is an example:\n\n```python\nfrom typing import Annotated\nfrom fastapi import Depends, FastAPI\n\napp = FastAPI()\n\nasync def common_parameters(q: str | None = None, skip: int = 0, limit: int = 100):\n    return {\"q\": q, \"skip\": skip, \"limit\": limit}\n\n@app.get(\"/items/\")\nasync def read_items(commons: Annotated[dict, Depends(common_parameters)]):\n    return commons\n\n@app.get(\"/users/\")\nasync def read_users(commons: Annotated[dict, Depends(common_parameters)]):\n    return commons\n```\n\nIn this example, `common_parameters` is a dependency that returns a dictionary containing the query parameters. It can be used in path operation functions like `/items/` and `/users/`.",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [
+          1,
+          5
+        ],
+        "phantom_citations": [],
+        "latency_s": 12.01,
+        "cost_usd": 0.0,
+        "usage": {
+          "model": "ollama:qwen2.5:3b",
+          "input_tokens": 1229,
+          "output_tokens": 235
+        },
+        "verdict": {
+          "reasoning": "The answer defines dependency injection consistent with source 1 and shows the dependency creation example from source 5, accurately describing the function as taking the same parameters as a path operation function. The citations [1] [5] are placed at the top, not attached to specific sentences, but both sources support the content. The minor wording 'path operation functions like /items/ and /users/' is a loose paraphrase but is grounded in the code.",
+          "unsupported_claims": [],
+          "answers_question": "fully",
+          "bad_citations": []
+        },
+        "outcome": "correct",
+        "notes": []
+      },
+      {
+        "id": "q31",
+        "category": "code-name",
+        "question": "If two dependencies both depend on the same sub-dependency, is it called twice per request?",
+        "model": "ollama:qwen2.5:3b",
+        "answer": "I couldn't find this in the FastAPI docs I have. [1]",
+        "retrieval_hit": true,
+        "refused": true,
+        "cited": [
+          1
+        ],
+        "phantom_citations": [],
+        "latency_s": 4.22,
+        "cost_usd": 0.0,
+        "usage": {
+          "model": "ollama:qwen2.5:3b",
+          "input_tokens": 1160,
+          "output_tokens": 17
+        },
+        "verdict": null,
+        "outcome": "false_refusal",
+        "notes": []
+      },
+      {
+        "id": "q32",
+        "category": "paraphrase",
+        "question": "How do I run a dependency for a path operation when I don't need its return value?",
+        "model": "ollama:qwen2.5:3b",
+        "answer": "To run a dependency for a path operation when you don't need its return value, you can add the dependency to the list of dependencies in the path operation decorator. Here is an example using FastAPI:\n\n```python\nfrom fastapi import Depends, FastAPI\n\napp = FastAPI()\n\nasync def verify_token(x_token: str = Header()):\n    if x_token != \"fake-super-secret-token\":\n        raise HTTPException(status_code=400, detail=\"X-Token header invalid\")\n\n@app.get(\"/items/\", dependencies=[Depends(verify_token)])\nasync def read_items():\n    return {\"item\": \"Foo\", \"Bar\"}\n```\n\nIn this example, `verify_token` is a dependency that checks the `x_token` header. Since we are using it in the path operation decorator with `dependencies`, we don't need to use `Depends` as an argument for the path operation function itself; instead, we list the dependency directly within the dependencies parameter of the path operation decorator.",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [],
+        "phantom_citations": [],
+        "latency_s": 9.73,
+        "cost_usd": 0.0,
+        "usage": {
+          "model": "ollama:qwen2.5:3b",
+          "input_tokens": 1186,
+          "output_tokens": 202
+        },
+        "verdict": {
+          "reasoning": "The answer correctly states the core approach from source 1, which is to add a list of `dependencies` to the path operation decorator. Its code, however, departs from source 2. It uses `x_token: str = Header()` instead of the `Annotated` form shown in the sources. It uses `Header` and `HTTPException` without importing them. It also returns `{\"item\": \"Foo\", \"Bar\"}`, which is invalid Python and does not match the source's list of dicts. The answer contains no citations, so there are none to flag. It does answer the question.",
+          "unsupported_claims": [
+            "Code uses `x_token: str = Header()` default-value syntax, not the Annotated form shown in the sources",
+            "Code imports only Depends and FastAPI yet uses Header and HTTPException (missing imports, not as in sources)",
+            "Code returns `{\"item\": \"Foo\", \"Bar\"}`, an invalid expression not in the sources"
+          ],
+          "answers_question": "fully",
+          "bad_citations": []
+        },
+        "outcome": "unfaithful",
+        "notes": []
+      },
+      {
+        "id": "q33",
+        "category": "paraphrase",
+        "question": "How do I open a database session for each request and make sure it is closed afterwards?",
+        "model": "ollama:qwen2.5:3b",
+        "answer": "To open a database session for each request and ensure it is closed after the request, you can create a dependency that yields a new `Session` object. This approach ensures that one single session per request is used. Here's how you can implement this:\n\n```python\nfrom fastapi import FastAPI, Depends\nfrom sqlalchemy.orm import Session\nimport models  # Assuming your SQLAlchemy model module\n\napp = FastAPI()\n\n# Example of creating the dependency for a database session\ndef get_db_session():\n    db: Session = Session()  # Replace with actual session creation logic\n    try:\n        yield db  # The `yield` keyword allows the session to be used within the request scope.\n    finally:\n        db.close()  # Ensure the session is closed after use\n\n# Example of a route using this dependency\n@app.get(\"/heroes/{hero_id}\")\ndef read_hero(hero_id: int, db_session: Session = Depends(get_db_session)):\n    hero = db_session.query(models.Hero).get(hero_id)\n    if not hero:\n        raise HTTPException(status_code=404, detail=\"Hero not found\")\n    return hero\n```\n\nIn this example, `get_db_session` is a dependency function that yields the database session. The `yield` keyword allows the session to be used within the request scope (`read_hero` route). The `finally` block ensures that the session is closed after use, even if an error occurs during the request. Replace `Session()` with your actual SQLAlchemy session creation logic.",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [],
+        "phantom_citations": [],
+        "latency_s": 14.53,
+        "cost_usd": 0.0,
+        "usage": {
+          "model": "ollama:qwen2.5:3b",
+          "input_tokens": 1452,
+          "output_tokens": 310
+        },
+        "verdict": {
+          "reasoning": "The sources say to create a dependency with yield that provides a new Session per request, plus an Annotated SessionDep. The answer gets that general idea right but invents code: SQLAlchemy's sessionmaker-style Session(), a try/finally with db.close(), a models module, db_session.query(...).get(), and Depends(get_db_session). None of these appear in the sources. The claim that finally closes the session even on errors is also not in the sources. The answer omits SessionDep. No citations are used.",
+          "unsupported_claims": [
+            "Code importing Session from sqlalchemy.orm and creating it with Session()",
+            "Using try/finally with db.close() to close the session",
+            "The finally block ensures the session is closed after use, even if an error occurs during the request",
+            "Using db_session.query(models.Hero).get(hero_id)",
+            "Using Depends(get_db_session) with a models module",
+            "Replace Session() with your actual SQLAlchemy session creation logic"
+          ],
+          "answers_question": "partially",
+          "bad_citations": []
+        },
+        "outcome": "unfaithful",
+        "notes": []
+      },
+      {
+        "id": "q34",
+        "category": "code-name",
+        "question": "How do I read the username and password sent to my /token endpoint?",
+        "model": "ollama:qwen2.5:3b",
+        "answer": "To read the `username` and `password` sent to your `/token` endpoint, you can use FastAPI's dependency injection system. Here is a concise example using both `OAuth2PasswordRequestForm` and `OAuth2PasswordRequestFormStrict`:\n\n### Using `OAuth2PasswordRequestForm`\n```python\nfrom fastapi import Depends, HTTPException, Form, Request\nfrom fastapi.security.oauth2 import OAuth2PasswordRequestForm\n\nasync def get_current_user(form_data: OAuth2PasswordRequestForm = Depends()):\n    user = authenticate_user(form_data.username, form_data.password)\n    if not user:\n        raise HTTPException(status_code=400, detail=\"Incorrect username or password\")\n    \n    return user\n\n@app.post(\"/token\")\nasync def login_for_access_token(\n    request: Request,\n    form_data: OAuth2PasswordRequestForm = Depends()\n):\n    user = await get_current_user(form_data)\n    access_token = create_access_token(data={\"sub\": user.username})\n    return {\"access_token\": access_token, \"token_type\": \"bearer\"}\n```\n\n### Using `OAuth2PasswordRequestFormStrict`\n```python\nfrom fastapi import Depends, HTTPException, Request\nfrom fastapi.security.oauth2 import OAuth2PasswordRequestForm\n\nasync def get_current_user(form_data: OAuth2PasswordRequestForm = Depends()):\n    user = authenticate_user(form_data.username, form_data.password)\n    if not user:\n        raise HTTPException(status_code=400, detail=\"Incorrect username or password\")\n    \n    return user\n\n@app.post(\"/token\")\nasync def login_for_access_token(\n    request: Request,\n    form_data: OAuth2PasswordRequestForm = Depends()\n):\n    user = await get_current_user(form_data)\n    access_token = create_access_token(data={\"sub\": user.username})\n    return {\"access_token\": access_token, \"token_type\": \"bearer\"}\n```\n\nIn both examples:\n- The `/token` endpoint expects a `OAuth2PasswordRequestForm` or `OAuth2PasswordRequestFormStrict` form data.\n- It extracts the `username` and `password` from this form data.\n- If authentication fails (i.e., incorrect username or password), it raises an HTTPException with status code 400.\n- Otherwise, it creates a JWT access token for the authenticated user.\n\nThis approach ensures that you handle both the `OAuth2PasswordRequestForm` and `OAuth2PasswordRequestFormStrict` correctly.",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [],
+        "phantom_citations": [],
+        "latency_s": 20.91,
+        "cost_usd": 0.0,
+        "usage": {
+          "model": "ollama:qwen2.5:3b",
+          "input_tokens": 1406,
+          "output_tokens": 499
+        },
+        "verdict": {
+          "reasoning": "The answer correctly identifies OAuth2PasswordRequestForm and accessing form_data.username/password, which the sources support. However, the code introduces functions and imports not in the sources (authenticate_user, create_access_token, the fastapi.security.oauth2 import path, Request, Form, the Depends() default style). The 'Strict' example does not actually use OAuth2PasswordRequestFormStrict. The answer also claims a JWT is created, while the sources return the username as the token. It also omits the form fields (scope, grant_type, etc.) that the sources describe. No citations are used.",
+          "unsupported_claims": [
+            "Import `from fastapi.security.oauth2 import OAuth2PasswordRequestForm`",
+            "Use of `authenticate_user` function",
+            "Use of `create_access_token(data={\"sub\": user.username})`",
+            "Use of `request: Request` parameter and `Form`/`Request` imports",
+            "The second example uses OAuth2PasswordRequestFormStrict (the code actually uses OAuth2PasswordRequestForm)",
+            "Otherwise, it creates a JWT access token for the authenticated user",
+            "This approach ensures that you handle both OAuth2PasswordRequestForm and OAuth2PasswordRequestFormStrict correctly"
+          ],
+          "answers_question": "partially",
+          "bad_citations": []
+        },
+        "outcome": "unfaithful",
+        "notes": []
+      },
+      {
+        "id": "q35",
+        "category": "multi",
+        "question": "How do I hash passwords and issue JWT access tokens?",
+        "model": "ollama:qwen2.5:3b",
+        "answer": "To hash passwords and issue JWT access tokens in FastAPI using OAuth2 with Password (and hashing), Bearer with JWT, you can follow these steps:\n\n1. **Hash the password**: Use a library like `argon2` to hash the password before storing it in your database.\n\n2. **Create an access token**: After successfully authenticating a user by verifying their credentials and hashing them, create a JWT access token using the `create_access_token()` function from FastAPI's security module.\n\nHere is a code example that demonstrates these steps:\n\n```python\nfrom datetime import timedelta\nfrom typing import Annotated\n\nimport jwt\nfrom fastapi import Depends, HTTPException, status\nfrom fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm\nfrom pydantic import BaseModel\n\n# to get a string like this run:\n# openssl rand -hex 32\nSECRET_KEY = \"09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7\"\nALGORITHM = \"HS256\"\nACCESS_TOKEN_EXPIRE_MINUTES = 30\n\nfake_users_db = {\n    \"johndoe\": {\n        \"username\": \"johndoe\",\n        \"full_name\": \"John Doe\",\n        \"email\": \"johndoe@example.com\",\n        \"hashed_password\": \"$argon2id$v=19$m=65536,t=3,p=4$wagCPXjifgvUFBzq4hqe3w$CYaIb8sB+wtD+Vu/P4uod1+Qof8h+1g7bbDlBID48Rc\",\n        \"disabled\": False,\n    }\n}\n\nclass Token(BaseModel):\n    access_token: str\n    token_type: str\n\ndef verify_password(plain_password, hashed_password):\n    return PasswordHash(hashed_password).verify(plain_password)\n\noauth2_scheme = OAuth2PasswordBearer(tokenUrl=\"token\")\n\nasync def authenticate_user(fake_db, username: str, password: str):\n    user = fake_users_db.get(username)\n    if not user:\n        return False\n    if not verify_password(password, user[\"hashed_password\"]):\n        return False\n    return user\n\ndef create_access_token(data: dict, expires_delta: timedelta | None = None):\n    to_encode = data.copy()\n    if expires_delta:\n        expire = datetime.utcnow() + expires_delta\n    else:\n        expire = datetime.utcnow() + timedelta(minutes=15)\n    to_encode.update({\"exp\": expire})\n    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)\n    return encoded_jwt\n\nasync def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):\n    credentials_exception = HTTPException(\n        status_code=status.HTTP_401_UNAUTHORIZED,\n        detail=\"Could not validate credentials\",\n        headers={\"WWW-Authenticate\": \"Bearer\"},\n    )\n    try:\n        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])\n        username: str = payload.get(\"sub\")\n        if username is None:\n            raise credentials_exception\n        token_data = TokenData(username=username)\n    except InvalidTokenError:\n        raise credentials_exception\n    user = fake_users_db.get(token_data.username)\n    if user is None:\n        raise credentials_exception\n    return user\n\nasync def login_for_access_token(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):\n    user = authenticate_user(fake_users_db, form_data.username, form_data.password)\n    if not user:\n        raise HTTPException(\n            status_code=status.HTTP_401_UNAUTHORIZED,\n            detail=\"Incorrect username or password\",\n            headers={\"WWW-Authenticate\": \"Bearer\"},\n        )\n    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)\n    access_token = create_access_token(data={\"sub\": user[\"username\"]}, expires_delta=access_token_expires)\n    return {\"access_token\": access_token, \"token_type\": \"bearer\"}\n```\n\nThis code includes functions to authenticate users and generate JWT tokens. The `authenticate_user` function verifies the username and password combination against your database. The `create_access_token` function generates a new token with an expiration time based on the `ACCESS_TOKEN_EXPIRE_MINUTES` setting.\n\nThe `login_for_access_token` function is used as a route handler to handle login requests, where it authenticates the user and returns a JWT access token in the response.",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [],
+        "phantom_citations": [],
+        "latency_s": 37.54,
+        "cost_usd": 0.0,
+        "usage": {
+          "model": "ollama:qwen2.5:3b",
+          "input_tokens": 1512,
+          "output_tokens": 960
+        },
+        "verdict": {
+          "reasoning": "The answer mixes source content (constants, fake_users_db, Token model, login_for_access_token flow) with substantial outside or invented content. The sources show pwdlib's PasswordHash but never show how it is used; verify_password, authenticate_user, create_access_token and get_current_user bodies are not in the sources. The claim that create_access_token comes from FastAPI's security module is false and unsupported, and recommending an 'argon2' library is not stated in the sources. The answer includes no citations. It gives partial help, but its hashing guidance is not grounded and it misses that the sources use pwdlib.",
+          "unsupported_claims": [
+            "Use a library like `argon2` to hash the password before storing it in your database.",
+            "create a JWT access token using the `create_access_token()` function from FastAPI's security module",
+            "After successfully authenticating a user by verifying their credentials and hashing them",
+            "verify_password implementation using PasswordHash(hashed_password).verify(plain_password)",
+            "authenticate_user implementation (looking up the user and calling verify_password)",
+            "create_access_token implementation using datetime.utcnow(), a 15-minute default expiry, an 'exp' claim and jwt.encode",
+            "get_current_user implementation using jwt.decode, payload.get('sub') and InvalidTokenError handling",
+            "oauth2_scheme = OAuth2PasswordBearer(tokenUrl=\"token\")",
+            "The `authenticate_user` function verifies the username and password combination against your database.",
+            "The `create_access_token` function generates a new token with an expiration time based on the `ACCESS_TOKEN_EXPIRE_MINUTES` setting."
+          ],
+          "answers_question": "partially",
+          "bad_citations": []
+        },
+        "outcome": "unfaithful",
+        "notes": []
+      },
+      {
+        "id": "q36",
+        "category": "direct",
+        "question": "How do I allow my frontend on another domain to call my API from the browser?",
+        "model": "ollama:qwen2.5:3b",
+        "answer": "To allow your frontend running on a different domain to call your API from the browser, you need to configure CORS (Cross-Origin Resource Sharing) in your FastAPI application. Here's how you can set it up using `CORSMiddleware`:\n\n```python\nfrom fastapi.middleware.cors import CORSMiddleware\n\n# In your FastAPI app setup\napp = FastAPI()\n\norigins = [\"http://localhost:8080\"]  # Replace with the frontend domain or path\n\napp.add_middleware(\n    CORSMiddleware,\n    allow_origins=origins,  # List of allowed origins\n    allow_credentials=True,  # Whether to send credentials (like cookies) in CORS requests\n    allow_methods=[\"*\"],  # All HTTP methods are allowed\n    allow_headers=[\"*\"],  # All headers are allowed\n)\n\n# Your other routes and configurations...\n```\n\nReplace `\"http://localhost:8080\"` with the actual domain or path of your frontend. This configuration allows communication between your backend running at `http://localhost` (or whatever port you're using) and a frontend located at `http://localhost:8080`. Adjust the `allow_methods` and `allow_headers` as needed for specific requirements.",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [],
+        "phantom_citations": [],
+        "latency_s": 11.66,
+        "cost_usd": 0.0,
+        "usage": {
+          "model": "ollama:qwen2.5:3b",
+          "input_tokens": 1039,
+          "output_tokens": 256
+        },
+        "verdict": {
+          "reasoning": "The answer correctly says to use `CORSMiddleware` with a list of allowed origins, which sources 2 and 4 support. However, the import path `fastapi.middleware.cors` and the `app.add_middleware(...)` call do not appear in the sources. The code also sets `allow_credentials=True` together with `allow_methods=[\"*\"]` and `allow_headers=[\"*\"]`, which source 5 explicitly forbids. It further suggests an origin can be a \"path\", which the sources do not say. There are no citations to check.",
+          "unsupported_claims": [
+            "from fastapi.middleware.cors import CORSMiddleware (the import path is not in the sources)",
+            "app.add_middleware(CORSMiddleware, ...) (the add_middleware call is not shown in the sources)",
+            "Using allow_credentials=True with allow_methods=[\"*\"] and allow_headers=[\"*\"] is presented as a valid configuration, but source 5 says wildcards cannot be used when allow_credentials is True",
+            "Replace with the frontend domain or path (the sources do not say an origin can be a path)"
+          ],
+          "answers_question": "partially",
+          "bad_citations": []
+        },
+        "outcome": "unfaithful",
+        "notes": []
+      },
+      {
+        "id": "q37",
+        "category": "direct",
+        "question": "How do I split my application into multiple files?",
+        "model": "ollama:qwen2.5:3b",
+        "answer": "To split your FastAPI application into multiple files, you can use `APIRouter` to organize the *path operations* related to specific modules. Here's a concise example based on the sources:\n\n1. Create a file for each module that needs its own path operations. For instance, if you have a submodule dedicated to handling users, create `/app/routers/users.py`.\n\n2. Use `APIRouter` in your main application file (`/app/main.py`) to include these modules.\n\nHere's how it looks:\n\n```python\n# /app/main.py\n\nfrom fastapi import FastAPI\nfrom app.routers.users import router as users_router  # Assuming you have a submodule named 'users'\n\napp = FastAPI()\n\napp.include_router(users_router)\n```\n\nThis way, your main application file remains simple and organized. The specific logic for each module is kept in its own dedicated file.\n\nFor example, if `/app/routers/users.py` contains path operations related to users:\n\n```python\n# /app/routers/users.py\n\nfrom fastapi import APIRouter\n\nusers_router = APIRouter()\n\n@users_router.post(\"/users/\")\nasync def create_user():\n    # User creation logic here\n    pass\n\n# Add more routes as needed for user management\n```\n\nBy organizing your application in this manner, you can keep related functionality together and maintain a clean structure.",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [],
+        "phantom_citations": [],
+        "latency_s": 12.38,
+        "cost_usd": 0.0,
+        "usage": {
+          "model": "ollama:qwen2.5:3b",
+          "input_tokens": 1070,
+          "output_tokens": 277
+        },
+        "verdict": {
+          "reasoning": "The answer correctly draws on the sources for using APIRouter in submodules like app/routers/users.py and for keeping main.py simple. However, app.include_router is never mentioned in the sources, and neither are APIRouter() instantiation or decorator usage. Step 2 is also wrong: it says to use APIRouter in main.py to include modules. The code is internally inconsistent, since it imports `router` from a file that defines `users_router`. The answer has no citations at all.",
+          "unsupported_claims": [
+            "Use `APIRouter` in your main application file (`/app/main.py`) to include these modules.",
+            "app.include_router(users_router)",
+            "from app.routers.users import router as users_router",
+            "users_router = APIRouter()",
+            "@users_router.post(\"/users/\") decorator usage on an APIRouter instance"
+          ],
+          "answers_question": "partially",
+          "bad_citations": []
+        },
+        "outcome": "unfaithful",
+        "notes": []
+      },
+      {
+        "id": "q38",
+        "category": "code-name",
+        "question": "How do I test my FastAPI app with pytest?",
+        "model": "ollama:qwen2.5:3b",
+        "answer": "To test your FastAPI app with `pytest`, you need to follow these steps:\n\n1. Install the required packages by adding them to your project using `uv add`:\n```bash\n$ uv add httpx pytest\n```\n\n2. Import and create a `TestClient` object for your FastAPI application.\n\n3. Write test functions that start with `test_`, which are recognized by `pytest`.\n\n4. Use the `TestClient` to make HTTP requests and assert the expected responses using standard Python expressions.\n\nHere is an example based on the provided documentation:\n\n```python\nfrom fastapi import FastAPI\nfrom fastapi.testclient import TestClient\n\napp = FastAPI()\n\n\n@app.get(\"/\")\nasync def read_main():\n    return {\"msg\": \"Hello World\"}\n\nclient = TestClient(app)\n\ndef test_read_main():\n    response = client.get(\"/\")\n    assert response.status_code == 200\n    assert response.json() == {\"msg\": \"Hello World\"}\n```\n\nThis example sets up a simple FastAPI app and tests the root endpoint. You can extend this by adding more complex scenarios as needed for your application.",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [],
+        "phantom_citations": [],
+        "latency_s": 13.46,
+        "cost_usd": 0.0,
+        "usage": {
+          "model": "ollama:qwen2.5:3b",
+          "input_tokens": 1351,
+          "output_tokens": 230
+        },
+        "verdict": {
+          "reasoning": "The answer correctly describes installing httpx and pytest, creating a TestClient, naming test functions with test_, and asserting responses, and it reproduces the example from source 1. Combining both installs into one `uv add` command is a reasonable merge of sources 1 and 3. However, it never says how to run the tests (`uv run pytest`), which source 3 provides and which matters for the question. It also leaves out the tip that tests are plain `def` functions with no `await`. There are no citations to check.",
+          "unsupported_claims": [],
+          "answers_question": "partially",
+          "bad_citations": []
+        },
+        "outcome": "partial",
+        "notes": []
+      },
+      {
+        "id": "q39",
+        "category": "paraphrase",
+        "question": "How do I serve images and CSS files from a folder?",
+        "model": "ollama:qwen2.5:3b",
+        "answer": "To serve images and CSS files from a folder using FastAPI, you can use the `StaticFiles` utility. Here's how you can set it up:\n\n```python\nfrom fastapi import FastAPI\nfrom fastapi.staticfiles import StaticFiles\n\napp = FastAPI()\n\n# Serve static files like CSS/JS/images from the \"static\" directory.\napp.mount(\"/static\", StaticFiles(directory=\"static\"), name=\"static\")\n\n@app.get(\"/\")\nasync def read_root():\n    return {\"message\": \"Welcome to this awesome app! \ud83d\ude80\"}\n\nif __name__ == \"__main__\":\n    import uvicorn\n    uvicorn.run(app, host=\"127.0.0.1\", port=8000)\n```\n\nIn the code above:\n- `StaticFiles(directory=\"static\")` is used to mount a directory containing static files.\n- The `/static` path will serve these files.\n\nThis setup allows you to access your CSS and image files via URLs like `http://localhost:8000/static/css/style.css` or `http://localhost:8000/static/images/logo.png`.",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [],
+        "phantom_citations": [],
+        "latency_s": 11.43,
+        "cost_usd": 0.0,
+        "usage": {
+          "model": "ollama:qwen2.5:3b",
+          "input_tokens": 1175,
+          "output_tokens": 230
+        },
+        "verdict": {
+          "reasoning": "Source 1 only says StaticFiles can serve static files from a directory automatically. The answer's code details (fastapi.staticfiles import, app.mount, directory parameter, name parameter, uvicorn.run) and URL examples are not in the sources. No citations are used. It also omits the app.frontend() tip, but the core question is addressed.",
+          "unsupported_claims": [
+            "`StaticFiles` is imported from `fastapi.staticfiles`",
+            "`app.mount(\"/static\", StaticFiles(directory=\"static\"), name=\"static\")` is used to mount the directory",
+            "`StaticFiles(directory=\"static\")` takes a `directory` parameter",
+            "The `/static` path will serve these files",
+            "Running with `uvicorn.run(app, host=\"127.0.0.1\", port=8000)`",
+            "Files are accessible via URLs like http://localhost:8000/static/css/style.css or http://localhost:8000/static/images/logo.png"
+          ],
+          "answers_question": "fully",
+          "bad_citations": []
+        },
+        "outcome": "unfaithful",
+        "notes": []
+      },
+      {
+        "id": "q40",
+        "category": "paraphrase",
+        "question": "How do I change or disable the /docs URL?",
+        "model": "ollama:qwen2.5:3b",
+        "answer": "To change or disable the `/docs` URL in FastAPI, you can use the `docs_url` parameter to set a custom path for it. If you want to completely disable it, you can set `docs_url=None`.\n\nHere is an example of how to do this:\n\n```python\nfrom fastapi import FastAPI\n\napp = FastAPI(docs_url=\"/custom-docs\")\n\n@app.get(\"/items/\")\nasync def read_items():\n    return [{\"name\": \"Foo\"}]\n```\n\nIn this code snippet, the Swagger UI will be served at `/custom-docs` instead of the default `/docs`. If you want to disable it entirely:\n\n```python\nfrom fastapi import FastAPI\n\napp = FastAPI(docs_url=None)\n\n@app.get(\"/items/\")\nasync def read_items():\n    return [{\"name\": \"Foo\"}]\n```\n\nIn this case, both Swagger UI and ReDoc will be disabled.",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [],
+        "phantom_citations": [],
+        "latency_s": 9.67,
+        "cost_usd": 0.0,
+        "usage": {
+          "model": "ollama:qwen2.5:3b",
+          "input_tokens": 1115,
+          "output_tokens": 184
+        },
+        "verdict": {
+          "reasoning": "The answer correctly describes using docs_url to change the path and docs_url=None to disable it, matching source 1. However, it claims that setting docs_url=None disables both Swagger UI and ReDoc, which contradicts source 1 (ReDoc is controlled separately via redoc_url). There are no citations.",
+          "unsupported_claims": [
+            "In this case, both Swagger UI and ReDoc will be disabled."
+          ],
+          "answers_question": "fully",
+          "bad_citations": []
+        },
+        "outcome": "unfaithful",
+        "notes": []
+      },
+      {
+        "id": "q41",
+        "category": "multi",
+        "question": "How do I protect an endpoint so only logged-in users can call it, and get the current user inside it?",
+        "model": "ollama:qwen2.5:3b",
+        "answer": "To protect an endpoint so only logged-in users can call it and to get the current user inside it, you need to define dependencies that check if a user is active. Here's how you can set up such an endpoint:\n\n```python\nfrom fastapi import APIRouter, Depends, HTTPException, status\nfrom fastapi.security.oauth2 import OAuth2PasswordBearer\n\nrouter = APIRouter()\n\n# Define the OAuth2 scheme and get_current_user dependency\noauth2_scheme = OAuth2PasswordBearer(tokenUrl=\"token\")\n\nasync def get_current_active_user(current_user: Annotated[User, Depends(oauth2_scheme)]):\n    if current_user.disabled:\n        raise HTTPException(status_code=400, detail=\"Inactive user\")\n    return current_user\n\n# Define the login endpoint\n@app.post(\"/token\", response_model=User)\ndef login(form_data: OAuth2PasswordRequestForm = Depends()):\n    user_dict = fake_users_db.get(form_data.username)\n    if not user_dict:\n        raise HTTPException(status_code=400, detail=\"Incorrect username or password\")\n    user = UserInDB(**user_dict)\n    hashed_password = fake_hash_password(form_data.password)\n    if not hashed_password == user.hashed_password:\n        raise HTTPException(\n            status_code=status.HTTP_401_UNAUTHORIZED,\n            detail=\"Incorrect username or password\",\n            headers={\"WWW-Authenticate\": \"Bearer\"},\n        )\n    return user\n\n# Define the protected endpoint\n@app.get(\"/protected\", dependencies=[Depends(get_current_active_user)])\nasync def read_users(current_user: User = Depends()):\n    # Your logic here to protect this endpoint and access current_user\n    return {\"message\": f\"Hello {current_user.username}\"}\n```\n\nIn this example, `get_current_active_user` is a dependency that checks if the user is active. The `protected` endpoint uses this dependency as part of its dependencies list, ensuring only logged-in users with an active account can access it.",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [],
+        "phantom_citations": [],
+        "latency_s": 17.78,
+        "cost_usd": 0.0,
+        "usage": {
+          "model": "ollama:qwen2.5:3b",
+          "input_tokens": 1344,
+          "output_tokens": 400
+        },
+        "verdict": {
+          "reasoning": "The answer's code deviates significantly from the sources. Its get_current_active_user depends directly on oauth2_scheme, which yields a token string, so the get_current_user layer the sources use is skipped. The login endpoint adds response_model=User and returns the user, and the protected endpoint uses dependencies=[...] together with current_user: User = Depends(), which would not supply the current user. The 401 raise in login, APIRouter, the import paths and the /protected route are not in the sources. No citations are used. Because the code is broken and misleading, it fails to show how to get the current user correctly.",
+          "unsupported_claims": [
+            "from fastapi import APIRouter ... / from fastapi.security.oauth2 import OAuth2PasswordBearer imports",
+            "router = APIRouter()",
+            "oauth2_scheme = OAuth2PasswordBearer(tokenUrl=\"token\")",
+            "get_current_active_user depends directly on Depends(oauth2_scheme) instead of get_current_user",
+            "@app.post(\"/token\", response_model=User) with login returning the user",
+            "login raises HTTPException 401 'Incorrect username or password' with WWW-Authenticate header when password mismatches",
+            "@app.get(\"/protected\", dependencies=[Depends(get_current_active_user)]) protected endpoint",
+            "current_user: User = Depends() gives access to the current user",
+            "The protected endpoint uses this dependency as part of its dependencies list, ensuring only logged-in users with an active account can access it"
+          ],
+          "answers_question": "no",
+          "bad_citations": []
+        },
+        "outcome": "unfaithful",
+        "notes": []
+      },
+      {
+        "id": "q42",
+        "category": "multi",
+        "question": "How do I add a header with the processing time to every response?",
+        "model": "ollama:qwen2.5:3b",
+        "answer": "To add a custom header `X-Process-Time` containing the time in seconds that it took to process the request and generate a response, you can use middleware as shown in [1] or [2]. Here is an example using middleware:\n\n```python\nimport time\n\nfrom fastapi import FastAPI, Request\n\napp = FastAPI()\n\n\n@app.middleware(\"http\")\nasync def add_process_time_header(request: Request, call_next):\n    start_time = time.perf_counter()\n    response = await call_next(request)\n    process_time = time.perf_counter() - start_time\n    response.headers[\"X-Process-Time\"] = str(process_time)\n    return response\n```\n\nThis middleware function measures the processing time and adds a custom header `X-Process-Time` to every response.",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [
+          1,
+          2
+        ],
+        "phantom_citations": [],
+        "latency_s": 12.11,
+        "cost_usd": 0.0,
+        "usage": {
+          "model": "ollama:qwen2.5:3b",
+          "input_tokens": 1212,
+          "output_tokens": 160
+        },
+        "verdict": {
+          "reasoning": "The answer reproduces the middleware example from sources 1 and 2 exactly and describes it accurately. Both citations support the use of middleware to add the X-Process-Time header. The closing statement that the middleware measures processing time and adds the header to responses is a fair paraphrase of the sources.",
+          "unsupported_claims": [],
+          "answers_question": "fully",
+          "bad_citations": []
+        },
+        "outcome": "correct",
+        "notes": []
+      },
+      {
+        "id": "q43",
+        "category": "overview",
+        "question": "what is FastAPI ?",
+        "model": "ollama:qwen2.5:3b",
+        "answer": "[1] FastAPI is a modern, fast (high-performance) web framework for building APIs with Python based on standard Python type hints. It provides all the functionality for your API and inherits directly from Starlette.",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [
+          1
+        ],
+        "phantom_citations": [],
+        "latency_s": 3.82,
+        "cost_usd": 0.0,
+        "usage": {
+          "model": "ollama:qwen2.5:3b",
+          "input_tokens": 785,
+          "output_tokens": 44
+        },
+        "verdict": {
+          "reasoning": "The answer's first sentence matches source 1's definition almost verbatim. The second sentence, that FastAPI provides all the functionality for your API and inherits from Starlette, is supported by source 2, though it is not cited. Citation [1] is placed oddly at the start, but it supports the first sentence. The answer addresses the question.",
+          "unsupported_claims": [],
+          "answers_question": "fully",
+          "bad_citations": []
+        },
+        "outcome": "correct",
+        "notes": []
+      },
+      {
+        "id": "q44",
+        "category": "overview",
+        "question": "what are the benefits of using FastAPI ?",
+        "model": "ollama:qwen2.5:3b",
+        "answer": "[3] mentions that FastAPI includes an easy-to-use yet powerful Dependency Injection system. It allows dependencies to have dependencies, automatically handles all dependencies, and supports complex user authentication systems, database connections, etc., without compromising on integration with databases or frontends.\n\nAdditionally, [4] states that FastAPI features unlimited \"plug-ins\", meaning no need for them as any integration is simple to use with dependencies, allowing the creation of a \"plug-in\" in 2 lines of code using the same structure and syntax used for path operations. \n\n[5] highlights that thanks to Starlette's test client, testing FastAPI applications is easy and enjoyable, utilizing HTTPX which is familiar and intuitive, and can be tested with pytest.\n\nIn summary, FastAPI offers a robust dependency injection system, supports unlimited integration through simple dependencies, and provides an easy-to-use testing framework.",
+        "retrieval_hit": false,
+        "refused": false,
+        "cited": [
+          3,
+          4,
+          5
+        ],
+        "phantom_citations": [],
+        "latency_s": 8.73,
+        "cost_usd": 0.0,
+        "usage": {
+          "model": "ollama:qwen2.5:3b",
+          "input_tokens": 940,
+          "output_tokens": 176
+        },
+        "verdict": {
+          "reasoning": "The answer summarizes sources 3, 4 and 5 accurately: dependency injection, unlimited plug-ins and easy testing. It leaves out the editor support benefits in source 2 (completion everywhere, type and error checks, less code duplication) and the adoption points in source 1. Its claims are grounded, though the summary's phrase that FastAPI \"provides an easy-to-use testing framework\" slightly overstates source 5, which credits Starlette for testing and says it works with pytest; this is a minor rephrasing.",
+          "unsupported_claims": [],
+          "answers_question": "partially",
+          "bad_citations": []
+        },
+        "outcome": "partial",
+        "notes": []
+      },
+      {
+        "id": "q45",
+        "category": "overview",
+        "question": "what do i need to install to use FastAPI ?",
+        "model": "ollama:qwen2.5:3b",
+        "answer": "[1]",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [
+          1
+        ],
+        "phantom_citations": [],
+        "latency_s": 3.26,
+        "cost_usd": 0.0,
+        "usage": {
+          "model": "ollama:qwen2.5:3b",
+          "input_tokens": 940,
+          "output_tokens": 4
+        },
+        "verdict": {
+          "reasoning": "The answer consists only of a bare citation marker '[1]' with no actual content. It makes no factual claims, so nothing is unsupported, but it gives the user no information about what to install (uv and fastapi[standard], or pip in a virtual environment, as source 1 describes). The citation is not attached to any sentence, so it supports nothing.",
+          "unsupported_claims": [],
+          "answers_question": "no",
+          "bad_citations": []
+        },
+        "outcome": "wrong",
+        "notes": []
+      },
+      {
+        "id": "q46",
+        "category": "overview",
+        "question": "How to install FastAPI?",
+        "model": "ollama:qwen2.5:3b",
+        "answer": "[1] [2][3] FastAPI can be installed by first installing `uv` using the guide provided in [1], and then adding FastAPI to your project. For installation via pip, you need to use a virtual environment. The process is detailed in the tutorial on how to install FastAPI.",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [
+          1,
+          2,
+          3
+        ],
+        "phantom_citations": [],
+        "latency_s": 3.48,
+        "cost_usd": 0.0,
+        "usage": {
+          "model": "ollama:qwen2.5:3b",
+          "input_tokens": 920,
+          "output_tokens": 64
+        },
+        "verdict": {
+          "reasoning": "The answer correctly says to install uv then add FastAPI, and mentions pip within a virtual environment, all supported by source 1. However, it omits the actual command `uv add \"fastapi[standard]\"`, the package name `fastapi[standard]`, and the note about quoting, which are the key parts the user needs. Citations [2] and [3] are about first steps and creating an app instance, not installation, so they do not support the sentence.",
+          "unsupported_claims": [],
+          "answers_question": "partially",
+          "bad_citations": [
+            2,
+            3
+          ]
+        },
+        "outcome": "partial",
+        "notes": []
+      },
+      {
+        "id": "q47",
+        "category": "overview",
+        "question": "Does it cost money to use FastAPI?",
+        "model": "ollama:qwen2.5:3b",
+        "answer": "I couldn't find this in the FastAPI docs I have.",
+        "retrieval_hit": false,
+        "refused": true,
+        "cited": [],
+        "phantom_citations": [],
+        "latency_s": 4.61,
+        "cost_usd": 0.0,
+        "usage": {
+          "model": "ollama:qwen2.5:3b",
+          "input_tokens": 1125,
+          "output_tokens": 14
+        },
+        "verdict": null,
+        "outcome": "justified_refusal",
+        "notes": []
+      },
+      {
+        "id": "u01",
+        "category": "unanswerable",
+        "question": "How do I deploy FastAPI to Kubernetes?",
+        "model": "ollama:qwen2.5:3b",
+        "answer": "I couldn't find this in the FastAPI docs I have. [3] [4]",
+        "retrieval_hit": false,
+        "refused": true,
+        "cited": [
+          3,
+          4
+        ],
+        "phantom_citations": [],
+        "latency_s": 3.14,
+        "cost_usd": 0.0,
+        "usage": {
+          "model": "ollama:qwen2.5:3b",
+          "input_tokens": 853,
+          "output_tokens": 20
+        },
+        "verdict": null,
+        "outcome": "correct_refusal",
+        "notes": []
+      },
+      {
+        "id": "u02",
+        "category": "unanswerable",
+        "question": "How do I use WebSockets in FastAPI?",
+        "model": "ollama:qwen2.5:3b",
+        "answer": "[1] WebSocket support is available in FastAPI, as it is based on Starlette. To use WebSockets in your FastAPI application, you would need to leverage the capabilities provided by Starlette for handling WebSocket connections. However, specific implementation details are not detailed in the given sources. For a comprehensive guide, you might refer to the official documentation or tutorials that cover how to integrate and handle WebSocket connections with FastAPI.",
+        "retrieval_hit": false,
+        "refused": false,
+        "cited": [
+          1
+        ],
+        "phantom_citations": [],
+        "latency_s": 6.03,
+        "cost_usd": 0.0,
+        "usage": {
+          "model": "ollama:qwen2.5:3b",
+          "input_tokens": 1133,
+          "output_tokens": 87
+        },
+        "verdict": {
+          "reasoning": "The answer states that FastAPI supports WebSockets because it is based on Starlette, which source 1 supports, and it notes that the sources lack implementation details, which is accurate. The [1] citation is misplaced at the very start of the answer, but source 1 does support the first sentence. The answer gives no actual usage instructions, and the sources contain none either. So it is grounded but only partially answers the question.",
+          "unsupported_claims": [],
+          "answers_question": "partially",
+          "bad_citations": []
+        },
+        "outcome": "hallucinated",
+        "notes": []
+      },
+      {
+        "id": "u03",
+        "category": "unanswerable",
+        "question": "How do I add rate limiting to my endpoints?",
+        "model": "ollama:qwen2.5:3b",
+        "answer": "I couldn't find this in the FastAPI docs I have.",
+        "retrieval_hit": false,
+        "refused": true,
+        "cited": [],
+        "phantom_citations": [],
+        "latency_s": 6.21,
+        "cost_usd": 0.0,
+        "usage": {
+          "model": "ollama:qwen2.5:3b",
+          "input_tokens": 1610,
+          "output_tokens": 14
+        },
+        "verdict": null,
+        "outcome": "correct_refusal",
+        "notes": []
+      },
+      {
+        "id": "u04",
+        "category": "unanswerable",
+        "question": "How do I stream a large file to the client with StreamingResponse?",
+        "model": "ollama:qwen2.5:3b",
+        "answer": "I couldn't find this in the FastAPI docs I have.",
+        "retrieval_hit": false,
+        "refused": true,
+        "cited": [],
+        "phantom_citations": [],
+        "latency_s": 4.12,
+        "cost_usd": 0.0,
+        "usage": {
+          "model": "ollama:qwen2.5:3b",
+          "input_tokens": 1151,
+          "output_tokens": 14
+        },
+        "verdict": null,
+        "outcome": "correct_refusal",
+        "notes": []
+      },
+      {
+        "id": "u05",
+        "category": "unanswerable",
+        "question": "What is the capital of France?",
+        "model": "ollama:qwen2.5:3b",
+        "answer": "I couldn't find this in the FastAPI docs I have.",
+        "retrieval_hit": false,
+        "refused": true,
+        "cited": [],
+        "phantom_citations": [],
+        "latency_s": 4.04,
+        "cost_usd": 0.0,
+        "usage": {
+          "model": "ollama:qwen2.5:3b",
+          "input_tokens": 1116,
+          "output_tokens": 14
+        },
+        "verdict": null,
+        "outcome": "correct_refusal",
+        "notes": []
+      },
+      {
+        "id": "u06",
+        "category": "unanswerable",
+        "question": "Does FestAPI works with all LLM models?",
+        "model": "ollama:qwen2.5:3b",
+        "answer": "I couldn't find this in the FastAPI docs I have.",
+        "retrieval_hit": false,
+        "refused": true,
+        "cited": [],
+        "phantom_citations": [],
+        "latency_s": 3.83,
+        "cost_usd": 0.0,
+        "usage": {
+          "model": "ollama:qwen2.5:3b",
+          "input_tokens": 1105,
+          "output_tokens": 14
+        },
+        "verdict": null,
+        "outcome": "correct_refusal",
+        "notes": []
+      }
+    ]
+  }
+}
