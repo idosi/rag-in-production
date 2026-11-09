@@ -1,0 +1,357 @@
+{
+  "config": {
+    "retrieval_mode": "rerank",
+    "top_k": 5,
+    "candidate_k": 10,
+    "llm_effort": "medium",
+    "judge": "claude-opus-5-5",
+    "prices_per_mtok": {
+      "claude-haiku-5-5": [
+        0.1,
+        0.5
+      ],
+      "claude-sonnet-5-5": [
+        2.0,
+        10.0
+      ],
+      "claude-opus-5-5": [
+        4.0,
+        20.0
+      ]
+    }
+  },
+  "summary": {
+    "ollama:llama3.1:8b": {
+      "questions": 5,
+      "correct": 0.6,
+      "partial": 0.2,
+      "unfaithful": 0.2,
+      "bad_citations": 0.0,
+      "uncited": 0.0,
+      "phantom_citations": 0,
+      "false_refusals": 0,
+      "justified_refusals": 0,
+      "correct_refusals": "0/0",
+      "grounded_non_answers": 0,
+      "latency_p50_s": 46.61,
+      "cost_per_question_usd": 0.0,
+      "cost_total_usd": 0.0
+    },
+    "ollama:llama3.2:3b": {
+      "questions": 5,
+      "correct": 0.6,
+      "partial": 0.0,
+      "unfaithful": 0.4,
+      "bad_citations": 0.2,
+      "uncited": 0.2,
+      "phantom_citations": 0,
+      "false_refusals": 0,
+      "justified_refusals": 0,
+      "correct_refusals": "0/0",
+      "grounded_non_answers": 0,
+      "latency_p50_s": 26.08,
+      "cost_per_question_usd": 0.0,
+      "cost_total_usd": 0.0
+    }
+  },
+  "judge_cost_usd": 0.1684,
+  "results": {
+    "ollama:llama3.1:8b": [
+      {
+        "id": "q01",
+        "category": "direct",
+        "question": "How do I make a query parameter optional?",
+        "model": "ollama:llama3.1:8b",
+        "answer": "To make a query parameter optional, you can declare its default to `None`:\n\n```python\n@app.get(\"/items/{item_id}\")\nasync def read_item(item_id: str, q: str | None = None):\n    if q:\n        return {\"item_id\": item_id, \"q\": q}\n    return {\"item_id\": item_id}\n```\n[1]",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [
+          1
+        ],
+        "phantom_citations": [],
+        "latency_s": 26.59,
+        "cost_usd": 0.0,
+        "usage": {
+          "model": "ollama:llama3.1:8b",
+          "input_tokens": 1491,
+          "output_tokens": 78
+        },
+        "verdict": {
+          "reasoning": "The answer says to set the default to None and reproduces the example code from source 1, so it is fully grounded and the [1] citation is correct. It covers the core of the question. It leaves out the nuance from source 3 that the type `str | None` alone does not make a parameter optional, but the main answer is complete.",
+          "unsupported_claims": [],
+          "answers_question": "fully",
+          "bad_citations": []
+        },
+        "outcome": "correct",
+        "notes": []
+      },
+      {
+        "id": "q02",
+        "category": "code-name",
+        "question": "What does jsonable_encoder do?",
+        "model": "ollama:llama3.1:8b",
+        "answer": "The `jsonable_encoder` function converts data types (like Pydantic models) to something compatible with JSON (like a `dict`, `list`, etc.) [3][5]. It returns a Python standard data structure that can be encoded with the Python standard `json.dumps()` [1].",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [
+          3,
+          5,
+          1
+        ],
+        "phantom_citations": [],
+        "latency_s": 36.43,
+        "cost_usd": 0.0,
+        "usage": {
+          "model": "ollama:llama3.1:8b",
+          "input_tokens": 1243,
+          "output_tokens": 61
+        },
+        "verdict": {
+          "reasoning": "The answer says jsonable_encoder converts data types like Pydantic models into JSON-compatible structures such as dicts and lists, citing [3] and [5]. It also says the function returns a standard Python data structure that json.dumps() can encode, citing [1]. All of this is supported by the sources. The answer is brief but covers the core question. It leaves out details the sources contain, such as converting datetime to str and FastAPI using the function internally, but these are not essential to what the user asked.",
+          "unsupported_claims": [],
+          "answers_question": "fully",
+          "bad_citations": []
+        },
+        "outcome": "correct",
+        "notes": []
+      },
+      {
+        "id": "q03",
+        "category": "paraphrase",
+        "question": "How do I run code after returning a response?",
+        "model": "ollama:llama3.1:8b",
+        "answer": "You can define background tasks to be run *after* returning a response by using the functionality described in [1]. This is useful for operations that need to happen after a request, but that the client doesn't really have to be waiting for the operation to complete before receiving the response. \n\nFor example, you could send an email notification or process data in the background.\n\n```python\n# Example from source 1:\nfrom fastapi import FastAPI\n\napp = FastAPI()\n\n\n@app.post(\"/items/\")\nasync def create_item(name: str):\n    # Return a response right away\n    return {\"name\": name}\n\n    # Run code in the background to send an email notification or process data\n```\nNote that you would need to implement the actual background task logic separately.",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [
+          1
+        ],
+        "phantom_citations": [],
+        "latency_s": 62.57,
+        "cost_usd": 0.0,
+        "usage": {
+          "model": "ollama:llama3.1:8b",
+          "input_tokens": 1437,
+          "output_tokens": 157
+        },
+        "verdict": {
+          "reasoning": "The answer correctly states, citing [1], that background tasks run after returning a response, and it gives the email and data-processing examples from that source. However, the code block is labelled \"Example from source 1\" but source 1 contains no code. The code itself does not show background tasks; it puts a comment after a return statement, which is misleading. The answer never explains how to define a background task (e.g., BackgroundTasks), and the sources do not cover that either, so the user does not get actionable instructions.",
+          "unsupported_claims": [
+            "The code example is presented as 'Example from source 1', but source 1 contains no code",
+            "The code implies that code placed after a return statement (the comment) runs in the background, which is not supported by the sources",
+            "Note that you would need to implement the actual background task logic separately."
+          ],
+          "answers_question": "partially",
+          "bad_citations": []
+        },
+        "outcome": "unfaithful",
+        "notes": []
+      },
+      {
+        "id": "q04",
+        "category": "direct",
+        "question": "How do I declare a path parameter with a type?",
+        "model": "ollama:llama3.1:8b",
+        "answer": "You can declare the type of a path parameter in the function using standard Python type annotations. For example:\n\n```python\n@app.get(\"/items/{item_id}\")\nasync def read_item(item_id: int):\n    return {\"item_id\": item_id}\n```\nIn this case, `item_id` is declared to be an `int`. [1]",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [
+          1
+        ],
+        "phantom_citations": [],
+        "latency_s": 46.61,
+        "cost_usd": 0.0,
+        "usage": {
+          "model": "ollama:llama3.1:8b",
+          "input_tokens": 1212,
+          "output_tokens": 72
+        },
+        "verdict": {
+          "reasoning": "The answer restates source 1 almost verbatim, including the code example and the explanation that item_id is declared as an int. The citation [1] correctly supports it, and every claim is grounded. It directly answers the question.",
+          "unsupported_claims": [],
+          "answers_question": "fully",
+          "bad_citations": []
+        },
+        "outcome": "correct",
+        "notes": []
+      },
+      {
+        "id": "q05",
+        "category": "paraphrase",
+        "question": "My route /users/me is being matched by /users/{user_id}. Why?",
+        "model": "ollama:llama3.1:8b",
+        "answer": "The path for `/users/{user_id}` would match also for `/users/me`, \"thinking\" that it's receiving a parameter `user_id` with a value of `\"me\"` [1]. To fix this, you need to make sure that the path for `/users/me` is declared before the one for `/users/{user_id}`.",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [
+          1
+        ],
+        "phantom_citations": [],
+        "latency_s": 47.0,
+        "cost_usd": 0.0,
+        "usage": {
+          "model": "ollama:llama3.1:8b",
+          "input_tokens": 1312,
+          "output_tokens": 71
+        },
+        "verdict": {
+          "reasoning": "The answer correctly states, per source 1, that /users/{user_id} matches /users/me by treating \"me\" as the user_id value, and that the fix is to declare /users/me first. However, it never states the actual reason the source gives: path operations are evaluated in order. That reason is only implied by the fix. All claims are grounded and citation [1] supports its sentence.",
+          "unsupported_claims": [],
+          "answers_question": "partially",
+          "bad_citations": []
+        },
+        "outcome": "partial",
+        "notes": []
+      }
+    ],
+    "ollama:llama3.2:3b": [
+      {
+        "id": "q01",
+        "category": "direct",
+        "question": "How do I make a query parameter optional?",
+        "model": "ollama:llama3.2:3b",
+        "answer": "To make a query parameter optional, you need to declare its default value as `None`. \n\nHere's an example:\n\n```python\nfrom fastapi import FastAPI\n\napp = FastAPI()\n\n\n@app.get(\"/items/{item_id}\")\nasync def read_item(item_id: str, q: str | None = None):\n    if q:\n        return {\"item_id\": item_id, \"q\": q}\n    return {\"item_id\": item_id}\n```\n\nIn this case, the function parameter `q` will be optional and will be `None` by default.",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [],
+        "phantom_citations": [],
+        "latency_s": 18.62,
+        "cost_usd": 0.0,
+        "usage": {
+          "model": "ollama:llama3.2:3b",
+          "input_tokens": 1501,
+          "output_tokens": 116
+        },
+        "verdict": {
+          "reasoning": "The answer says to set the default to None and reproduces the example from source 1, along with its explanation. Every statement and the code are supported by source 1. The answer has no citations, so there are none to flag. It fully answers the question.",
+          "unsupported_claims": [],
+          "answers_question": "fully",
+          "bad_citations": []
+        },
+        "outcome": "correct",
+        "notes": []
+      },
+      {
+        "id": "q02",
+        "category": "code-name",
+        "question": "What does jsonable_encoder do?",
+        "model": "ollama:llama3.2:3b",
+        "answer": "The `jsonable_encoder` function converts an object into data that can be stored as JSON. It returns a Python standard data structure (e.g., a `dict`) with values and sub-values that are all compatible with JSON [1]. This means it doesn't return a large `str` containing the data in JSON format, but rather a Python standard data structure that can be easily encoded to JSON.\n\nFor example, if you need to store a Pydantic model or an object with attributes in a database that only receives JSON compatible data, you can use `jsonable_encoder` to convert it into a JSON compatible version [5].\n\n```python\nfrom fastapi import FastAPI\nfrom fastapi.encoders import jsonable_encoder\nfrom pydantic import BaseModel\n\napp = FastAPI()\n\n\nclass Item(BaseModel):\n    title: str\n    timestamp: datetime\n    description: str | None = None\n\n\n@app.put(\"/items/{id}\")\ndef update_item(id: str, item: Item):\n    json_compatible_item_data = jsonable_encoder(item)\n    # use json_compatible_item_data in your database\n```",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [
+          1,
+          5
+        ],
+        "phantom_citations": [],
+        "latency_s": 35.01,
+        "cost_usd": 0.0,
+        "usage": {
+          "model": "ollama:llama3.2:3b",
+          "input_tokens": 1253,
+          "output_tokens": 228
+        },
+        "verdict": {
+          "reasoning": "The answer's description is grounded: it converts data to a JSON-compatible form (source 2), returns a standard Python structure like a `dict` rather than a JSON string (source 1), and suits databases that only accept JSON-compatible data (source 5). The code is adapted from source 5, but it drops the `from datetime import datetime` import while still using `datetime`, so it would not run as written. The answer also omits the explicit datetime-to-`str` conversion and FastAPI's internal use of the function, though it still answers the core question.",
+          "unsupported_claims": [],
+          "answers_question": "fully",
+          "bad_citations": []
+        },
+        "outcome": "correct",
+        "notes": []
+      },
+      {
+        "id": "q03",
+        "category": "paraphrase",
+        "question": "How do I run code after returning a response?",
+        "model": "ollama:llama3.2:3b",
+        "answer": "You can define background tasks to be run *after* returning a response by using the `on_response` parameter in your route decorators [1]. \n\nHere's an example:\n\n```python\nfrom fastapi import FastAPI, Response\nimport asyncio\n\napp = FastAPI()\n\nasync def send_email(request: dict):\n    # Simulate sending an email\n    await asyncio.sleep(2)\n    print(\"Email sent\")\n\n@app.get(\"/send-email/\", response_class=Response)\nasync def get_send_email():\n    await send_email({\"name\": \"John Doe\"})\n    return {\"message\": \"Email sent successfully\"}\n```\n\nIn this example, the `send_email` function is run after returning a response from the `/send-email/` route.",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [
+          1
+        ],
+        "phantom_citations": [],
+        "latency_s": 26.08,
+        "cost_usd": 0.0,
+        "usage": {
+          "model": "ollama:llama3.2:3b",
+          "input_tokens": 1447,
+          "output_tokens": 150
+        },
+        "verdict": {
+          "reasoning": "Source 1 supports only that background tasks can be run after returning a response; it says nothing about an `on_response` parameter, which is fabricated. The code example awaits send_email before returning, so it does not run after the response, and it uses `response_class=Response` with no source support. The answer misleads and does not give a correct method (BackgroundTasks usage is not shown in the sources anyway, but the answer invents a wrong mechanism).",
+          "unsupported_claims": [
+            "Background tasks are defined by using the `on_response` parameter in route decorators",
+            "The code example using `response_class=Response` and awaiting `send_email` inside the path operation",
+            "In this example, the `send_email` function is run after returning a response from the `/send-email/` route"
+          ],
+          "answers_question": "no",
+          "bad_citations": [
+            1
+          ]
+        },
+        "outcome": "unfaithful",
+        "notes": []
+      },
+      {
+        "id": "q04",
+        "category": "direct",
+        "question": "How do I declare a path parameter with a type?",
+        "model": "ollama:llama3.2:3b",
+        "answer": "You can declare the type of a path parameter in the function using standard Python type annotations. [1]\n\n```python\nfrom fastapi import FastAPI\n\napp = FastAPI()\n\n\n@app.get(\"/items/{item_id}\")\nasync def read_item(item_id: int):\n    return {\"item_id\": item_id}\n```\nIn this case, `item_id` is declared to be an `int`.",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [
+          1
+        ],
+        "phantom_citations": [],
+        "latency_s": 12.03,
+        "cost_usd": 0.0,
+        "usage": {
+          "model": "ollama:llama3.2:3b",
+          "input_tokens": 1222,
+          "output_tokens": 81
+        },
+        "verdict": {
+          "reasoning": "The answer restates source 1 almost verbatim: it says to declare path parameter types with standard Python type annotations and reproduces the same code example and explanation. Every claim is grounded in source 1, and citation [1] supports the sentence it follows. This fully answers the question.",
+          "unsupported_claims": [],
+          "answers_question": "fully",
+          "bad_citations": []
+        },
+        "outcome": "correct",
+        "notes": []
+      },
+      {
+        "id": "q05",
+        "category": "paraphrase",
+        "question": "My route /users/me is being matched by /users/{user_id}. Why?",
+        "model": "ollama:llama3.2:3b",
+        "answer": "This happens because the path for `/users/{user_id}` was declared before the one for `/users/me` [1]. \n\nIn FastAPI, path operations are evaluated in order. So, when a request is made to `/users/me`, it first checks if there's a path operation that matches exactly with this path. If not, it then checks if any of the existing paths match this path partially (like `/users/{user_id}`). \n\nIn your case, since `/users/{user_id}` was declared before `/users/me`, it will be matched by `/users/me` because the `{user_id}` part in `/users/me` is considered a parameter that can take any value.",
+        "retrieval_hit": true,
+        "refused": false,
+        "cited": [
+          1
+        ],
+        "phantom_citations": [],
+        "latency_s": 29.82,
+        "cost_usd": 0.0,
+        "usage": {
+          "model": "ollama:llama3.2:3b",
+          "input_tokens": 1322,
+          "output_tokens": 141
+        },
+        "verdict": {
+          "reasoning": "The answer correctly says the problem comes from declaring `/users/{user_id}` before `/users/me`, and that path operations are evaluated in order; source [1] supports both. However, it invents a mechanism where FastAPI first looks for an exact match and only then a partial one. This is not in the sources and contradicts the order-based evaluation they describe. It also never explicitly gives the fix (declare `/users/me` first), which the source states.",
+          "unsupported_claims": [
+            "When a request is made to `/users/me`, it first checks if there's a path operation that matches exactly with this path. If not, it then checks if any of the existing paths match this path partially (like `/users/{user_id}`)."
+          ],
+          "answers_question": "partially",
+          "bad_citations": []
+        },
+        "outcome": "unfaithful",
+        "notes": []
+      }
+    ]
+  }
+}
