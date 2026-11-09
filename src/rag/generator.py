@@ -36,6 +36,9 @@ import anthropic
 import httpx
 
 from rag.models import Answer, RetrievedChunk
+from rag.ollama_tools import ollama_stats
+
+OLLAMA_NUM_CTX = 8192  # context window we ask Ollama for (its default silently cuts the prompt)
 
 # The system prompt sets the rules for the whole conversation. Each rule exists for
 # a reason (see docs/learning/01-foundations.md, section 4.6).
@@ -215,7 +218,7 @@ class OllamaGenerator:
                         "content": f"{format_sources(sources)}\n\nQuestion: {question}",
                     },
                 ],
-                "options": {"temperature": 0, "num_ctx": 8192},
+                "options": {"temperature": 0, "num_ctx": OLLAMA_NUM_CTX},
             },
         )
         response.raise_for_status()
@@ -234,6 +237,8 @@ class OllamaGenerator:
                 "model": f"ollama:{self.model}",
                 "input_tokens": data.get("prompt_eval_count", 0),
                 "output_tokens": data.get("eval_count", 0),
+                # Where the time went (load / read prompt / write) and silent failures.
+                "ollama": ollama_stats(data, OLLAMA_NUM_CTX),
             },
         )
 
