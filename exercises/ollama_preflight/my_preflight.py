@@ -48,16 +48,33 @@ THINK ABOUT (we discuss after the tests are green)
       wrong with that on a CI runner or a laptop on a train?
 """
 
-import httpx  # noqa: F401  (you will need it)
+import httpx
 
 
 class OllamaNotReady(Exception):
-    pass
+    """Ollama is not running, or a model we need is not downloaded."""
 
 
 def missing_models(tags: dict, wanted: list[str]) -> list[str]:
-    raise NotImplementedError("your code here")
+    if "models" not in tags:
+        raise ValueError("tags JSON does not contain 'models' key")
+    downloaded = {full_name(m["name"]) for m in tags["models"]}
+    return [name for name in wanted if full_name(name) not in downloaded]
 
 
 def preflight(client: httpx.Client, wanted: list[str]) -> None:
-    raise NotImplementedError("your code here")
+    try:
+        response = client.get("/api/tags", timeout=10.0)
+        response.raise_for_status()
+        tags = response.json()
+    except (httpx.HTTPError, ValueError) as not_ready:
+        raise OllamaNotReady("Ollama server is not running. Please start it with 'ollama serve'.") from not_ready
+
+    missing = missing_models(tags, wanted)
+    if missing:
+        raise OllamaNotReady(
+            "The following models are missing:\n" + "\n".join(f"  ollama pull {m}" for m in missing)
+        )
+    
+def full_name(name: str) -> str:
+    return name if ":" in name else name + ":latest"

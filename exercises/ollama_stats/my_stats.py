@@ -49,4 +49,29 @@ THINK ABOUT (we discuss after the tests are green)
 
 
 def ollama_stats(data: dict, num_ctx: int) -> dict:
-    raise NotImplementedError("your code here")
+    NS = 1_000_000_000
+
+    def sec(key: str) -> float:
+        return round(data.get(key, 0) / NS, 2)
+
+    load_s = sec("load_duration")
+    prompt_s = sec("prompt_eval_duration")
+    generate_s = sec("eval_duration")
+    total_s = sec("total_duration")
+
+    eval_count = data.get("eval_count", 0)
+    gen_raw = data.get("eval_duration", 0) / NS     # not rounded
+    tokens_per_s = round(eval_count / gen_raw, 1) if gen_raw else 0.0
+
+    context_full = data.get("prompt_eval_count", 0) >= num_ctx
+    cut_off = data.get("done_reason") == "length"
+
+    return {
+        "load_s": load_s,
+        "prompt_s": prompt_s,
+        "generate_s": generate_s,
+        "total_s": total_s,
+        "tokens_per_s": tokens_per_s,
+        "context_full": context_full,
+        "cut_off": cut_off,
+    }
