@@ -167,7 +167,7 @@ def main() -> None:
 
     s = get_settings()
     embedder = FastEmbedEmbedder(s.embedding_model, s.embedding_dim)
-    conn = connect(s.database_url)
+    conn = connect(s.database_url.get_secret_value())
     init_schema(conn, s.embedding_dim)  # adds the keyword column to an existing index
     store = ChunkStore(conn)
     if store.count_chunks() == 0:

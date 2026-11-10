@@ -8,8 +8,14 @@ transactions, joins, backups and SQL filtering for free. That is a sensible defa
 until you have tens of millions of vectors.
 """
 
+import logging
+
 import psycopg
 from pgvector.psycopg import register_vector
+
+from rag.dburl import redact, require_tls
+
+log = logging.getLogger("rag.db")
 
 # Two tables. One row in `documents` per page, many rows in `chunks` per page:
 #
@@ -88,6 +94,8 @@ def connect(database_url: str) -> psycopg.Connection:
     # "661 chunks in total" (visible on its own connection), then the process
     # exited, Postgres rolled everything back, and the table was empty.
     # tests/test_pipeline.py::test_ingested_rows_are_committed guards against it.
+    require_tls(database_url)  # a remote database must force TLS (dburl.py)
+    log.info("connecting to %s", redact(database_url))  # never the password
     conn = psycopg.connect(database_url, autocommit=True)
     # The extension must exist before register_vector can look up the type.
     with conn.cursor() as cur:

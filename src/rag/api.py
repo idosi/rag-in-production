@@ -24,6 +24,7 @@ from pydantic import BaseModel, Field
 from rag.cache import AnswerCache
 from rag.config import get_settings
 from rag.guarded import BudgetExceeded, GuardedPipeline
+from rag.health import readiness
 from rag.pipeline import build_pipeline
 from rag.security import Guard, RateLimiter, parse_keys
 from rag.spend import SpendTracker
@@ -172,8 +173,17 @@ def ask(body: AskRequest, request: Request, response: Response) -> AskResponse:
 
 
 @app.get("/health")
-def health(request: Request) -> dict:
-    # Used by load balancers / cloud platforms (step 3) to check the service is
-    # alive. It touches the DB, so "ok" means the database is reachable too.
-    count = request.app.state.pipeline.retriever.store.count_chunks()
-    return {"status": "ok", "chunks": count}
+def health() -> dict:
+    # LIVENESS: "the process is alive". It must NOT touch the database: if the database is
+    # down and /health failed too, the platform would restart every container for nothing
+    # (a restart does not fix a database, it only adds a cold start on top of the outage).
+    return {"status": "ok"}
+
+
+@app.get("/ready")
+def ready(request: Request, response: Response) -> dict:
+    # READINESS: "can it answer questions?" The database answers AND the index is not empty
+    # (health.py). Used by `make smoke`, and by people debugging a deploy.
+    status, body = readiness(request.app.state.pipeline.retriever.store.count_chunks)
+    response.status_code = status
+    return body

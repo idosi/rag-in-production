@@ -69,6 +69,7 @@
 | ‏`readiness` (‏`/health` מול `/ready`) | **‏אתה**, תרגיל 3ד-2 | ‏"חי" ו"מוכן לענות" הן שתי שאלות שונות |
 | ‏`Reconnector` | **‏אתה**, תרגיל 3ד-3 | ‏לשרוד את השינה של Neon |
 | ‏חיבור התרגילים לקוד (`api.py`, `db.py`, `store.py`) | ‏אני, אחרי שתסיים | |
+| ‏`dburl.py`, ‏`health.py` (הקוד שלך מהתרגילים) ב-`src/rag`, ‏`database_url` כ-`SecretStr`, ‏`db.connect` בודק TLS ורושם URL בלי סיסמה, ‏`/health` ללא DB ו-`/ready` | אני, כבר בקוד | |
 | ‏`API_KEYS` ריק ב-Cloud Run = השירות לא עולה | ‏אני, כבר בקוד | ‏`/ask` פתוח הוא כתובת ציבורית ששורפת כסף |
 | ‏`cloudbuild.yaml`, ‏`.gcloudignore`, ‏`make gcp-build/deploy/smoke`, ‏`scripts/smoke.sh` | ‏אני, כבר בקוד | |
 

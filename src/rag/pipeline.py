@@ -69,7 +69,7 @@ def build_pipeline() -> RAGPipeline:
     from rag.store import ChunkStore
 
     s = get_settings()
-    conn = connect(s.database_url)
+    conn = connect(s.database_url.get_secret_value())
     # Idempotent. Here it adds the keyword-search column (step 2b) to an index
     # built before that column existed, so no re-ingest is needed.
     init_schema(conn, s.embedding_dim)
