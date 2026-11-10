@@ -40,13 +40,26 @@ HINTS (open one at a time, only when stuck)
     4. "prefer" and "allow" are NOT enough: both fall back to plain text silently.
 """
 
+from urllib.parse import urlsplit, parse_qs
+
 LOCAL_HOSTS = {"localhost", "127.0.0.1", "db"}
 SAFE_SSLMODES = {"require", "verify-ca", "verify-full"}
 
 
 def redact(url: str) -> str:
-    raise NotImplementedError("your code here")
-
+    parts = urlsplit(url)
+    if parts.password is None:
+        return url
+    return url.replace(f":{parts.password}@", ":***@")
 
 def require_tls(url: str) -> None:
-    raise NotImplementedError("your code here")
+    parts = urlsplit(url)
+    if parts.hostname in LOCAL_HOSTS:
+        return
+    query = parse_qs(parts.query)
+    sslmode = query.get("sslmode", [None])
+    for mode in sslmode:
+        if mode not in SAFE_SSLMODES:
+            raise ValueError(f"Host {parts.hostname} requires sslmode=require, verify-ca, or verify-full")
+    
+    
