@@ -28,7 +28,9 @@ HINTS (open one at a time, only when stuck)
        os.environ.get('PORT', '8000').
 """
 
+import json
 import re
+import urllib.request
 from pathlib import Path
 
 DOCKERFILE = Path(__file__).resolve().parents[2] / "Dockerfile"
@@ -65,3 +67,23 @@ def test_4_still_listens_on_all_interfaces():
 def test_5_healthcheck_checks_the_same_port():
     check = last_instruction("HEALTHCHECK")
     assert "PORT" in check and "8000" in check, check
+
+
+def run_healthcheck(monkeypatch, port):
+    """Run the HEALTHCHECK's Python code for real (urlopen replaced by a recorder)."""
+    check = last_instruction("HEALTHCHECK")
+    argv = json.loads(re.search(r"\bCMD\s+(\[.*\])", check).group(1))
+    assert argv[:2] == ["python", "-c"], argv
+    if port is None:
+        monkeypatch.delenv("PORT", raising=False)
+    else:
+        monkeypatch.setenv("PORT", port)
+    urls = []
+    monkeypatch.setattr(urllib.request, "urlopen", lambda url, timeout=None: urls.append(url))
+    exec(argv[2], {})  # raises if the code is broken (e.g. a bad % format)
+    return urls
+
+
+def test_6_healthcheck_really_runs_and_uses_the_port(monkeypatch):
+    assert run_healthcheck(monkeypatch, "8080") == ["http://127.0.0.1:8080/health"]
+    assert run_healthcheck(monkeypatch, None) == ["http://127.0.0.1:8000/health"]
