@@ -50,4 +50,13 @@ log = logging.getLogger("rag.api")
 
 
 def readiness(count_chunks: Callable[[], int]) -> tuple[int, dict]:
-    raise NotImplementedError("your code here")
+    try:
+        n = count_chunks()
+    except Exception as e:
+        log.warning("readiness: database check failed: %s", type(e).__name__)
+        return 503, {"status": "not_ready", "reason": "database unreachable"}
+    if n > 0:
+        return 200, {"status": "ok", "chunks": n}
+    else:
+        return 503, {"status": "not_ready", "reason": "index is empty: run ingest"}
+
