@@ -52,7 +52,7 @@ def main() -> None:
 
     # 3. Open a DB connection and make sure the tables and the vector index exist.
     #    Safe to run every time: the SQL uses CREATE ... IF NOT EXISTS.
-    conn = connect(s.database_url)
+    conn = connect(s.database_url.get_secret_value())
     init_schema(conn, s.embedding_dim)
 
     # The fingerprint is mixed into each page's content hash. If you change how
