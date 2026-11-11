@@ -55,6 +55,8 @@ from collections.abc import Callable
 from typing import Any
 
 import psycopg
+import threading
+
 
 
 class Reconnector:
@@ -63,10 +65,27 @@ class Reconnector:
         connect: Callable[[], Any],
         retry_on: tuple[type[BaseException], ...] = (psycopg.OperationalError,),
     ):
-        raise NotImplementedError("your code here")
+        self.connect = connect
+        self.retry_on = retry_on
+        self.conn = connect()
+        self.reconnects = 0
+        self.lock = threading.Lock()
 
     def run(self, fn: Callable[[Any], Any]) -> Any:
-        raise NotImplementedError("your code here")
+        conn = self.conn
+        try:
+            return fn(conn)
+        except self.retry_on:
+            with self.lock:
+                if self.conn is conn:
+                    self.reconnects += 1
+                    try:
+                        self.conn.close()
+                    except Exception:
+                        pass
+                    self.conn = self.connect()
+            return fn(self.conn)
 
     def close(self) -> None:
-        raise NotImplementedError("your code here")
+        with self.lock:
+            self.conn.close()
