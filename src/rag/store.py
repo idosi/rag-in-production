@@ -14,6 +14,7 @@ import numpy as np
 import psycopg
 
 from rag.models import Chunk, Document, RetrievedChunk
+from rag.reconnect import Reconnector
 
 
 def content_hash(doc: Document, fingerprint: str = "") -> str:
@@ -27,11 +28,34 @@ def content_hash(doc: Document, fingerprint: str = "") -> str:
 
 
 class ChunkStore:
-    """Wraps one DB connection. Created once and reused (by ingestion or by the API)."""
+    """Wraps the DB connection. Created once and reused (by ingestion or by the API).
 
-    def __init__(self, conn: psycopg.Connection, fingerprint: str = ""):
-        self.conn = conn
+    `conn` is a plain psycopg connection (ingestion, tests) or a Reconnector (the API, which
+    must survive Neon suspending the database, see reconnect.py). The three read methods
+    (search, keyword_search, count_chunks) go through _fetch, which retries on a dead
+    connection; the writers use the connection directly, only ingestion calls them.
+    """
+
+    def __init__(self, conn: "psycopg.Connection | Reconnector", fingerprint: str = ""):
+        self._source = conn
         self.fingerprint = fingerprint
+
+    @property
+    def conn(self) -> psycopg.Connection:
+        """The current connection (after a reconnect this is a different object)."""
+        return self._source.conn if isinstance(self._source, Reconnector) else self._source
+
+    def _fetch(self, sql: str, params: dict) -> list[tuple]:
+        """Run one SELECT and return all rows; retried once on a new connection if needed."""
+
+        def query(conn: psycopg.Connection) -> list[tuple]:
+            with conn.cursor() as cur:
+                cur.execute(sql, params)
+                return cur.fetchall()
+
+        if isinstance(self._source, Reconnector):
+            return self._source.run(query)
+        return query(self._source)
 
     def is_unchanged(self, doc: Document) -> bool:
         """True if this page was already ingested with the same text and settings."""
@@ -91,16 +115,14 @@ class ChunkStore:
         #   - sort by it, closest first
         #   - keep the first k
         # The HNSW index (db.py) makes the ORDER BY fast without scanning every row.
-        with self.conn.cursor() as cur:
-            cur.execute(
-                """SELECT document_id, chunk_index, heading, url, content,
-                          1 - (embedding <=> %(q)s) AS score
-                   FROM chunks
-                   ORDER BY embedding <=> %(q)s
-                   LIMIT %(k)s""",
-                {"q": np.array(query_vector), "k": k},
-            )
-            rows = cur.fetchall()
+        rows = self._fetch(
+            """SELECT document_id, chunk_index, heading, url, content,
+                      1 - (embedding <=> %(q)s) AS score
+               FROM chunks
+               ORDER BY embedding <=> %(q)s
+               LIMIT %(k)s""",
+            {"q": np.array(query_vector), "k": k},
+        )
         return _to_results(rows)
 
     def keyword_search(self, question: str, k: int) -> list[RetrievedChunk]:
@@ -128,33 +150,29 @@ class ChunkStore:
         Postgres needs an extension (e.g. ParadeDB pg_search). We measure first
         and only add that if the numbers say keyword search is the weak link.
         """
-        with self.conn.cursor() as cur:
-            cur.execute(
-                """WITH q AS (
-                       -- Normalise the question exactly like the chunks were
-                       -- (stop words out, stemming), then join the words with |.
-                       -- quote_literal + ::tsquery builds the query from the
-                       -- already-normalised words without normalising them twice.
-                       SELECT string_agg(quote_literal(lexeme), ' | ')::tsquery AS query
-                       FROM unnest(to_tsvector('english', %(text)s))
-                   )
-                   SELECT document_id, chunk_index, heading, url, content,
-                          ts_rank_cd(tsv, q.query) AS score
-                   FROM chunks, q
-                   WHERE tsv @@ q.query          -- @@ = "matches"; uses the GIN index
-                   ORDER BY score DESC
-                   LIMIT %(k)s""",
-                {"text": question, "k": k},
-            )
-            rows = cur.fetchall()
+        rows = self._fetch(
+            """WITH q AS (
+                   -- Normalise the question exactly like the chunks were
+                   -- (stop words out, stemming), then join the words with |.
+                   -- quote_literal + ::tsquery builds the query from the
+                   -- already-normalised words without normalising them twice.
+                   SELECT string_agg(quote_literal(lexeme), ' | ')::tsquery AS query
+                   FROM unnest(to_tsvector('english', %(text)s))
+               )
+               SELECT document_id, chunk_index, heading, url, content,
+                      ts_rank_cd(tsv, q.query) AS score
+               FROM chunks, q
+               WHERE tsv @@ q.query          -- @@ = "matches"; uses the GIN index
+               ORDER BY score DESC
+               LIMIT %(k)s""",
+            {"text": question, "k": k},
+        )
         # A question made only of stop words ("how do I?") gives an empty query,
         # which matches nothing: we return [] and the vector search still works.
         return _to_results(rows)
 
     def count_chunks(self) -> int:
-        with self.conn.cursor() as cur:
-            cur.execute("SELECT count(*) FROM chunks")
-            return cur.fetchone()[0]
+        return self._fetch("SELECT count(*) FROM chunks", {})[0][0]
 
 
 def _to_results(rows: list[tuple]) -> list[RetrievedChunk]:
