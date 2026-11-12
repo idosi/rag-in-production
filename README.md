@@ -7,11 +7,9 @@ A Retrieval-Augmented Generation (RAG) service that answers questions about the 
 ```mermaid
 flowchart LR
   A[FastAPI docs] --> B[Loader] --> C[Chunker] --> D[Embedder] --> E[(Postgres + pgvector)]
-  Q[POST /ask] --> P[API key + rate limit] --> C{Answer cache}
-  C -- hit --> R
-  C -- miss --> B[Daily budget] --> QE[Embedder] --> S[Vector search: top 10]
+  Q[Question] --> QE[Embedder] --> S[Vector search: top 10]
   E --> S
-  S --> X[Cross-encoder rerank: top 5] --> G[Claude] --> R[Answer + citations + cost]
+  S --> X[Cross-encoder rerank: top 5] --> G[Claude] --> R[Answer + citations]
 ```
 
 This is the default path. Keyword search with RRF fusion (`hybrid`) and LLM query rewriting exist as opt-in modes, kept because they were measured and did not pay off (see Results).
@@ -25,8 +23,6 @@ This is the default path. Keyword search with RRF fusion (`hybrid`) and LLM quer
 | Retrieval | `vector`, `hybrid` (+ Postgres full-text, RRF), `rerank` (cross-encoder), or both | Each idea measured separately on the golden set before it becomes the default |
 | Generation | Claude, sources-only prompt with `[n]` citations | Grounded answers that can be verified |
 | API | FastAPI | `POST /ask`, `GET /health` |
-| Protection | `X-API-Key` header, per-caller rate limit (429), prompt-injection defenses | `/ask` spends money, so it is closed by default in production; attacks are measured by a red-team eval |
-| Cost and ops | Answer cache (exact match, TTL + LRU), daily $ budget (503), `cost_usd` per answer, one JSON trace line per question with `X-Request-ID` | Repeated questions are free, a bug or an attacker cannot burn the budget, every answer can be traced |
 
 ## Results
 
@@ -53,21 +49,10 @@ On the later 47-question set the default beats vector 91.5% to 89.4%.
 
 The quality bar was fixed before looking at results: unfaithful at most 5%, every unanswerable question refused, correct at least 80%. Sonnet is the cheapest model that passes.
 
-**Free local models** (Ollama on a MacBook Air, same judge and bar, 53 questions; full analysis in [2g](docs/learning/02g-free-models-benchmark.md)):
-
-| Model | Correct | Unfaithful | Refused unanswerable | Latency (p50) | Cost / question |
-|---|---|---|---|---|---|
-| `qwen2.5:3b` (best free model) | 31.9% | 47.7% | 5 / 6 | 8.4 s | $0 |
-| `llama3.2:3b` (6 unanswerable only) | | | 3 / 6 | 5.4 s | $0 |
-| `qwen2.5:1.5b` (6 unanswerable only) | | | 2 / 6 | 2.7 s | $0 |
-
-None passes the bar, so Sonnet stays the default. `llama3.1:8b` took 46 s per answer and froze the laptop.
-
 **What the measurements said**
 - Keyword search did not help on natural-language docs. A reranker on 30 candidates hurt; on 10 it helped.
 - LLM query rewriting looked like a fix in one run and did nothing in the next: LLM output varies per run, so one run proves nothing. It stays opt-in.
 - Similarity scores cannot tell whether an answer exists: a question with no answer scored higher (0.765) than one whose answer was in the docs (0.729). The model is instructed to answer only from the sources and to refuse otherwise.
-- Free 1.5B to 8B models are not a cheap Sonnet: almost half of the best one's answers contained claims the sources do not support (mostly code from memory), and 70% had no `[n]` citation.
 - A Docker healthcheck found a crash in `/health` that the tests had missed. There is now a test for the API layer.
 
 ## Quick start
@@ -81,13 +66,9 @@ make up                   # Postgres + pgvector
 make ingest               # download, chunk, embed, store
 make ask Q="How do I make a query parameter optional?"
 make api                  # http://localhost:8000/docs
-# with API_KEYS set in .env, send the key:
-#   curl -X POST localhost:8000/ask -H "X-API-Key: $KEY" -H "Content-Type: application/json" -d '{"question": "..."}'
 make eval-retrieval        # search quality per retrieval mode, no LLM calls
 make eval-answers          # answer quality + cost per model, LLM judge (costs ~$4)
-# only the refusal questions, cheaply:  make eval-answers ONLY=unanswerable
-# a free local model, with Ollama:  make eval-answers ANSWER_MODELS=ollama:qwen2.5:3b
-make eval-redteam          # prompt-injection attacks on the real model (costs cents)
+# a local model too, with Ollama:  make eval-answers ANSWER_MODELS=claude-haiku-5-5,ollama:llama3.1:8b
 # add the LLM query-rewrite mode (costs cents):  make eval-retrieval MODES=vector,rerank,rewrite_rerank
 
 # in containers (Docker): API + Postgres, then fill the index
@@ -100,7 +81,7 @@ make test
 
 - [x] **Code map.** One-hour reading tour of the whole codebase ([guide](docs/learning/00-code-map.md))
 - [x] **Step 1: Foundations.** End-to-end RAG with citations ([explanation](docs/learning/01-foundations.md))
-- [x] **Step 2: Measured quality.**
+- [ ] **Step 2: Measured quality.**
   - [x] 2a: golden set (47 answerable + 6 unanswerable questions) and retrieval evals ([explanation](docs/learning/02a-retrieval-evals.md))
   - [x] 2b: hybrid search and reranking, four modes compared ([explanation](docs/learning/02b-hybrid-search-rerank.md))
   - [x] 2c: answer evals (LLM-as-judge) and model comparison ([explanation](docs/learning/02c-answer-evals.md))
@@ -108,10 +89,5 @@ make test
   - [x] 2e: query rewriting, measured: no gain in hit@5, kept opt-in (a useful negative result, [explanation](docs/learning/02e-query-rewriting.md))
   - [x] 2f: overview pages in the corpus + 6 new golden questions (old 42 questions unchanged after adding them) ([explanation](docs/learning/02f-corpus-overview-pages.md))
   - [x] 2g: free local models (qwen2.5 and llama, 1.5B to 8B) vs Claude: none passes the bar, best is qwen2.5:3b (correct 0.32, unfaithful 0.48), we keep Sonnet; honest latency (one request at a time, warm-up) ([explanation](docs/learning/02g-free-models-benchmark.md))
-- [ ] **Step 3: Production.**
-  - [x] 3a: Docker and CI: the image builds and CI runs the tests against a real Postgres ([explanation](docs/learning/03a-docker-ci.md))
-  - [x] 3b-1: API keys and rate limiting ([explanation](docs/learning/03b-auth-rate-limit.md))
-  - [x] 3b-2: prompt-injection defenses, with a red-team eval: `make eval-redteam` ([explanation](docs/learning/03b2-prompt-injection.md))
-  - [x] 3c: cost, cache and tracing: every answer reports `cost_usd` and `cache_hit`, a daily budget answers 503, one JSON trace line per question ([explanation](docs/learning/03c-cost-cache-tracing.md))
-  - [ ] 3d: cloud deploy (Cloud Run + Neon Postgres), in progress
+- [ ] **Step 3: Production.** Tracing, cost tracking, caching, auth, rate limiting, prompt-injection defenses, Docker, CI, cloud deploy ([3a Docker and CI](docs/learning/03a-docker-ci.md): done, the image builds and CI runs the tests against a real Postgres; [3b-1 auth and rate limit](docs/learning/03b-auth-rate-limit.md): done; [3b-2 prompt injection](docs/learning/03b2-prompt-injection.md): built, with a red-team eval: `make eval-redteam`; [3c cost, cache and tracing](docs/learning/03c-cost-cache-tracing.md): built, every answer reports `cost_usd` and `cache_hit`, a daily budget answers 503, one JSON trace line per question; [3d Cloud Run + Neon](docs/learning/03d-cloud-run-neon.md): done, deployed to Cloud Run with Neon, with `/ready`, TLS check, redacted logs and a reconnect after the free database sleeps)
 - [ ] **Step 4: Write-up.** Architecture, results, and the trade-off behind every decision

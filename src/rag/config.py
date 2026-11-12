@@ -34,7 +34,9 @@ class Settings(BaseSettings):
 
     # --- Storage ---
     # Matches the user/password/db in docker-compose.yml.
-    database_url: str = "postgresql://rag:rag@localhost:5432/rag"
+    # SecretStr: the cloud URL contains the password. Printing settings shows ********.
+    # Read it with .get_secret_value(); use dburl.redact() to log where we connect.
+    database_url: SecretStr = SecretStr("postgresql://rag:rag@localhost:5432/rag")
 
     # --- Corpus ---
     # Pinned to a release tag so the corpus never changes under our feet.

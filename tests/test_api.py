@@ -48,11 +48,11 @@ def make_pipeline():
     return RAGPipeline(FakeRetriever(), FakeGenerator(), top_k=5)
 
 
-def test_health_reports_chunk_count_and_shutdown_closes_the_connection(monkeypatch):
+def test_ready_reports_chunk_count_and_shutdown_closes_the_connection(monkeypatch):
     pipeline = make_pipeline()
     monkeypatch.setattr(api, "build_pipeline", lambda: pipeline)
     with TestClient(api.app) as client:
-        r = client.get("/health")
+        r = client.get("/ready")
         assert r.status_code == 200
         assert r.json() == {"status": "ok", "chunks": 745}
     assert pipeline.retriever.store.conn.closed  # lifespan shutdown ran without error
@@ -99,6 +99,17 @@ ASK = {"question": "How do I do X?"}
 def test_without_keys_configured_ask_is_open(monkeypatch):
     with client_with(monkeypatch) as c:
         assert c.post("/ask", json=ASK).status_code == 200
+
+
+def test_on_cloud_run_an_open_ask_refuses_to_start(monkeypatch):
+    # Cloud Run sets K_SERVICE in every container (step 3d). Forgetting API_KEYS there
+    # must fail the deploy, not publish a URL that spends money for anyone.
+    monkeypatch.setenv("K_SERVICE", "rag-api")
+    with pytest.raises(RuntimeError, match="API_KEYS"):
+        with client_with(monkeypatch):
+            pass
+    with client_with(monkeypatch, keys="secret") as c:  # with keys it starts normally
+        assert c.get("/health").status_code == 200
 
 
 def test_missing_or_wrong_key_is_401_and_the_right_key_passes(monkeypatch):
@@ -252,3 +263,31 @@ def test_a_503_is_traced_too_and_a_generated_id_is_returned(monkeypatch):
         r = c.post("/ask", json={"question": "A new question"})
     assert r.status_code == 503
     assert len(r.headers["x-request-id"]) >= 8
+
+
+def test_health_never_touches_the_database_but_ready_reports_it_down(monkeypatch):
+    # Liveness vs readiness (step 3d): with the database down, /health must stay 200 (a
+    # restart would not fix it) while /ready says 503 with a generic reason.
+    pipeline = make_pipeline()
+
+    def broken():
+        raise RuntimeError('connection to "ep-secret-host", user "neondb_owner" failed')
+
+    pipeline.retriever.store.count_chunks = broken
+    monkeypatch.setattr(api, "build_pipeline", lambda: pipeline)
+    with TestClient(api.app) as client:
+        assert client.get("/health").status_code == 200
+        r = client.get("/ready")
+    assert r.status_code == 503
+    assert r.json() == {"status": "not_ready", "reason": "database unreachable"}
+    assert "neondb_owner" not in r.text  # the error text never reaches a public URL
+
+
+def test_ready_is_503_when_the_index_is_empty(monkeypatch):
+    pipeline = make_pipeline()
+    pipeline.retriever.store.count_chunks = lambda: 0
+    monkeypatch.setattr(api, "build_pipeline", lambda: pipeline)
+    with TestClient(api.app) as client:
+        r = client.get("/ready")
+    assert r.status_code == 503
+    assert "ingest" in r.json()["reason"]

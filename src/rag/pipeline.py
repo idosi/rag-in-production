@@ -65,14 +65,18 @@ def build_pipeline() -> RAGPipeline:
     from rag.db import connect, init_schema
     from rag.embeddings import FastEmbedEmbedder
     from rag.generator import ClaudeGenerator
+    from rag.reconnect import Reconnector
     from rag.retrieval import build_retriever
     from rag.store import ChunkStore
 
     s = get_settings()
-    conn = connect(s.database_url)
+    url = s.database_url.get_secret_value()
+    # The Reconnector replaces the connection if the database suspended and closed it
+    # (Neon does after 5 idle minutes, step 3d). It opens the first connection right here.
+    conn = Reconnector(lambda: connect(url))
     # Idempotent. Here it adds the keyword-search column (step 2b) to an index
     # built before that column existed, so no re-ingest is needed.
-    init_schema(conn, s.embedding_dim)
+    init_schema(conn.conn, s.embedding_dim)
     return RAGPipeline(
         retriever=build_retriever(
             ChunkStore(conn), FastEmbedEmbedder(s.embedding_model, s.embedding_dim)

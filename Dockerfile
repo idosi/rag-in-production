@@ -82,8 +82,8 @@ EXPOSE 8000
 # "Is the process alive AND can it reach the database?" /health counts the chunks.
 # start-period: loading the models takes a while; failures in that window don't count.
 HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
-    CMD ["python", "-c", "import urllib.request as u; u.urlopen('http://127.0.0.1:8000/health', timeout=4)"]
+    CMD ["python", "-c", "import os, urllib.request as u; u.urlopen('http://127.0.0.1:%s/health' % os.environ.get('PORT', '8000'), timeout=4)"]
 
 # 0.0.0.0: listen on all interfaces, otherwise the port mapping from outside can't reach it.
 # No --reload: that is for development.
-CMD ["uvicorn", "rag.api:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["sh", "-c", "exec uvicorn rag.api:app --host 0.0.0.0 --port ${PORT:-8000}"]

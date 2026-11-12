@@ -422,7 +422,7 @@ def main() -> None:
         raise SystemExit("Cancelled.")
 
     # 1. Retrieve once per question; every model gets the same sources.
-    conn = connect(s.database_url)
+    conn = connect(s.database_url.get_secret_value())
     init_schema(conn, s.embedding_dim)
     store = ChunkStore(conn)
     if store.count_chunks() == 0:
