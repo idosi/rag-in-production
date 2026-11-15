@@ -1,0 +1,73 @@
+# EXERCISE 3f: continuous deployment with GitHub Actions and NO key file.
+#
+# Run the tests:   uv run pytest exercises/cd -q
+# They all fail now. Make them pass one by one, and commit after each green test.
+# When all are green, this file becomes .github/workflows/deploy.yml.
+#
+# WHY
+#   Today you deploy by hand (make gcp-build, make deploy). CD means: a push to main that
+#   passes CI is deployed by a machine. Two problems to solve well:
+#     1. HOW does GitHub prove to Google "I am idosi/rag-in-production" without a password
+#        or a JSON key file (which can leak and never expires)?  Workload Identity Federation:
+#        GitHub signs a short-lived token (OIDC), Google checks who signed it and the repo
+#        name, and hands back a short-lived access token. Nothing secret is stored anywhere.
+#     2. HOW do we avoid sending broken code to everyone? Deploy the new revision with NO
+#        traffic, smoke-test it on its own tagged URL, and only then move the traffic. If the
+#        smoke test fails, the old revision never stopped serving.
+#
+# THE SPEC (the tests check each point)
+#   trigger      after the workflow named "CI" COMPLETES on branch main (workflow_run).
+#                Not `push`: a push workflow would run in PARALLEL with CI and could deploy
+#                code whose tests are still running (or failing).
+#   permissions  the workflow can only read contents. Only the deploy JOB gets
+#                `id-token: write` (needed to ask GitHub for the OIDC token).
+#   concurrency  one deploy at a time; a running deploy is NOT cancelled by a newer one
+#                (cancelling half-way through a deploy is worse than waiting).
+#   job `deploy` runs only if CI SUCCEEDED (workflow_run fires also when CI failed!).
+#   steps, in this order:
+#     1. checkout the commit CI tested: github.event.workflow_run.head_sha
+#        (a workflow_run job otherwise checks out the default branch tip, which may be newer)
+#     2. google-github-actions/auth@v2 with workload_identity_provider and service_account
+#        taken from `vars.` (repository variables, not secrets), token_format: access_token.
+#        NO credentials_json anywhere.
+#     3. google-github-actions/setup-gcloud@v2 (project_id from vars)
+#     4. docker/login-action@v3 to europe-west3-docker.pkg.dev, username oauth2accesstoken,
+#        password = the access token from step 2
+#     5. docker/build-push-action@v6, push: true, tagged with the commit sha (never :latest:
+#        you could not tell what is running, and could not roll back to a known image)
+#     6. deploy the new revision WITHOUT traffic and with the tag `candidate`:
+#        make deploy ... DEPLOY_FLAGS="--no-traffic --tag candidate"
+#     7. smoke test the candidate's own URL: https://candidate---<service host>
+#        (scripts/smoke.sh <url>); no API key is needed for the three free checks
+#     8. only now move the traffic: gcloud run services update-traffic ... --to-latest
+#     9. remove the tag: --remove-tags candidate
+#
+# HINTS (open one at a time, only when stuck)
+#   1. In YAML, `on` is read by PyYAML as the boolean True. The tests accept either spelling.
+#   2. `if: github.event.workflow_run.conclusion == 'success'`
+#   3. Job-level `permissions:` replaces the workflow-level ones for that job, so repeat
+#      `contents: read` there next to `id-token: write`.
+#   4. The image name: europe-west3-docker.pkg.dev/<project>/rag/rag-api:<sha>. `env:` at the
+#      job level can use `vars.` and `github.` values, and `make deploy IMAGE=$IMAGE` overrides
+#      the Makefile's own (short sha) tag.
+#   5. The candidate URL: take `status.url` of the service (gcloud run services describe
+#      --format 'value(status.url)') and replace https:// with https://candidate---
+#      (sed 's#https://#https://candidate---#').
+#
+# THINK ABOUT (we discuss after the tests are green)
+#   - What exactly stops ANOTHER repository from asking Google for your deployer identity?
+#     (hint: the attribute condition on the provider, and the principalSet in the binding)
+#   - The smoke test passes and the traffic moves, then users get errors. How do you roll back,
+#     and why is it a one-line command and not a rebuild?
+#   - Why does the deployer service account need `iam.serviceAccountUser` on the RUNTIME
+#     service account (rag-api)?
+
+name: TODO
+on: {}
+
+# TODO: permissions, concurrency
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps: []
