@@ -153,6 +153,12 @@ gcloud alpha monitoring policies create --policy-from-file=monitoring/alert_erro
 - **‏מדד על לוג מתעכב בכמה דקות** ועולה כסף בנפח גבוה. לנפח גדול משתמשים במדדים ישירים (OpenTelemetry).
 - **‏תקציב בחשבון Google.** ההתראה על `cost_usd` מהלוג מכסה רק את Claude. את חשבון הענן עצמו מכסה Billing budget (`gcloud billing budgets create`), וכדאי להגדיר אותו בנפרד.
 
+### ‏בדקנו שזה באמת עובד (2026-11-15)
+
+‏התראה שמעולם לא ירתה היא התראה שלא בדקנו. הורדנו את `DAILY_BUDGET_USD` ל-0.001 (`gcloud run services update ... --update-env-vars`), שלחנו שתי שאלות שונות, ואז החזרנו ל-1. הראשונה נענתה, והשנייה קיבלה 503 `Daily spend limit exceeded`. ארבע דקות אחר כך הגיע מייל מ-Cloud Monitoring: "`rag_budget_rejections` is above threshold of 0 with a value of 2". ו-`make report` הראה באותו זמן `budget refused 2` ו-`ALERTS: budget_rejections`.
+
+‏שני דברים שכדאי לזכור מהבדיקה: (1) שאלה שנייה **זהה** לראשונה לא הייתה נותנת 503, כי ה-cache נבדק לפני התקציב (3ג). (2) ה-incident נסגר לבד אחרי 30 דקות (`autoClose: 1800s`), כלומר שום דבר לא נשאר פתוח.
+
 ## ‏6. מה לא עשינו, ולמה
 
 | ‏דבר | ‏סיבה |
