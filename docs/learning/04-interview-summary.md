@@ -78,7 +78,7 @@ Question -> X-API-Key + rate limit (401/429) -> cache? (hit: $0)
   - ‏רק ניסיון אחד: לולאת retry מחזיקה thread ומפציצה DB שמנסה להתאושש (טסט 5).
   - ‏בטוח לחזור רק כי כל השאילתות שעוברות דרכו הן SELECT. על INSERT זה היה מסוכן.
   - ‏thread safety: ‏FastAPI מריץ בקשות ב-thread pool. ה-lock ובדיקת `self.conn is conn` מבטיחים שאם 8 בקשות נכשלות יחד, רק הראשונה מחליפה את החיבור והשאר משתמשות בחדש (טסט 9, עם `threading.Barrier(8)`).
-  - ‏מונה `reconnects`: מספר שממשיך לעלות הוא סימן לתקלה אמיתית ולא לשינה רגילה.
+  - ‏מונה `reconnects`: ב-Neon Free חיבור מחדש אחרי שקט הוא רגיל, אז מתריעים על שגיאות ולא על המונה. מספר שעולה מהר בשעה עם תנועה הוא סימן ל-DB לא יציב.
 - **‏תוצאה:** אחרי deploy, שאלה **חדשה** אחרי יותר מ-9 דקות שקט קיבלה 200, ו-`/ready` החזיר 200 עם 745 chunks.
 - **‏שלושה לקחים:** (1) ה-cache מסתיר כשל במסד: בדיקה חוזרת חייבת שאלה חדשה. (2) liveness ו-readiness הן שאלות שונות. (3) Neon עלה כ-Postgres 18 בזמן שהמקומי וה-CI הם 16.
 - **‏מה הייתי עושה עם יותר תנועה:** `psycopg_pool.ConnectionPool` עם בדיקת חיבור ו-`max_idle`. בחרתי ב-`Reconnector` כי יש חיבור אחד לכל container, ואני מבין כל שורה בו.
@@ -149,7 +149,7 @@ Question -> X-API-Key + rate limit (401/429) -> cache? (hit: $0)
 
 | ‏חוסר | ‏למה עוד לא | ‏הצעד הבא |
 |---|---|---|
-| ‏monitoring עם התראות | ‏יש לוגים מובנים, אין dashboard ואין alert | ‏log-based metrics ב-Cloud Logging על `status=500`, ‏`cost_usd` ו-p95 של `total_ms`, והתראה על קפיצה ב-`reconnects` |
+| ‏monitoring עם התראות | ‏נבנה ב-[3ה](03e-monitoring-alerts.md): `make report` מסכם לוגים אמיתיים (שגיאות, p95, עלות) ומראה אילו התראות היו נורות, וקבצי ההתראה ב-`monitoring/`. עדיין אין דשבורד | ‏להפעיל את ההתראות בענן (פקודות במדריך), ואחר כך דשבורד |
 | ‏deploy אוטומטי (CD) | ‏דורש Workload Identity Federation | ‏GitHub Actions שבונה ופורס אחרי CI ירוק, עם smoke test ו-rollback |
 | ‏eval כ-gate ב-CI | ‏עולה כסף (‏~$3 להרצה מלאה) ולא דטרמיניסטי | ‏סט קטן שרץ כשמשנים prompt, מודל או חיפוש |
 | ‏state משותף | ‏עם 2 containers הפער חסום | ‏Redis ל-cache, לתקציב ול-rate limit |
@@ -192,7 +192,7 @@ Question -> X-API-Key + rate limit (401/429) -> cache? (hit: $0)
 
 <details><summary><b>‏איך תדע שמשהו נשבר בפרודקשן?</b></summary>
 
-‏היום: `/ready` מחזיר 503 עם סיבה, ולכל שאלה יש שורת JSON עם סטטוס, זמנים ועלות, שאפשר לחפש לפי `request_id`. מה שחסר זה התראה: מישהו צריך להסתכל. הצעד הבא הוא metrics מהלוגים (שיעור 500, ‏p95, עלות יומית) והתראה עליהם, ובנוסף על `reconnects` שממשיך לעלות.
+‏היום: `/ready` מחזיר 503 עם סיבה, ולכל שאלה יש שורת JSON עם סטטוס, זמנים ועלות, שאפשר לחפש לפי `request_id`. יש גם `make report`, שמסכם את הלוגים (שיעור שגיאות, p95, עלות) ואומר אילו התראות היו נורות, וקבצי התראה ב-Cloud Monitoring על שגיאות, latency ותקציב. התראה כזו על `reconnects` לא מתאימה ל-Neon Free, כי חיבור מחדש שם רגיל.
 </details>
 
 <details><summary><b>‏למה retry פעם אחת ולא exponential backoff?</b></summary>
