@@ -1,0 +1,19 @@
+# p95 of total_ms above 8 seconds over 10 minutes. Noisy on very low traffic (a few requests
+# in 10 minutes): that is the min_requests idea of rag.logreport, which Cloud Monitoring does
+# not have for distribution metrics; watch it and raise the alignment period if it flaps.
+#   gcloud alpha monitoring policies create --policy-from-file=monitoring/alert_latency.yaml \
+#     --notification-channels=CHANNEL_NAME
+displayName: "rag-api: p95 latency above 8 s"
+combiner: OR
+conditions:
+  - displayName: p95 total_ms above 8000
+    conditionThreshold:
+      filter: >
+        metric.type="logging.googleapis.com/user/rag_latency_ms"
+        resource.type="cloud_run_revision"
+      comparison: COMPARISON_GT
+      thresholdValue: 8000
+      duration: 0s
+      aggregations:
+        - {alignmentPeriod: 600s, perSeriesAligner: ALIGN_PERCENTILE_95}
+alertStrategy: {autoClose: 1800s}
