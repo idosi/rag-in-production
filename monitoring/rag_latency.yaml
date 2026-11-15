@@ -1,0 +1,11 @@
+# Log-based metric: the total_ms of every request, as a distribution (so p95 can be computed).
+#   gcloud logging metrics create rag_latency_ms --config-from-file=monitoring/rag_latency.yaml
+name: rag_latency_ms
+description: total_ms of every rag-api request (from the trace line, step 3c)
+filter: >
+  resource.type="cloud_run_revision" resource.labels.service_name="rag-api"
+  jsonPayload.total_ms>=0
+metricDescriptor: {metricKind: DELTA, valueType: DISTRIBUTION, unit: ms}
+valueExtractor: EXTRACT(jsonPayload.total_ms)
+bucketOptions:
+  exponentialBuckets: {numFiniteBuckets: 20, growthFactor: 1.5, scale: 50}

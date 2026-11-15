@@ -1,4 +1,4 @@
-.PHONY: install up down ingest ask api test lint eval-retrieval eval-answers docker-build docker-up docker-ingest eval-redteam gcp-build deploy smoke
+.PHONY: install up down ingest ask api test lint eval-retrieval eval-answers docker-build docker-up docker-ingest eval-redteam gcp-build deploy smoke report
 
 install:            ## Install dependencies into .venv
 	uv sync
@@ -75,6 +75,11 @@ deploy:             ## Deploy the image of the current commit to Cloud Run (run 
 	  --startup-probe httpGet.path=/health,periodSeconds=5,timeoutSeconds=3,failureThreshold=24 \
 	  --liveness-probe httpGet.path=/health,periodSeconds=30,timeoutSeconds=3,failureThreshold=3 \
 	  --allow-unauthenticated
+
+FRESH ?= 1h
+report:             ## Summarize the deployed service's last hour (errors, p95, cost) and show which alerts would fire
+	gcloud logging read 'resource.type="cloud_run_revision" AND resource.labels.service_name="$(SERVICE)" AND jsonPayload.request_id:*' \
+	  --freshness=$(FRESH) --limit=1000 --format=json | uv run python -m rag.logreport
 
 URL ?= $(shell gcloud run services describe $(SERVICE) --region $(REGION) --format 'value(status.url)' 2>/dev/null)
 smoke:              ## Check the deployed service end to end: API_KEY=... make smoke
