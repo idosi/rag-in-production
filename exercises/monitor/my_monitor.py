@@ -71,13 +71,77 @@ THINK ABOUT (we discuss after the tests are green)
 """
 
 
-def percentile(values: list[float], p: float) -> float:
-    raise NotImplementedError
+import json
 
+
+def percentile(values: list[float], p: float) -> float:
+    values = sorted(values)
+    if not values:
+        return 0.0
+    n = len(values)
+    rank = -(-p*n//100)
+    return values[rank - 1]
 
 def summarize(lines) -> dict:
-    raise NotImplementedError
+    count_requests = 0
+    count_skipped = 0
+    count_errors = 0
+    count_rejected = 0
+    count_cache_hit = 0
+    cache_hits = 0
+    total_ms_values = []
+    total_cost_usd = 0.0
 
+    for line in lines:
+        try:
+            json_object = json.loads(line)
+        except json.JSONDecodeError:
+            count_skipped += 1
+            continue
+        if isinstance(json_object, dict) and "request_id" in json_object:
+            count_requests += 1
+            # no status = unknown outcome, counted as an error: a broken trace line must not look like a success
+            status = json_object.get("status", 500)
+           
+            if status >= 500 and status != 503:
+                count_errors += 1
+            elif status == 503:
+                count_rejected += 1
+            if "cache_hit" in json_object:
+                if isinstance(json_object["cache_hit"], bool):
+                    count_cache_hit += 1
+                if json_object["cache_hit"]:
+                    cache_hits += 1
+            if "total_ms" in json_object:
+                if isinstance(json_object["total_ms"], (int, float)):
+                    total_ms_values.append(json_object["total_ms"])
+            if "cost_usd" in json_object:
+                if isinstance(json_object["cost_usd"], (int, float)): 
+                    total_cost_usd += json_object["cost_usd"]   
+        else:
+            count_skipped += 1        
 
+    return {
+        "requests": count_requests,
+        "skipped": count_skipped,
+        "errors": count_errors,
+        "rejected": count_rejected,
+        "error_rate": count_errors / count_requests if count_requests > 0 else 0.0,
+        "cache_hit_rate": cache_hits / count_cache_hit if count_cache_hit > 0 else 0.0,
+        "p50_ms": percentile(total_ms_values, 50),
+        "p95_ms": percentile(total_ms_values, 95),
+        "cost_usd": total_cost_usd
+    }   
 def check_alerts(summary: dict, limits: dict) -> list[str]:
-    raise NotImplementedError
+    alerts = []
+    enough_data = summary["requests"] >= limits["min_requests"]
+    
+    if enough_data and summary["error_rate"] > limits["max_error_rate"]:
+        alerts.append("error_rate")
+    if enough_data and summary["p95_ms"] > limits["max_p95_ms"]:
+        alerts.append("latency_p95")
+    if summary["cost_usd"] > limits["max_cost_usd"]:
+        alerts.append("cost")
+    if summary["rejected"] > 0:
+        alerts.append("budget_rejections")
+    return alerts 
