@@ -62,12 +62,64 @@
 #   - Why does the deployer service account need `iam.serviceAccountUser` on the RUNTIME
 #     service account (rag-api)?
 
-name: TODO
-on: {}
+name: Deploy_RAG
+on: 
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
 
-# TODO: permissions, concurrency
+permissions:
+  contents: read
+concurrency:
+  group: deploy
+  cancel-in-progress: false
 
 jobs:
   deploy:
+    if: github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
-    steps: []
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      IMAGE: europe-west3-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/rag/rag-api:${{ github.event.workflow_run.head_sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+      - id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_DEPLOYER_SERVICE_ACCOUNT }}        # the deployer SA: which repository variable holds it?
+          token_format: access_token
+      - uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ vars.GCP_PROJECT_ID }}
+
+      - uses: docker/login-action@v3
+        with:
+          registry: europe-west3-docker.pkg.dev
+          username: oauth2accesstoken
+          password: ${{ steps.auth.outputs.access_token }}
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ env.IMAGE }}
+      - name: Deploy the new revision with no traffic
+        run: make deploy IMAGE="$IMAGE" DEPLOY_FLAGS="--no-traffic --tag candidate"
+
+      - name: Smoke test the candidate revision
+        run: |
+          URL=$(gcloud run services describe rag-api --region europe-west3 --format 'value(status.url)')
+          scripts/smoke.sh "$(echo "$URL" | sed 's#https://#https://candidate---#')"
+
+      - name: Move the traffic to the new revision
+        run: gcloud run services update-traffic rag-api --region europe-west3 --to-latest
+
+      - name: Remove the candidate tag
+        run: gcloud run services update-traffic rag-api --region europe-west3 --remove-tags candidate
