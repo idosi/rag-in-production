@@ -78,3 +78,46 @@ def test_healthcheck_really_runs_and_follows_the_port(monkeypatch):
     monkeypatch.delenv("PORT")
     exec(argv[2], {})
     assert urls == ["http://127.0.0.1:8080/health", "http://127.0.0.1:8000/health"]
+
+
+# ---- CD (step 3f): .github/workflows/deploy.yml, written by Ido as exercise 3f ----
+
+
+def _deploy_workflow():
+    return yaml.safe_load((ROOT / ".github/workflows/deploy.yml").read_text())
+
+
+def test_cd_runs_only_after_ci_succeeded_on_main_and_never_on_push():
+    wf = _deploy_workflow()
+    on = wf.get("on", wf.get(True))
+    assert "push" not in on and "pull_request" not in on
+    assert on["workflow_run"]["workflows"] == ["CI"]  # must match the name in ci.yml
+    assert on["workflow_run"]["branches"] == ["main"]
+    assert "success" in wf["jobs"]["deploy"]["if"]  # workflow_run also fires when CI failed
+
+
+def test_cd_ci_workflow_name_matches_what_deploy_waits_for():
+    ci = yaml.safe_load((ROOT / ".github/workflows/ci.yml").read_text())
+    assert ci["name"] == "CI"
+
+
+def test_cd_uses_no_key_file_and_only_the_deploy_job_can_ask_for_an_oidc_token():
+    wf = _deploy_workflow()
+    assert "credentials_json" not in yaml.safe_dump(wf)
+    assert wf["permissions"] == {"contents": "read"}
+    assert wf["jobs"]["deploy"]["permissions"] == {"contents": "read", "id-token": "write"}
+
+
+def test_cd_deploys_the_commit_ci_tested_and_tags_the_image_with_it():
+    job = _deploy_workflow()["jobs"]["deploy"]
+    assert job["steps"][0]["with"]["ref"] == "${{ github.event.workflow_run.head_sha }}"
+    assert "head_sha" in job["env"]["IMAGE"] and "latest" not in job["env"]["IMAGE"]
+
+
+def test_cd_smoke_tests_the_candidate_before_any_traffic_moves():
+    steps = [str(s) for s in _deploy_workflow()["jobs"]["deploy"]["steps"]]
+
+    def first(*needles):
+        return next(i for i, s in enumerate(steps) if all(n in s for n in needles))
+
+    assert first("--no-traffic") < first("smoke.sh", "candidate---") < first("--to-latest")

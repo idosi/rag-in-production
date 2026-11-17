@@ -1,0 +1,85 @@
+# Continuous deployment (step 3f): a push to main that passes CI is deployed to Cloud Run.
+# Written by Ido as exercise 3f (12 tests), with a few small additions marked "added".
+#
+#   CI finishes on main -> this workflow starts -> build the image, tagged with the commit
+#   -> deploy it as a NEW revision with NO traffic -> smoke test its own URL
+#   -> only then move the traffic. If the smoke test fails, the old revision never stopped
+#   serving: nobody saw the broken one, and there is nothing to roll back.
+#
+# NO KEY FILE: GitHub proves who it is with a short-lived signed token (OIDC), and Google
+# (Workload Identity Federation) trades it for a short-lived access token, but only for
+# this repository. Setup and the three repository variables: docs/learning/03f-cd.md.
+#
+# `workflow_run` workflows run from the default branch: this file only takes effect once it
+# is on main, so the first real run happens after merging it.
+
+name: Deploy_RAG
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30  # added
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      IMAGE: europe-west3-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/rag/rag-api:${{ github.event.workflow_run.head_sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+      - id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_DEPLOYER_SERVICE_ACCOUNT }}
+          token_format: access_token
+
+      - uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ vars.GCP_PROJECT_ID }}
+
+      - uses: docker/login-action@v3
+        with:
+          registry: europe-west3-docker.pkg.dev
+          username: oauth2accesstoken
+          password: ${{ steps.auth.outputs.access_token }}
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ env.IMAGE }}
+          # added: reuse the dependency and model layers between runs (same as the CI docker job)
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Deploy the new revision with no traffic
+        run: make deploy IMAGE="$IMAGE" DEPLOY_FLAGS="--no-traffic --tag candidate"
+
+      - name: Smoke test the candidate revision
+        run: |
+          URL=$(gcloud run services describe rag-api --region europe-west3 --format 'value(status.url)')
+          scripts/smoke.sh "$(echo "$URL" | sed 's#https://#https://candidate---#')"
+
+      - name: Move the traffic to the new revision
+        run: gcloud run services update-traffic rag-api --region europe-west3 --to-latest
+
+      - name: Remove the candidate tag
+        run: gcloud run services update-traffic rag-api --region europe-west3 --remove-tags candidate
