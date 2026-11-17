@@ -74,8 +74,10 @@ deploy:             ## Deploy the image of the current commit to Cloud Run (run 
 	  --timeout 60 \
 	  --startup-probe httpGet.path=/health,periodSeconds=5,timeoutSeconds=3,failureThreshold=24 \
 	  --liveness-probe httpGet.path=/health,periodSeconds=30,timeoutSeconds=3,failureThreshold=3 \
-	  --allow-unauthenticated
+	  --allow-unauthenticated $(DEPLOY_FLAGS)
 
+# Extra `gcloud run deploy` flags; the CD workflow passes: --no-traffic --tag candidate
+DEPLOY_FLAGS ?=
 FRESH ?= 1h
 report:             ## Summarize the deployed service's last hour (errors, p95, cost) and show which alerts would fire
 	gcloud logging read 'resource.type="cloud_run_revision" AND resource.labels.service_name="$(SERVICE)" AND jsonPayload.request_id:*' \

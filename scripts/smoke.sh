@@ -5,12 +5,14 @@
 #   3. Does a real question work?     POST /ask with a key -> 200, cited sources, cost
 # And one negative check: /ask WITHOUT a key must be 401, or the service is open to everyone.
 #
-#   API_KEY=... scripts/smoke.sh https://rag-api-xxxx.europe-west3.run.app
+#   [API_KEY=...] scripts/smoke.sh https://rag-api-xxxx.europe-west3.run.app
 #   API_KEY=... make smoke          (finds the URL with gcloud)
 set -euo pipefail
 
 URL="${1:?usage: API_KEY=... $0 <service url>}"
-: "${API_KEY:?set API_KEY to one of the keys in the api-keys secret}"
+# API_KEY is optional: without it the paid question is skipped (the CD pipeline smoke-tests a
+# new revision before any traffic reaches it, with the three free checks only).
+API_KEY="${API_KEY:-}"
 Q='{"question": "How do I make a query parameter optional?"}'
 
 step() { printf '\n== %s\n' "$1"; }
@@ -27,9 +29,13 @@ code=$(curl -sS -o /dev/null -w '%{http_code}' -X POST "$URL/ask" \
 echo "$code"
 [ "$code" = "401" ] || { echo "FAIL: /ask is not protected"; exit 1; }
 
-step "POST /ask with a key (one real question, costs about \$0.008)"
-curl -sS --fail-with-body -X POST "$URL/ask" \
-  -H 'Content-Type: application/json' -H "X-API-Key: $API_KEY" -d "$Q" -D - \
-  | grep -iE '^x-request-id|"answer"|"cost_usd"' | cut -c1-300
+if [ -n "$API_KEY" ]; then
+  step "POST /ask with a key (one real question, costs about \$0.008)"
+  curl -sS --fail-with-body -X POST "$URL/ask" \
+    -H 'Content-Type: application/json' -H "X-API-Key: $API_KEY" -d "$Q" -D - \
+    | grep -iE '^x-request-id|"answer"|"cost_usd"' | cut -c1-300
+else
+  echo "(no API_KEY: skipping the paid question)"
+fi
 
 printf '\nOK: all smoke checks passed\n'
