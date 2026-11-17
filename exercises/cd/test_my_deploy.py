@@ -65,7 +65,7 @@ def test_5_checks_out_the_commit_that_ci_tested(wf):
 
 
 def test_6_authenticates_with_workload_identity_federation_and_no_key_file(wf):
-    assert "credentials_json" not in FILE.read_text()
+    assert "credentials_json" not in yaml.safe_dump(wf)  # comments do not count, only real keys
     i = index_of(wf, "google-github-actions/auth@")
     assert i >= 0
     w = steps(wf)[i]["with"]
