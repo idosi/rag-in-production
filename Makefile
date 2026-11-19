@@ -1,4 +1,4 @@
-.PHONY: install up down ingest ask api test lint eval-retrieval eval-answers labeling-sheet docker-build docker-up docker-ingest eval-redteam gcp-build deploy smoke report
+.PHONY: install up down ingest ask api test lint eval-retrieval eval-answers labeling-sheet labeling-score docker-build docker-up docker-ingest eval-redteam gcp-build deploy smoke report
 
 install:            ## Install dependencies into .venv
 	uv sync
@@ -30,6 +30,9 @@ eval-answers:       ## Grade answers per model with an LLM judge (COSTS MONEY, a
 
 labeling-sheet:     ## Build the blind sheet for labeling answers by hand (free, needs the DB): then fill evals/labeling/labels.json
 	uv run python -m rag.evals.labeling
+
+labeling-score:     ## Compare your labels with the judge (free): agreement, kappa and every disagreement
+	uv run python -m rag.evals.labeling_score
 
 eval-redteam:       ## Try prompt-injection attacks on the real model (costs a few cents)
 	uv run python -m rag.evals.red_team
