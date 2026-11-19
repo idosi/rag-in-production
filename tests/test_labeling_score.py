@@ -66,3 +66,18 @@ def test_pair_up_lines_human_and_judge_up_in_id_order():
 def test_pair_up_rejects_an_id_from_another_run():
     with pytest.raises(LabelError, match="q9"):
         pair_up({"q9": item(True, "fully")}, [{"id": "q1", "verdict": verdict([], "fully")}])
+
+
+def test_report_numbers_and_disagreements():
+    from rag.evals.labeling_score import disagreements, format_report
+
+    labels = {"q1": item(True, "fully"), "q2": item(False, "fully", "my note")}
+    results = [
+        {"id": "q1", "question": "Q1?", "verdict": {**verdict([], "fully"), "reasoning": "r1"}},
+        {"id": "q2", "question": "Q2?", "verdict": {**verdict([], "fully"), "reasoning": "r2"}},
+    ]
+    pairs = pair_up(labels, results)
+    diffs = disagreements(pairs, results)
+    assert [d["id"] for d in diffs] == ["q2"]  # judge: faithful, you: not faithful
+    report = format_report(pairs, results)
+    assert "agreement 50%" in report and "my note" in report and "r2" in report
