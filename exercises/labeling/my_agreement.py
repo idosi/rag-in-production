@@ -7,12 +7,23 @@ You will compare YOUR labels with the judge's. Two numbers matter:
 
 Run:   uv run pytest exercises/labeling -q
 """
-
+from collections import Counter
+import math
 
 def percent_agreement(a: list, b: list) -> float:
     """Share of positions where a[i] == b[i]. Raise ValueError if the lists differ in
     length or are empty (there is nothing to compare)."""
-    raise NotImplementedError
+    if  (not a and not b) | len(a) != len(b):
+        raise ValueError
+    AgreeNum=0
+    total_count=0
+    for x,y in zip(a,b):
+        if x == y:
+            AgreeNum+=1
+        total_count+=1
+
+    return AgreeNum/total_count   
+
 
 
 def cohens_kappa(a: list, b: list) -> float:
@@ -26,4 +37,20 @@ def cohens_kappa(a: list, b: list) -> float:
     each label. When pe == 1 (both always use one and the same label) the formula
     divides by zero: return 1.0 if they agree on everything, else 0.0.
     """
-    raise NotImplementedError
+    po = percent_agreement(a, b)
+
+    counter_a=Counter(a)   # {True: 4, False: 6}
+    counter_b=Counter(b)   # {True: 4, False: 6}
+
+
+    pe = 0
+    for label in set(a) | set(b):
+        pe_curr = counter_a[label]/len(a) * counter_b[label]/len(b)
+        pe+=pe_curr
+
+    if math.isclose(pe, 1):
+        return 1.0
+    return (po-pe)/ (1-pe)
+
+
+
