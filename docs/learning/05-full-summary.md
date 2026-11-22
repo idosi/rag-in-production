@@ -51,7 +51,7 @@ CLOUD:   GitHub push -> CI (ruff, pytest on real pgvector, docker build)
 | ‏3ו | ‏CD עם WIF | ‏פריסה אוטומטית בלי קובץ מפתח, 1:48 דקות |
 | ‏4 | ‏סיכום לראיונות | ‏[04](04-interview-summary.md) |
 
-‏---
+---
 
 ## ‏שלב 0: מפת הקוד ([00](00-code-map.md))
 
@@ -61,7 +61,7 @@ CLOUD:   GitHub push -> CI (ruff, pytest on real pgvector, docker build)
 
 **‏סדר הבדיקות בבקשה:** הזולות קודם והיקרה אחרונה: 422, ‏401, ‏429, ‏cache, ‏503 של התקציב, חיפוש, ורק אז Claude.
 
-‏---
+---
 
 ## ‏שלב 1: הבסיס ([01](01-foundations.md))
 
@@ -74,15 +74,15 @@ CLOUD:   GitHub push -> CI (ruff, pytest on real pgvector, docker build)
 | ‏החלטה | ‏למה | ‏המחיר |
 |---|---|---|
 | ‏קורפוס נעוץ לגרסה 0.162.0 | ‏בלי דאטה יציב אין מדידה: ציון שירד לא יגיד אם הקוד התקלקל או הדאטה השתנה | ‏לא מתעדכן לבד |
-| ‏שיבוץ קוד הדוגמאות בתוך הטקסט | ‏בתיעוד של FastAPI הקוד הוא הפניה (`{* ... *}`). בלי שיבוץ, תשובות "איך עושים" בלי קוד | ‏loader מורכב יותר |
+| ‏שיבוץ קוד הדוגמאות בתוך הטקסט | ‏בתיעוד של FastAPI הקוד הוא הפניה (<span dir="ltr">`{* ... *}`</span>). בלי שיבוץ, תשובות "איך עושים" בלי קוד | ‏loader מורכב יותר |
 | ‏chunking לפי כותרות Markdown, עד 1,200 תווים, ‏overlap של 200, נתיב כותרות בראש כל chunk | ‏לא חותך קוד באמצע, וכל chunk יודע על מה הוא | ‏1,200 הוא ניחוש מושכל, לא מדידה |
 | ‏`bge-small-en-v1.5` מקומי דרך fastembed, ‏384 מימדים | ‏בלי מפתח, בלי עלות לקריאה, הדאטה לא יוצא | ‏מודלים בתשלום בדרך כלל טובים יותר |
 | ‏`embed_query` ו-`embed_documents` נפרדים | ‏BGE אסימטרי: לשאלה יש prefix | ‏שימוש באותה פונקציה מוריד איכות בשקט |
-| ‏Postgres + pgvector, אינדקס HNSW, ‏`vector_cosine_ops` עם `<=>` | ‏מערכת אחת לטקסט, metadata ווקטורים | ‏בעשרות מיליונים צריך לכוונן או לעבור |
+| ‏Postgres + pgvector, אינדקס HNSW, ‏`vector_cosine_ops` עם <span dir="ltr">`<=>`</span> | ‏מערכת אחת לטקסט, metadata ווקטורים | ‏בעשרות מיליונים צריך לכוונן או לעבור |
 | ‏ingest אידמפוטנטי: hash של תוכן **והגדרות** (chunk size, overlap, מודל) | ‏הרצה חוזרת בטוחה, שינוי הגדרה מכריח בנייה מחדש | ‏— |
 | ‏החלפת דף בטרנזקציה אחת, ומחיקת דפים שנעלמו (אבל לא אם ה-loader החזיר 0) | ‏קורא לא רואה חצי דף, ודף שנמחק לא מצוטט לנצח | ‏— |
-| ‏system prompt של "רק מהמקורות", ‏`[n]`, ומשפט NOT_FOUND קבוע | ‏grounding, אפשר לאמת ולמדוד | ‏— |
-| ‏`parse_citations` זורק מספרים מחוץ לטווח | ‏`[7]` כשיש 5 מקורות הוא ציטוט מומצא | ‏— |
+| ‏system prompt של "רק מהמקורות", ‏<span dir="ltr">`[n]`</span>, ומשפט NOT_FOUND קבוע | ‏grounding, אפשר לאמת ולמדוד | ‏— |
+| ‏`parse_citations` זורק מספרים מחוץ לטווח | ‏<span dir="ltr">`[7]`</span> כשיש 5 מקורות הוא ציטוט מומצא | ‏— |
 | ‏endpoint הוא `def` ולא `async def` | ‏הקריאות חוסמות, אז FastAPI מריץ ב-thread pool | ‏חיבור DB אחד משותף לכל ה-threads |
 | ‏`if not sources` לפני Claude | ‏לא משלמים על קריאה שבטוח תיכשל | ‏אינדקס ריק נראה כמו "לא מצאתי" רגיל |
 
@@ -91,11 +91,11 @@ CLOUD:   GitHub push -> CI (ruff, pytest on real pgvector, docker build)
 **‏התובנה הכי חשובה של השלב:** ציון similarity לא יודע אם יש תשובה. "deploy to Kubernetes" (אין תשובה) קיבלה 0.765, יותר מ-"run code after returning a response" (יש תשובה, החיפוש פספס) עם 0.729. לכן אין סף על הציון, והסירוב הוא תפקיד המודל, והוא נמדד.
 
 **‏הטעויות שלנו:**
-- ‏ה-ingest הדפיס 661 chunks והטבלה הייתה ריקה: psycopg עם `autocommit=False` הפך את `conn.transaction()` ל-savepoints שאף פעם לא נשמרו. התיקון: `autocommit=True`, וטסט שקורא **מחיבור שני**. הלקח: טסט persistence חייב לקרוא דרך חיבור אחר.
+- ‏ה-ingest הדפיס 661 chunks והטבלה הייתה ריקה: psycopg עם `autocommit=False` הפך את <span dir="ltr">`conn.transaction()`</span> ל-savepoints שאף פעם לא נשמרו. התיקון: `autocommit=True`, וטסט שקורא **מחיבור שני**. הלקח: טסט persistence חייב לקרוא דרך חיבור אחר.
 - ‏הטסטים מחקו את האינדקס של הפיתוח. התיקון: מסד `rag_test` נפרד.
-- ‏‏401 בהרצה הראשונה: מפתח חסר ב-`.env`.
+- ‏‏401 בהרצה הראשונה: מפתח חסר ב-<span dir="ltr">`.env`</span>.
 
-‏---
+---
 
 ## ‏שלב 2א: מודדים את החיפוש ([02א](02a-retrieval-evals.md))
 
@@ -116,7 +116,7 @@ CLOUD:   GitHub push -> CI (ruff, pytest on real pgvector, docker build)
 
 **‏הסתייגות שחשוב להגיד:** שאלה אחת שווה כ-2.4 נקודות אחוז. הפרש של שאלה או שתיים הוא רעש, ולכן מסתכלים על fixed ו-broke.
 
-‏---
+---
 
 ## ‏שלב 2ב: ‏hybrid ו-reranker ([02ב](02b-hybrid-search-rerank.md))
 
@@ -124,7 +124,7 @@ CLOUD:   GitHub push -> CI (ruff, pytest on real pgvector, docker build)
 
 **‏למה ארבעה מצבים:** כל מצב מוסיף רעיון אחד. אם בונים רק `hybrid_rerank`, לא יודעים איזה חצי עזר, ואולי אחד מהם בכלל מזיק.
 
-**‏RRF:** ‏`score = Σ 1/(60 + rank)`. מתעלם מהציונים (cosine בין 0.70 ל-0.85, ‏ts_rank_cd בין 0.01 ל-2, מטרים מול שקלים) ומשתמש רק במיקום.
+**‏RRF:** ‏<span dir="ltr">`score = Σ 1/(60 + rank)`</span>. מתעלם מהציונים (cosine בין 0.70 ל-0.85, ‏ts_rank_cd בין 0.01 ל-2, מטרים מול שקלים) ומשתמש רק במיקום.
 
 **‏bi-encoder מול cross-encoder:** הראשון מקודד שאלה ומסמך בנפרד, אז אפשר לחשב מראש ולחפש באינדקס. השני קורא את שניהם יחד, מדויק יותר, אבל רץ על כל זוג. אנלוגיה: סינון קורות חיים מול ראיון.
 
@@ -146,7 +146,7 @@ CLOUD:   GitHub push -> CI (ruff, pytest on real pgvector, docker build)
 
 **‏מה נשאר פתוח:** ‏q18 (model בתוך model) ו-q22 (להסתיר password) נכשלות. זה פער של אוצר מילים, לא של דירוג.
 
-‏---
+---
 
 ## ‏שלב 2ג: מודדים תשובות ובוחרים מודל ([02ג](02c-answer-evals.md))
 
@@ -174,17 +174,17 @@ CLOUD:   GitHub push -> CI (ruff, pytest on real pgvector, docker build)
 
 **‏הטעות שלא עשינו:** לא הזזנו את הרף כדי להציל את Haiku.
 
-‏---
+---
 
 ## ‏שלב 2ד: מודל מקומי עם Ollama ([02ד](02d-local-models.md))
 
-**‏מה בנינו:** `OllamaGenerator` ו-`build_generator("ollama:...")`. בלי תלות חדשה (`httpx`).
+**‏מה בנינו:** `OllamaGenerator` ו-<span dir="ltr">`build_generator("ollama:...")`</span>. בלי תלות חדשה (`httpx`).
 
 **‏למה זה היה קל:** ה-pipeline וה-evals מכירים רק את הממשק `Generator.generate(question, sources) -> Answer`. להחליף רכיב זה לכתוב מחלקה אחת.
 
 **‏שלושה פרטים:** ‏`num_ctx=8192` (ברירת המחדל קטנה, ו-Ollama **חותך בשקט** את ההתחלה, בדיוק איפה שהכללים יושבים), ‏`temperature: 0`, ועלות 0 דולר שמשולמת בזמן.
 
-‏---
+---
 
 ## ‏שלב 2ה: שכתוב שאלה ([02ה](02e-query-rewriting.md))
 
@@ -204,7 +204,7 @@ CLOUD:   GitHub push -> CI (ruff, pytest on real pgvector, docker build)
 
 **‏הלקח הכי חשוב בפרויקט על ניסויים:** ניסוי שיש בו LLM מריצים יותר מפעם אחת ומתעדים טווח. **השערה שלא נבדקה** למה q22 לא תוקנה: RRF מתגמל הסכמה בין רשימות, והמילה "password" הופיעה בשאלה ובניסוח, אז chunks של OAuth2 ניצחו.
 
-‏---
+---
 
 ## ‏שלב 2ו: דפי סקירה בקורפוס ([02ו](02f-corpus-overview-pages.md))
 
@@ -220,14 +220,14 @@ CLOUD:   GitHub push -> CI (ruff, pytest on real pgvector, docker build)
 
 **‏הלקח:** golden set שכתב מי שקרא את התיעוד שואל בשפה של התיעוד. משתמשים אמיתיים שואלים קודם שאלות סקירה.
 
-‏---
+---
 
 ## ‏שלב 2ז: מודלים חינמיים אמיתיים ([02ז](02g-free-models-benchmark.md))
 
 **‏מה בנינו:** הרצה אמיתית של Ollama על ה-Mac, ושני תרגילים שכתבת: `ollama_stats` (משכי זמן בננו-שניות לשניות, טוקנים לשנייה, דגלים `context_full` ו-`cut_off`) ו-`preflight` (‏`GET /api/tags` פעם אחת בהתחלה, ונכשל עם הפקודה לתיקון). שניהם עברו ל-`src/rag/ollama_tools.py`.
 
 **‏ארבע בעיות בסרגל, לפני שהגענו למודל:**
-- ‏ה-eval שלח 4 שאלות במקביל, ו-Ollama עונה על אחת. ה-latency היה יוצא פי 4. התיקון: worker אחד למודל `ollama:`.
+- ‏ה-eval שלח 4 שאלות במקביל, ו-Ollama עונה על אחת. ה-latency היה יוצא פי 4. התיקון: worker אחד למודל <span dir="ltr">`ollama:`</span>.
 - ‏השאלה הראשונה טוענת את המודל (5 עד 20 שניות). התיקון: קריאת warm-up שלא נמדדת.
 - ‏מודל חסר היה נכשל אחרי שכבר שילמנו על Claude. התיקון: preflight.
 - ‏לא ידענו איפה הזמן הולך. התיקון: ollama_stats.
@@ -242,29 +242,29 @@ CLOUD:   GitHub push -> CI (ruff, pytest on real pgvector, docker build)
 | ‏qwen2.5:1.5b (רק 6 בלי תשובה) | | | ‏2/6 | ‏2.7 שניות |
 | ‏llama3.1:8b (5 שאלות) | ‏0.6 | ‏0.2 | | ‏46.6 שניות, והמחשב קפא |
 
-**‏מה רואים:** ‏70.5% מהתשובות של qwen2.5:3b בלי אף `[n]`. האי-נאמנות היא בעיקר קוד מהזיכרון: `import` שלא במקור, `CORSMiddleware`, מחלקה `RateLimiter` שלא קיימת.
+**‏מה רואים:** ‏70.5% מהתשובות של qwen2.5:3b בלי אף <span dir="ltr">`[n]`</span>. האי-נאמנות היא בעיקר קוד מהזיכרון: `import` שלא במקור, `CORSMiddleware`, מחלקה `RateLimiter` שלא קיימת.
 
 **‏ההחלטה:** נשארים עם Sonnet. מודל מקומי רק כשהנתונים לא יכולים לצאת, ואז מודל גדול עם GPU, ומודדים קודם.
 
 **‏הטעויות:** ‏`tokens_per_s` חולק בערך מעוגל (4ms נתנו 0), ו-`total_s` חושב כסכום במקום להיקרא מ-Ollama. הטסטים המקוריים עברו, ו-code review תפס. ‏`LIMIT=5` אף פעם לא בדק סירוב (השאלות בלי תשובה בסוף הקובץ, `unans ok 0/0`), ולכן נוסף `ONLY`.
 
-‏---
+---
 
 ## ‏שלב 3א: Docker ו-CI ([03א](03a-docker-ci.md))
 
-**‏מה בנינו:** `Dockerfile` רב-שלבי (builder, ‏models, ‏runtime), ‏docker-compose עם `profiles: ["app"]`, ו-CI עם שני jobs: `test` (ruff, ‏`ruff format --check`, ‏pytest מול pgvector אמיתי) ו-`docker` (בנייה בלי push).
+**‏מה בנינו:** `Dockerfile` רב-שלבי (builder, ‏models, ‏runtime), ‏docker-compose עם <span dir="ltr">`profiles: ["app"]`</span>, ו-CI עם שני jobs: `test` (ruff, ‏`ruff format --check`, ‏pytest מול pgvector אמיתי) ו-`docker` (בנייה בלי push).
 
 **‏ההחלטות:**
 - ‏מעתיקים `pyproject.toml` ו-`uv.lock` לפני הקוד, כדי ששינוי שורה לא יתקין הכול מחדש.
 - ‏המודלים (כ-200MB) נאפים בזמן build, כדי שהקונטיינר לא יהיה תלוי ב-Hugging Face בעלייה.
 - ‏משתמש לא root, ו-`permissions: contents: read` ב-CI.
-- ‏`.env` ב-`.dockerignore`, וטסט שבודק את זה: מפתח בשכבה של image לא נמחק לעולם.
+- ‏<span dir="ltr">`.env`</span> ב-<span dir="ltr">`.dockerignore`</span>, וטסט שבודק את זה: מפתח בשכבה של image לא נמחק לעולם.
 - ‏`uv sync --frozen`: מה שנבדק הוא מה שרץ.
 - ‏evals **לא** ב-CI: עולים כסף ולא דטרמיניסטיים.
 
-**‏הבאג:** ‏`/health` קרא `pipeline.store`, ואחרי refactor ה-store עבר ל-`pipeline.retriever.store`. כל הטסטים היו ירוקים, וה-healthcheck של Docker אמר unhealthy. התיקון: `tests/test_api.py`. הלקח: לשכבת ה-API לא היו טסטים.
+**‏הבאג:** ‏<span dir="ltr">`/health`</span> קרא `pipeline.store`, ואחרי refactor ה-store עבר ל-`pipeline.retriever.store`. כל הטסטים היו ירוקים, וה-healthcheck של Docker אמר unhealthy. התיקון: `tests/test_api.py`. הלקח: לשכבת ה-API לא היו טסטים.
 
-‏---
+---
 
 ## ‏שלב 3ב-1: מפתח API והגבלת קצב ([03ב](03b-auth-rate-limit.md))
 
@@ -272,31 +272,31 @@ CLOUD:   GitHub push -> CI (ruff, pytest on real pgvector, docker build)
 
 **‏ההחלטות:** ‏`hmac.compare_digest` ולולאה שלא עוצרת מוקדם (timing attack), כמה מפתחות בפסיק (rotation בלי השבתה), sliding window ולא מונה שמתאפס (שמאפשר 40 בקשות בשתי שניות סביב הגבול).
 
-**‏המגבלות שאמרנו בעצמנו:** המונים בזיכרון, אז עם N containers המכסה בפועל פי N. ‏ניחושי מפתח שגויים לא נספרים נגד אף מכסה. ‏`/health` פתוח בכוונה.
+**‏המגבלות שאמרנו בעצמנו:** המונים בזיכרון, אז עם N containers המכסה בפועל פי N. ‏ניחושי מפתח שגויים לא נספרים נגד אף מכסה. ‏<span dir="ltr">`/health`</span> פתוח בכוונה.
 
-‏---
+---
 
 ## ‏שלב 3ב-2: ‏prompt injection ([03ב-2](03b2-prompt-injection.md))
 
-**‏ארבע שכבות:** (1) `sanitize` מחליף את ה-`<` שלפני `source` או `sources` ב-`&lt;`, ו-`escape_attr` מטפל ב-`"` וב-`<` בכותרת וב-url. (2) כלל ב-system prompt שהמקורות הם נתונים. (3) הגבלת נזק: למודל אין כלים, אין סודות. (4) ‏`make eval-redteam` עם 5 התקפות וקנריות (`PWNED`, ‏`424242`, ומשפט שקיים רק ב-system prompt).
+**‏ארבע שכבות:** (1) `sanitize` מחליף את ה-<span dir="ltr">`<`</span> שלפני `source` או `sources` ב-<span dir="ltr">`&lt;`</span>, ו-`escape_attr` מטפל ב-<span dir="ltr">`"`</span> וב-<span dir="ltr">`<`</span> בכותרת וב-url. (2) כלל ב-system prompt שהמקורות הם נתונים. (3) הגבלת נזק: למודל אין כלים, אין סודות. (4) ‏`make eval-redteam` עם 5 התקפות וקנריות (`PWNED`, ‏`424242`, ומשפט שקיים רק ב-system prompt).
 
-**‏למה לנטרל ולא למחוק:** מחיקה משנה קוד לגיטימי, ו-`<</source>/source>` אחרי מחיקה הופך שוב ל-`</source>`.
+**‏למה לנטרל ולא למחוק:** מחיקה משנה קוד לגיטימי, ו-<span dir="ltr">`<</source>/source>`</span> אחרי מחיקה הופך שוב ל-<span dir="ltr">`</source>`</span>.
 
 **‏התוצאה, ביושר:** ‏Sonnet ו-Haiku עמדו ב-5/5, **גם כש-sanitize כובה**. כלומר sanitize הוא הגנה לעומק שלא נשענת על המודל, וה-red-team הוא בדיקת נסיגה ולא הוכחה.
 
 **‏המשפט:** מגבילים את מה שהמודל *יכול* לעשות, כי אי אפשר להבטיח מה שהוא *ירצה*.
 
-‏---
+---
 
 ## ‏שלב 3ג: עלות, cache ו-tracing ([03ג](03c-cost-cache-tracing.md))
 
 **‏מה בנינו (את ארבעת החלקים כתבת ב-TDD):** ‏`SpendTracker`, ‏`AnswerCache`, ‏`GuardedPipeline` ו-`Trace`.
 
-**‏עלות:** `(input × מחיר_in + output × מחיר_out) / 1,000,000`, מה-`usage` של כל תשובה. שאלה טיפוסית: כ-2,500 פנימה ו-300 החוצה, כ-0.008 דולר ב-Sonnet, כלומר כ-600 שאלות ב-5 דולר. טוקני thinking נספרים כ-output. ‏`cost_of` מחזיר 0 כשאין usage.
+**‏עלות:** <span dir="ltr">`(input_tokens × price_in + output_tokens × price_out) / 1,000,000`</span>, מה-`usage` של כל תשובה. שאלה טיפוסית: כ-2,500 פנימה ו-300 החוצה, כ-0.008 דולר ב-Sonnet, כלומר כ-600 שאלות ב-5 דולר. טוקני thinking נספרים כ-output. ‏`cost_of` מחזיר 0 כשאין usage.
 
-**‏תקציב יומי:** 503 עד חצות UTC. יש `threading.Lock` כי `+=` הוא שלושה צעדים (lost update). השעון מוזרק כדי לבדוק "מחר". **לא תקרה קשיחה:** `allow` לפני הקריאה ו-`record` אחריה, אז בקשות בטיסה יכולות לעבור.
+**‏תקציב יומי:** 503 עד חצות UTC. יש `threading.Lock` כי <span dir="ltr">`+=`</span> הוא שלושה צעדים (lost update). השעון מוזרק כדי לבדוק "מחר". **לא תקרה קשיחה:** `allow` לפני הקריאה ו-`record` אחריה, אז בקשות בטיסה יכולות לעבור.
 
-**‏cache:** ‏LRU עם TTL (500 רשומות, שעה, `OrderedDict`). המפתח: שאלה מנורמלת ו-`מודל | גרסת תיעוד | top_k | מצב חיפוש`. **לא** במפתח: נוסח ה-prompt, מודל ה-embedding וה-chunking. לא שומרים NOT_FOUND. מחזירים עותק (`dataclasses.replace`).
+**‏cache:** ‏LRU עם TTL (500 רשומות, שעה, `OrderedDict`). המפתח: השאלה אחרי נרמול, המודל, גרסת התיעוד, `top_k` ומצב החיפוש. **לא** במפתח: נוסח ה-prompt, מודל ה-embedding וה-chunking. לא שומרים NOT_FOUND. מחזירים עותק (`dataclasses.replace`).
 
 **‏הסדר ב-GuardedPipeline:** cache קודם, אחר כך תקציב, כי hit עולה 0, וכשהכסף נגמר שאלות שכבר נענו עדיין מוגשות.
 
@@ -304,11 +304,11 @@ CLOUD:   GitHub push -> CI (ruff, pytest on real pgvector, docker build)
 
 **‏מה לא עשינו:** Redis, ‏semantic cache ("optional" מול "required" קרובות בווקטור והפוכות בתשובה), ‏OpenTelemetry, ‏prompt caching של Anthropic (אין תחילית קבועה וארוכה).
 
-‏---
+---
 
 ## ‏שלב 3ד: ‏Cloud Run ו-Neon ([03ד](03d-cloud-run-neon.md))
 
-**‏מה בנינו:** פריסה ל-Cloud Run באזור europe-west3 (פרנקפורט), ‏Neon Free באותה עיר, ‏Secret Manager לשלושה סודות, ‏Cloud Build (בונה amd64), ‏Artifact Registry. את ארבעת התרגילים כתבת: ‏`$PORT` ב-Dockerfile, ‏`redact` ו-`require_tls`, ‏`/health` מול `/ready`, ו-`Reconnector`.
+**‏מה בנינו:** פריסה ל-Cloud Run באזור europe-west3 (פרנקפורט), ‏Neon Free באותה עיר, ‏Secret Manager לשלושה סודות, ‏Cloud Build (בונה amd64), ‏Artifact Registry. את ארבעת התרגילים כתבת: ‏<span dir="ltr">`$PORT`</span> ב-Dockerfile, ‏`redact` ו-`require_tls`, ‏<span dir="ltr">`/health`</span> מול <span dir="ltr">`/ready`</span>, ו-`Reconnector`.
 
 **‏ההחלטות והמחיר:**
 
@@ -319,23 +319,23 @@ CLOUD:   GitHub push -> CI (ruff, pytest on real pgvector, docker build)
 | ‏אותה עיר ל-API ול-DB | ‏כ-1ms לפנייה מול כ-60ms מישראל | ‏— |
 | ‏חיבור ישיר ולא pooler | ‏חיבור אחד לכל container, ובלי בעיות prepared statements של PgBouncer | ‏— |
 | ‏service account ‏`rag-api` עם הרשאה לכל סוד בנפרד | ‏ברירת המחדל היא Editor על כל הפרויקט | ‏— |
-| ‏`printf %s` ולא `echo` | ‏`echo` מוסיף `\n`, והמפתח מקבל 401 בלי רמז | ‏— |
+| ‏`printf %s` ולא `echo` | ‏`echo` מוסיף <span dir="ltr">`\n`</span>, והמפתח מקבל 401 בלי רמז | ‏— |
 | ‏`API_KEYS` ריק כש-`K_SERVICE` מוגדר: השירות לא עולה | ‏כישלון רועש עדיף על אזהרה | ‏— |
-| ‏`--max-instances 2`, ‏`--concurrency 8`, ‏`--memory 2Gi`, ‏`--cpu-boost` | ‏תקרת עלות, ו-state בזיכרון חסום פי 2 | ‏בעומס בקשות ממתינות |
+| ‏<span dir="ltr">`--max-instances 2`</span>, ‏<span dir="ltr">`--concurrency 8`</span>, ‏<span dir="ltr">`--memory 2Gi`</span>, ‏<span dir="ltr">`--cpu-boost`</span> | ‏תקרת עלות, ו-state בזיכרון חסום פי 2 | ‏בעומס בקשות ממתינות |
 | ‏`DAILY_BUDGET_USD=1` בענן | ‏תקרה של 2 דולר ליום על Claude | ‏— |
-| ‏startup ו-liveness על `/health`, ‏DB רק ב-`/ready` | ‏נפילת DB לא תגרום להחלפת containers בלולאה | ‏ראה הבאג |
+| ‏startup ו-liveness על <span dir="ltr">`/health`</span>, ‏DB רק ב-<span dir="ltr">`/ready`</span> | ‏נפילת DB לא תגרום להחלפת containers בלולאה | ‏ראה הבאג |
 | ‏`sslmode=require` לפחות | ‏`prefer` של libpq נופל בשקט לטקסט גלוי | ‏— |
 | ‏image מתויג ב-commit | ‏יודעים מה רץ, ‏rollback הוא העברת traffic | ‏— |
 
-**‏הבאג המרכזי של הפרויקט:** ה-API החזיק חיבור DB אחד לתמיד. ‏Neon Free נרדם אחרי 5 דקות בלי שאילתות וסגר את החיבור. ‏Cloud Run השאיר את ה-container, וה-liveness עבר כי `/health` לא נוגע ב-DB. אחרי שקט, **כל** שאלה קיבלה 500 (`OperationalError`) עד שה-container הוחלף. שחזרנו בכוונה (6 דקות המתנה) ורק אז תיקנו.
+**‏הבאג המרכזי של הפרויקט:** ה-API החזיק חיבור DB אחד לתמיד. ‏Neon Free נרדם אחרי 5 דקות בלי שאילתות וסגר את החיבור. ‏Cloud Run השאיר את ה-container, וה-liveness עבר כי <span dir="ltr">`/health`</span> לא נוגע ב-DB. אחרי שקט, **כל** שאלה קיבלה 500 (`OperationalError`) עד שה-container הוחלף. שחזרנו בכוונה (6 דקות המתנה) ורק אז תיקנו.
 
-**‏ה-`Reconnector`:** על `OperationalError` בלבד, סוגרים, פותחים חיבור חדש ומנסים **פעם אחת**. רק לקריאות (SELECT, בטוח לחזור). ‏lock ובדיקת `self.conn is conn` כדי שאם 8 בקשות נכשלות יחד רק אחת תחליף את החיבור (טסט עם `threading.Barrier(8)`). אחרי deploy: שאלה **חדשה** אחרי יותר מ-9 דקות שקט קיבלה 200, ו-`/ready` החזיר 200 עם 745 chunks.
+**‏ה-`Reconnector`:** על `OperationalError` בלבד, סוגרים, פותחים חיבור חדש ומנסים **פעם אחת**. רק לקריאות (SELECT, בטוח לחזור). ‏lock ובדיקת `self.conn is conn` כדי שאם 8 בקשות נכשלות יחד רק אחת תחליף את החיבור (טסט עם <span dir="ltr">`threading.Barrier(8)`</span>). אחרי deploy: שאלה **חדשה** אחרי יותר מ-9 דקות שקט קיבלה 200, ו-<span dir="ltr">`/ready`</span> החזיר 200 עם 745 chunks.
 
 **‏שלושה לקחים:** cache מסתיר כשל במסד (בדיקה חוזרת חייבת שאלה חדשה). ‏liveness ו-readiness הן שאלות שונות. ‏Neon עלה כ-Postgres 18 בזמן שמקומית ו-CI הם 16.
 
 **‏שאר התקלות שצפינו:** `exec format error` (image של arm64 מה-Mac), ‏`Permission denied on secret`, ו-`index is empty` כשה-ingest רץ על ה-DB המקומי.
 
-‏---
+---
 
 ## ‏שלב 3ה: ‏monitoring והתראות ([03ה](03e-monitoring-alerts.md))
 
@@ -343,28 +343,28 @@ CLOUD:   GitHub push -> CI (ruff, pytest on real pgvector, docker build)
 
 **‏מה מודדים:** RED ועוד אחד: Rate, ‏Errors (5xx חוץ מ-503), ‏Duration (p95, ‏nearest rank), ו-Cost. ה-503 של התקציב נספר בנפרד (`rejected`) עם התראה משלו: הוא לא תקלה, אבל משתמשים נשארו בלי תשובה.
 
-**‏מה בנינו:** כתבת `percentile`, ‏`summarize` ו-`check_alerts` (13 טסטים). הם עברו ל-`src/rag/logreport.py` (16 טסטים), עם `make report` שמסכם את לוגי השעה האחרונה ויוצא עם 1 אם התראה נורתה. בענן: 3 log-based metrics (‏`rag_errors`, ‏`rag_budget_rejections`, ‏`rag_latency_ms` מסוג distribution) ו-3 alert policies (יותר מ-3 שגיאות ב-10 דקות, ‏p95 מעל 8,000ms, כל 503 של תקציב) עם ערוץ מייל. הקבצים ב-`monitoring/`.
+**‏מה בנינו:** כתבת `percentile`, ‏`summarize` ו-`check_alerts` (13 טסטים). הם עברו ל-`src/rag/logreport.py` (16 טסטים), עם `make report` שמסכם את לוגי השעה האחרונה ויוצא עם 1 אם התראה נורתה. בענן: 3 log-based metrics (‏`rag_errors`, ‏`rag_budget_rejections`, ‏`rag_latency_ms` מסוג distribution) ו-3 alert policies (יותר מ-3 שגיאות ב-10 דקות, ‏p95 מעל 8,000ms, כל 503 של תקציב) עם ערוץ מייל. הקבצים ב-<span dir="ltr">`monitoring/`</span>.
 
 **‏נבדק מקצה לקצה (2026-11-15):** ‏`DAILY_BUDGET_USD=0.001`, שתי שאלות **שונות**, השנייה קיבלה 503, ואחרי כ-4 דקות הגיע מייל. ‏`make report` הראה `budget refused 2`. ה-incident נסגר לבד אחרי 30 דקות (`autoClose`).
 
-**‏ההחלטות:** `min_requests` כדי ששתי בקשות ושגיאה אחת לא יהיו "50% שגיאות" בשלוש בלילה. בלי uptime check על `/ready`, כי הוא היה מעיר את ה-container ואת Neon ומבטל את החינם.
+**‏ההחלטות:** `min_requests` כדי ששתי בקשות ושגיאה אחת לא יהיו "50% שגיאות" בשלוש בלילה. בלי uptime check על <span dir="ltr">`/ready`</span>, כי הוא היה מעיר את ה-container ואת Neon ומבטל את החינם.
 
 **‏הטעות:** כתבתי קודם "להתריע על קפיצה ב-reconnects". ב-Neon Free חיבור מחדש הוא רגיל אחרי כל שינה. מה שחשוב הוא שהוא מצליח, וזה מה שהתראת השגיאות בודקת. ‏**מגבלה שנשארה:** ‏503 נכלל באחוזוני ה-latency ומוריד את p50.
 
-‏---
+---
 
 ## ‏שלב 3ו: ‏CD עם Workload Identity Federation ([03ו](03f-cd.md))
 
-**‏מה בנינו:** `.github/workflows/deploy.yml`, שכתבת כתרגיל (12 טסטים).
+**‏מה בנינו:** <span dir="ltr">`.github/workflows/deploy.yml`</span>, שכתבת כתרגיל (12 טסטים).
 
-**‏הזרימה:** ‏CI ירוק על main, ואז `workflow_run`, ‏OIDC token מ-GitHub, החלפה לאסימון של `github-deployer` לשעה, בניית image עם תג ה-commit, פריסת revision עם `--no-traffic --tag candidate`, ‏smoke על כתובת ה-candidate, ורק אז `--to-latest`.
+**‏הזרימה:** ‏CI ירוק על main, ואז `workflow_run`, ‏OIDC token מ-GitHub, החלפה לאסימון של `github-deployer` לשעה, בניית image עם תג ה-commit, פריסת revision עם <span dir="ltr">`--no-traffic --tag candidate`</span>, ‏smoke על כתובת ה-candidate, ורק אז <span dir="ltr">`--to-latest`</span>.
 
 **‏ההחלטות:**
 
 | ‏מה | ‏למה |
 |---|---|
 | ‏`workflow_run` ולא `push` | ‏`push` רץ במקביל ל-CI ויכול לפרוס קוד אדום |
-| ‏`if: conclusion == 'success'` | ‏`workflow_run` נורה גם כש-CI נכשל |
+| ‏<span dir="ltr">`if: conclusion == 'success'`</span> | ‏`workflow_run` נורה גם כש-CI נכשל |
 | ‏`checkout` של `head_sha` | ‏קצה main יכול להיות commit שה-CI לא בדק |
 | ‏`id-token: write` רק ל-job | ‏least privilege |
 | ‏`concurrency` עם `cancel-in-progress: false` | ‏פריסה חצי-גמורה גרועה מהמתנה |
@@ -374,9 +374,9 @@ CLOUD:   GitHub push -> CI (ruff, pytest on real pgvector, docker build)
 
 **‏התוצאה:** ההרצה האמיתית הראשונה עברה, 11 צעדים ב-1:48 דקות, ו-revision ‏00005 קיבל 100% מה-traffic על image עם תג ה-commit.
 
-**‏המגבלה:** ה-smoke ב-CD רץ בלי מפתח (‏`/health`, ‏`/ready`, ו-401 ל-`/ask`), אז נתיב Claude לא נבדק לפני התנועה. בכוונה, כדי לא לתת ל-deployer גישה למפתח.
+**‏המגבלה:** ה-smoke ב-CD רץ בלי מפתח (‏<span dir="ltr">`/health`</span>, ‏<span dir="ltr">`/ready`</span>, ו-401 ל-<span dir="ltr">`/ask`</span>), אז נתיב Claude לא נבדק לפני התנועה. בכוונה, כדי לא לתת ל-deployer גישה למפתח.
 
-‏---
+---
 
 ## ‏הלקחים שחוצים את כל הפרויקט
 
@@ -386,8 +386,8 @@ CLOUD:   GitHub push -> CI (ruff, pytest on real pgvector, docker build)
 | ‏ניסוי עם LLM מריצים יותר מפעם אחת | ‏2ה: ‏0.976 ואז 0.952 |
 | ‏תסתכל על fixed ו-broke, לא רק על הממוצע | ‏2ב: rerank על 30 "תיקן 3" ושבר 4 |
 | ‏בדוק שהסרגל ישר לפני שאתה משווה | ‏2ז: ‏latency פי 4, ‏`LIMIT=5` בלי סירובים |
-| ‏טסט ירוק מוכיח רק את מה שהוא בודק | ‏1 (autocommit), ‏3א (`/health`), ‏2ז (`tokens_per_s`) |
-| ‏השגיאה השקטה מסוכנת מהרועשת | ‏`num_ctx`, ‏`sslmode=prefer`, ‏`echo` עם `\n`, ‏hash בלי הגדרות |
+| ‏טסט ירוק מוכיח רק את מה שהוא בודק | ‏1 (autocommit), ‏3א (<span dir="ltr">`/health`</span>), ‏2ז (`tokens_per_s`) |
+| ‏השגיאה השקטה מסוכנת מהרועשת | ‏`num_ctx`, ‏`sslmode=prefer`, ‏`echo` עם <span dir="ltr">`\n`</span>, ‏hash בלי הגדרות |
 | ‏fail fast לפני שמשלמים | ‏preflight, ‏`API_KEYS` ריק בענן, 401 ו-429 לפני ה-pipeline |
 | ‏שחזר את הבאג לפני שאתה מתקן | ‏3ד: ‏6 דקות המתנה, ואז 9 אחרי התיקון |
 | ‏הגבל את מה שהמודל יכול לעשות | ‏3ב-2: בלי כלים, בלי סודות |
