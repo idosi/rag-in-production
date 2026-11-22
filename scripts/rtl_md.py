@@ -61,7 +61,13 @@ def convert(text: str) -> str:
                 out += ["", "</div>"]
             in_code = not in_code
             continue
-        if in_code or not line.strip() or line.startswith("<div") or line == "</div>" or re.fullmatch(r"-{3,}|\*{3,}|_{3,}", line.strip()):
+        if (
+            in_code
+            or not line.strip()
+            or line.startswith("<div")
+            or line == "</div>"
+            or re.fullmatch(r"-{3,}|\*{3,}|_{3,}", line.strip())
+        ):
             out.append(line)
             continue
         if line.startswith("|"):
@@ -69,7 +75,9 @@ def convert(text: str) -> str:
                 out.append(line)
                 continue
             cells = line.split("|")
-            middle = [(" " + mark(isolate_code(c.lstrip()))) if c.strip() else c for c in cells[1:-1]]
+            middle = [
+                (" " + mark(isolate_code(c.lstrip()))) if c.strip() else c for c in cells[1:-1]
+            ]
             out.append("|".join([cells[0], *middle, cells[-1]]))
         elif line.startswith("<details><summary><b>"):
             out.append(line.replace("<summary><b>", "<summary><b>" + RLM, 1).replace(RLM * 2, RLM))
