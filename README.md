@@ -55,6 +55,14 @@ The quality bar was fixed before looking at results: unfaithful at most 5%, ever
 - Similarity scores cannot tell whether an answer exists: a question with no answer scored higher (0.765) than one whose answer was in the docs (0.729). The model is instructed to answer only from the sources and to refuse otherwise.
 - A Docker healthcheck found a crash in `/health` that the tests had missed. There is now a test for the API layer.
 
+## Case study: a policy assistant for a small finance office
+
+This repo is also packaged as a reference implementation of a production-grade RAG assistant, designed around a realistic scenario: a small bookkeeping firm whose staff need cited answers from internal policies (record retention, payment approvals, client onboarding, VAT preparation). It is a portfolio project with no real client. It was built and measured on the FastAPI documentation, and a synthetic finance-office corpus with a 22-question golden set shows how it maps onto that domain.
+
+- [Case study](docs/case-study/case-study.md): problem, architecture, decisions with measured numbers, failures, next steps
+- [Finance-office mapping](docs/case-study/finance-office-mapping.md): sources, confidentiality, PII, refusal, citations, audit trail, access control; what is built and what is design
+- [Synthetic demo corpus](examples/finance-office/): 8 fictional policies and a golden set (not yet evaluated)
+
 ## Quick start
 
 Requires Docker, [uv](https://docs.astral.sh/uv/) and an [Anthropic API key](https://console.anthropic.com).
